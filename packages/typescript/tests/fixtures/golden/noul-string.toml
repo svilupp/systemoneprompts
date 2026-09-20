@@ -1,0 +1,7 @@
+title = "Simple noul"
+
+[questions.is_urgent]
+type = "noul"
+instructions = "Does this convey urgency?"
+criteria.true = "Explicitly time-sensitive"
+criteria.false = "No urgency expressed"

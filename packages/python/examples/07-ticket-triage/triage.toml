@@ -1,0 +1,90 @@
+title = "Support ticket triage"
+version = "0.1.0"
+description = "Flagship workflow: seven questions from the TypeSafe how-to-build page"
+model = "jev-latest"
+owner = "support-platform"
+
+[requires]
+"ticket.message" = "string"
+"ticket.sender.email" = "string"
+"ticket.sender.display_name" = "string"
+"customer.open_orders" = "array"
+"policy.sensitive_credentials" = "array"
+
+[questions.topic]
+type = "choice"
+instructions.question = "Which team should handle `ticket.message`?"
+instructions.focus = "Classify the customer's primary request."
+
+[questions.topic.criteria.billing]
+what = "Charges, invoices, refunds, or subscriptions"
+not_for = "Order tracking or account access"
+examples = ["I was charged twice", "Where is my refund?"]
+
+[questions.topic.criteria.orders]
+what = "Order status, delivery, cancellation, or returns"
+not_for = "Charges or account access"
+examples = ["Where is my order?", "Cancel my shipment"]
+
+[questions.topic.criteria.account]
+what = "Login, profile, permissions, or security"
+not_for = "Charges or order tracking"
+examples = ["Reset my password", "I cannot sign in"]
+
+[questions.requests_credentials]
+type = "noul"
+instructions.question = "Does the message request a sensitive credential?"
+instructions.compare = ["`ticket.message`", "`policy.sensitive_credentials`"]
+instructions.focus = "Look for a request to disclose the credential itself."
+
+[questions.requests_credentials.criteria.true]
+what = "Asks the recipient to disclose a listed credential"
+examples = ["Reply with your password", "Send us your API key"]
+
+[questions.requests_credentials.criteria.false]
+what = "Does not ask the recipient to disclose a credential"
+not_for = "A legitimate instruction to reset a credential"
+examples = ["Use this link to reset your password"]
+
+[questions.sender_identity_mismatch]
+type = "noul"
+instructions.question = "Does the claimed sender identity conflict with its domain?"
+instructions.compare = ["`ticket.sender.display_name`", "`ticket.sender.email`"]
+
+[questions.unexpected_reward]
+type = "noul"
+instructions.question = "Does the message announce an unexpected reward?"
+instructions.inspect = "`ticket.message`"
+
+[questions.refund_requested]
+type = "noul"
+instructions.question = "Does the customer explicitly request a refund or credit?"
+instructions.inspect = "`ticket.message`"
+
+[questions.mentions_open_order]
+type = "noul"
+instructions.question = "Does the message refer to a supplied open order?"
+instructions.compare = ["`ticket.message`", "`customer.open_orders`"]
+
+[questions.frustration]
+type = "score"
+instructions.question = "How frustrated does the customer appear?"
+instructions.inspect = "`ticket.message`"
+
+[[questions.frustration.criteria]]
+what = "Calm and matter-of-fact"
+signals = ["Neutral wording"]
+
+[[questions.frustration.criteria]]
+what = "Frustrated but civil"
+
+[[questions.frustration.criteria]]
+what = "Very angry or threatening to leave"
+
+[factors]
+"topic.billing" = { ref = "topic", choice = "billing" }
+"topic.orders" = { ref = "topic", choice = "orders" }
+"topic.confident" = { ref = "topic", confidence = { gte = 0.75 } }
+"refund.strong_request" = { ref = "refund_requested", noul = { gte = 0.7 } }
+"spam.corroborated" = { at_least = 2, of = ["requests_credentials", "sender_identity_mismatch", "unexpected_reward"] }
+"customer.high_frustration" = { ref = "frustration", score = { gte = 1.5 }, confidence = { gte = 0.7 } }

@@ -1,0 +1,38 @@
+title = "Spam decomposition"
+version = "0.1.0"
+model = "jev-latest"
+
+[requires]
+"ticket.message" = "string"
+"ticket.sender.email" = "string"
+"ticket.sender.display_name" = "string"
+"policy.sensitive_credentials" = "array"
+
+[questions.broad_spam]
+type = "noul"
+instructions = "Is `ticket.message` spam?"
+
+[questions.requests_credentials]
+type = "noul"
+instructions.question = "Does the message request a sensitive credential?"
+instructions.compare = ["`ticket.message`", "`policy.sensitive_credentials`"]
+
+[questions.requests_credentials.criteria.true]
+what = "Asks the recipient to disclose a listed credential"
+examples = ["Reply with your password"]
+
+[questions.requests_credentials.criteria.false]
+what = "Does not ask the recipient to disclose a credential"
+
+[questions.sender_identity_mismatch]
+type = "noul"
+instructions.question = "Does the claimed sender identity conflict with its domain?"
+instructions.compare = ["`ticket.sender.display_name`", "`ticket.sender.email`"]
+
+[questions.unexpected_reward]
+type = "noul"
+instructions.question = "Does the message announce an unexpected reward?"
+instructions.inspect = "`ticket.message`"
+
+[factors]
+"spam.corroborated" = { at_least = 2, of = ["requests_credentials", "sender_identity_mismatch", "unexpected_reward"] }

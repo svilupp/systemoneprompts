@@ -1,0 +1,25 @@
+title = "Contrastive Choice"
+version = "0.1.0"
+model = "jev-latest"
+
+[requires]
+"ticket.message" = "string"
+
+[questions.intent]
+type = "choice"
+instructions.question = "What is the customer asking about in `ticket.message`?"
+instructions.focus = "Separate policy questions from status questions."
+
+[questions.intent.criteria.return_policy]
+what = "Asks how returns work, what is allowed, or how to start a return"
+not_for = "A question about a specific shipment already in progress"
+examples = ["What is your return window?", "Can I return a used item?"]
+
+[questions.intent.criteria.return_status]
+what = "Asks where a specific return or replacement stands"
+not_for = "A general question about the return policy"
+examples = ["Where is my refund for R-22?", "Has my return been received?"]
+
+[factors]
+"intent.policy" = { ref = "intent", choice = "return_policy" }
+"intent.status" = { ref = "intent", choice = "return_status" }

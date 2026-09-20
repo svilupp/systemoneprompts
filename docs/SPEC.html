@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>systemoneprompts definition contract</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { max-width: 920px; margin: 3rem auto; padding: 0 1.25rem; font: 16px/1.6 system-ui, sans-serif; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    code { padding: .1rem .25rem; border-radius: .25rem; background: #8882; }
+    pre { overflow-x: auto; padding: 1rem; border-radius: .5rem; background: #8882; }
+    h1, h2, h3 { line-height: 1.2; margin-top: 2rem; }
+    a { color: #268bd2; }
+  </style>
+</head>
+<body>
+<h1 id="systemoneprompts-definition-contract">systemoneprompts definition contract</h1>
+<p>Status: contract version <code>v1</code>. The TypeScript package is the reference implementation; the Python package is required to match the language-neutral rules below. Package-specific APIs may be idiomatic, but the parsed questions, state guarantees, factor truth tables, diagnostics, and generated artifacts must preserve the same behavior.</p>
+<h2 id="definition-shape">Definition shape</h2>
+<p>A definition is a TOML document with optional scalar metadata (<code>title</code>, <code>version</code>, <code>description</code>, <code>model</code>, plus other scalar keys) and four recognized tables: <code>[requires]</code>, <code>[questions]</code>, <code>[factors]</code>, and optional <code>[data]</code>. Unknown top-level tables produce warnings and are not silently interpreted. <code>model</code> is an optional non-empty string; a blank model is an error.</p>
+<p>The parser throws only for invalid TOML. Structural problems are returned as diagnostics and the invalid entry is omitted. <code>checkDefinition</code>/<code>check_definition</code> adds cross-cutting reference, conflict, cycle, and lint diagnostics.</p>
+<h2 id="application-data">Application data</h2>
+<p><code>[data]</code> is an optional application-owned namespace. Its root must be a TOML table. Beneath it, arbitrary nested JSON-compatible objects, arrays, strings, booleans, finite numbers, and arrays of tables are preserved verbatim. TOML dates/times and other non-JSON values are rejected with diagnostics. An absent or invalid data tree is represented as an empty object/dictionary when the definition is returned; invalid definitions still fail normal checking and generation.</p>
+<p>systemoneprompts does not assign meaning to child keys, validate application IDs or placeholders, resolve references, interpolate strings, load files, send data to TypeSafe, or make factors and questions depend on it. It does not apply question backtick linting inside data. Applications decide their own schema, validation and runtime use. Generated TypeScript and Python modules export the parsed tree as <code>data</code>; generated output remains deterministic. Application-only data therefore has no provider or cache effect unless application code explicitly projects it into a question or state.</p>
+<h2 id="questions">Questions</h2>
+<p>At least one question is required. Question IDs are literal TOML keys, including quoted IDs containing dots. Every question is a table with only <code>type</code>, <code>instructions</code>, and <code>criteria</code>:</p>
+<ul>
+<li><code>noul</code>: optional <code>criteria</code> table with only <code>true</code> and <code>false</code> entries.</li>
+<li><code>choice</code>: non-empty criteria table with at most 255 labels.</li>
+<li><code>score</code>: criteria array with at least two entries.</li>
+</ul>
+<p><code>instructions</code> and criteria entries are forwarded verbatim when they are a string, JSON-compatible table, or JSON-compatible array. TOML dates, times, cycles, non-finite numbers, and other runtime-only values are rejected. The resulting objects use the native TypeSafe field names and shapes; no aliases or implicit question vocabulary are introduced.</p>
+<p>Native System One answers under a response <code>answers</code> map:</p>
+<ul>
+<li>Noul: type <code>noul</code> and a finite <code>noul</code> number.</li>
+<li>Choice: type <code>choice</code>, a <code>choice</code> label, finite <code>confidence</code>, and <code>probabilities</code> with a finite probability for every criteria label.</li>
+<li>Score: type <code>score</code>, a finite <code>score</code> expected value (a float between levels, not a level label), finite <code>confidence</code>, plus <code>legend</code> and <code>probabilities</code> keyed by the decimal string of each criteria index (<code>"0"</code>, <code>"1"</code>, ...).</li>
+</ul>
+<p>Packages may expose helpers that read those fields and that partition answers into valid, missing, and malformed ids. They must not invent a Score level as a native field. <code>wireQuestions</code> / <code>wire_questions</code> returns only <code>type</code>, <code>instructions</code>, and <code>criteria</code> for each question.</p>
+<h2 id="state-requirements">State requirements</h2>
+<p><code>[requires]</code> maps dotted and indexed paths to one of: <code>string</code>, <code>number</code>, <code>boolean</code>, <code>array</code>, <code>object</code>, <code>null</code>, or <code>exists</code>. Paths use own object keys, zero-based <code>[n]</code> indexes, negative <code>[-n]</code> indexes from the end of an array, and empty <code>[]</code> indexes. <code>[]</code> means every array element: <code>"messages[].text" = "string"</code> requires <code>messages</code> to be an array and every element's <code>text</code> to be a string. An empty array satisfies a <code>[]</code> requirement; a container that is not an array fails as <code>messages: expected array, got &lt;type&gt;</code>. <code>[]</code> and <code>[n]</code> both imply an array container and do not conflict with each other. A backticked <code>[n]</code> path is guaranteed when <code>[requires]</code> names the same path with <code>[]</code>; a backticked <code>[]</code> path is not guaranteed by a more specific <code>[n]</code> requirement. <code>exists</code> accepts null; all other types require the value to match. <code>number</code>, <code>array</code>, and <code>object</code> also require JSON-compatible values. Assertions never copy, coerce, or reshape the application state.</p>
+<p>Explicit requirements and containers implied by descendants must agree. For example, <code>ticket = "object"</code> may accompany <code>ticket.message</code>, while <code>ticket = "string"</code> may not. Dotted and indexed descendants cannot require the same container to be both an object and an array. Equivalent index spellings refer to the same index, and out-of-bounds indexes fail at runtime.</p>
+<h2 id="factors">Factors</h2>
+<p>Every factor evaluates to a Boolean. A factor is exactly one predicate (<code>ref</code>) or one Boolean operator (<code>all</code>, <code>any</code>, <code>not</code>, <code>at_least</code>). Predicate fields are <code>known</code>, <code>choice</code>, <code>noul</code>, <code>score</code>, and <code>confidence</code>; numeric fields use one or more finite comparators from <code>gt</code>, <code>gte</code>, <code>lt</code>, and <code>lte</code> and all present comparators are ANDed.</p>
+<p>Bare Noul references in Boolean operators use <code>noul &gt;= 0.5</code>. Choice and Score answers must be wrapped in a predicate. Missing answers are runtime errors, not false values, except a <code>known</code>-only predicate: it returns false for an absent or unusable answer. <code>known</code> treats explicit <code>missing</code>, confidence <code>0</code>, and a bare Noul exactly equal to <code>0.5</code> as unknown; usable Choice and Score answers are known.</p>
+<p>Boolean operators validate every operand even if an earlier operand already determines the result. Factor definitions are snapshotted when an evaluator is created, factor IDs are prototype-safe, and independent cycles are reported together. Unknown references, question/factor ID collisions, invalid operator fields, invalid choice labels, primitive mismatches, and cycles are definition errors.</p>
+<h2 id="generation-and-cli">Generation and CLI</h2>
+<p>Generation is deterministic. It emits native question objects, model metadata, the verbatim factor definitions, a state assertion, and a typed factor evaluator. Empty requirements still produce a state type assignable to the package <code>EntryType</code>. Generated output must typecheck/import in a clean consumer.</p>
+<p>The CLI supports <code>check</code>, <code>generate</code>, <code>run</code>, <code>eval</code>, and <code>cache</code>. <code>check</code> and <code>generate --check</code> process every input and return nonzero if any input fails. They never call the provider. <code>run</code> validates state before any request. <code>eval</code> validates cases, labels, factor names, sweep fields, and report paths before requests; partial reports survive execution errors. Live credentials are required only by explicit live commands.</p>
+<h2 id="cache-and-patterns">Cache and patterns</h2>
+<p>The TypeScript development cache is a fetch interceptor, not a client wrapper. It keys per-question requests by canonical JSON request data and model, writes records atomically, treats malformed records as misses, validates cached answers against the question criteria, and merges valid cached hits with valid live answers. Read-only misses fail. Cache statistics are cumulative and prototype-safe.</p>
+<p><code>runMany</code> requires a positive concurrency limit, preserves input order, and invokes a result callback at most once per result. It may ask the same questions about many states, or a list of <code>{state, questions}</code> items. Callback failures reject the batch without retries. <code>walkTaxonomy</code> requires a positive beam width and is an explicit approximate beam search; it does not promise an exhaustive traversal.</p>
+<h2 id="compatibility">Compatibility</h2>
+<p>The TOML author-owned <code>version</code> is distinct from this behavioral contract version. Cases in <code>conformance/v1</code> are the executable compatibility boundary. Any change to native question shape, state assertion semantics, factor truth tables, diagnostic codes, cache records, or CLI exit behavior requires a new fixture and a compatibility review.</p>
+</body>
+</html>

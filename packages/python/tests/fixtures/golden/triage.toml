@@ -1,0 +1,68 @@
+title = "Support ticket triage"
+version = "0.1.0"
+description = "Canonical workflow from the TypeSafe how-to-build page"
+model = "jev-latest"
+owner = "support-platform"
+
+[requires]
+"ticket.message" = "string"
+"ticket.sender.email" = "string"
+"ticket.sender.display_name" = "string"
+"customer.open_orders" = "array"
+"policy.sensitive_credentials" = "array"
+
+[questions.topic]
+type = "choice"
+instructions.question = "Which team should handle `ticket.message`?"
+instructions.focus = "Classify the customer's primary request."
+
+[questions.topic.criteria.billing]
+what = "Charges, invoices, refunds, or subscriptions"
+not_for = "Order tracking or account access"
+examples = ["I was charged twice", "Where is my refund?"]
+
+[questions.topic.criteria.orders]
+what = "Order status, delivery, cancellation, or returns"
+not_for = "Charges or account access"
+examples = ["Where is my order?", "Cancel my shipment"]
+
+[questions.topic.criteria.account]
+what = "Login, profile, permissions, or security"
+not_for = "Charges or order tracking"
+examples = ["Reset my password", "I cannot sign in"]
+
+[questions."spam.requests_credentials"]
+type = "noul"
+instructions.question = "Does the message request a sensitive credential?"
+instructions.compare = ["`ticket.message`", "`policy.sensitive_credentials`"]
+instructions.focus = "Look for a request to disclose the credential itself."
+
+[questions."spam.requests_credentials".criteria.true]
+what = "Asks the recipient to disclose a listed credential"
+examples = ["Reply with your password", "Send us your API key"]
+
+[questions."spam.requests_credentials".criteria.false]
+what = "Does not ask the recipient to disclose a credential"
+not_for = "A legitimate instruction to reset a credential"
+examples = ["Use this link to reset your password"]
+
+[questions.frustration]
+type = "score"
+instructions.question = "How frustrated does the customer appear?"
+instructions.inspect = "`ticket.message`"
+
+[[questions.frustration.criteria]]
+what = "Calm and matter-of-fact"
+signals = ["Neutral wording"]
+
+[[questions.frustration.criteria]]
+what = "Frustrated but civil"
+
+[[questions.frustration.criteria]]
+what = "Very angry or threatening to leave"
+
+[factors]
+"topic.billing" = { ref = "topic", choice = "billing" }
+"topic.billing.confident" = { ref = "topic", choice = "billing", confidence = { gte = 0.75 } }
+"customer.high_frustration" = { ref = "frustration", score = { gte = 1.5 }, confidence = { gte = 0.7 } }
+"spam.gray_band" = { ref = "spam.requests_credentials", noul = { gt = 0.4, lt = 0.6 } }

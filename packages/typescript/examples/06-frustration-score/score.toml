@@ -1,0 +1,26 @@
+title = "Frustration score"
+version = "0.1.0"
+model = "jev-latest"
+
+[requires]
+"ticket.message" = "string"
+
+[questions.frustration]
+type = "score"
+instructions.question = "How frustrated does the customer appear?"
+instructions.inspect = "`ticket.message`"
+
+[[questions.frustration.criteria]]
+what = "Calm and matter-of-fact"
+signals = ["Neutral wording"]
+
+[[questions.frustration.criteria]]
+what = "Frustrated but civil"
+signals = ["Expresses annoyance"]
+
+[[questions.frustration.criteria]]
+what = "Very angry or threatening to leave"
+signals = ["Hostile language"]
+
+[factors]
+"customer.high_frustration" = { ref = "frustration", score = { gte = 1.5 } }
