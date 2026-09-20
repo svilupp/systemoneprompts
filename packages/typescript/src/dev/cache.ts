@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { isAnswerForQuestion, isAnswerShape } from "../answers.js";
+import { TypeSafeClientError } from "../client.js";
 import { canonicalJson, isPlainObject } from "../json.js";
 import type { Fetch } from "../native.js";
 
@@ -33,7 +34,8 @@ export interface CachingFetch extends Fetch {
   readonly dir: string;
 }
 
-export class CacheMissError extends Error {
+/** Read-only miss. A `TypeSafeClientError` so `TypeSafeClient` surfaces it without retrying. */
+export class CacheMissError extends TypeSafeClientError {
   readonly ids: string[];
 
   constructor(ids: string[]) {

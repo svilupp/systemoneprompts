@@ -68,7 +68,8 @@ Packages may expose helpers that read those fields and that partition answers in
 Paths use own object keys, zero-based `[n]` indexes, and empty `[]` indexes.
 `[]` means every array element: `"messages[].text" = "string"` requires
 `messages` to be an array and every element's `text` to be a string. An empty
-array satisfies a `[]` requirement. `[]` and `[n]` both imply an array
+array satisfies a `[]` requirement; a container that is not an array fails as
+`messages: expected array, got <type>`. `[]` and `[n]` both imply an array
 container and do not conflict with each other. A backticked `[n]` path is
 guaranteed when `[requires]` names the same path with `[]`; a backticked `[]`
 path is not guaranteed by a more specific `[n]` requirement. `exists` accepts

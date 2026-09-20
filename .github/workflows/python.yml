@@ -23,9 +23,7 @@ jobs:
       # The live extra is installed so the httpx2 transport tests run; deterministic
       # checks still never contact the TypeSafe API (no TYPESAFE_API_KEY here).
       - run: uv sync --locked --dev --extra live --python 3.11
-      - run: sh scripts/run-quiet.sh "Checks" -- uv run --locked --python 3.11 python scripts/check.py
-      - run: sh scripts/run-quiet.sh "Package smoke" -- uv run --locked --python 3.11 python scripts/package-smoke.py
-      - run: sh scripts/run-quiet.sh "Standalone check" -- uv run --locked --python 3.11 python scripts/standalone-check.py
+      - run: sh scripts/run-quiet.sh "Release checks" -- uv run --locked --python 3.11 python scripts/release-check.py
 
   runtime:
     runs-on: ubuntu-latest

@@ -224,30 +224,33 @@ export function createStateAssert<T = Record<string, unknown>>(
 
   return (state: unknown): asserts state is T => {
     for (const { path, expected, segments } of compiled) {
-      const error = assertSegments(state, segments, path, expected);
+      const error = assertSegments(state, segments, 0, path, expected);
       if (error) throw new SystemOnePromptsError(error);
     }
   };
 }
 
+/** Walk `segments` from `index`; `[]` checks every element and reports a non-array container. */
 function assertSegments(
   current: unknown,
   segments: readonly PathSegment[],
+  index: number,
   path: string,
   expected: RequirementType,
 ): Diagnostic | undefined {
-  if (segments.length === 0) return checkRequirement(path, expected, current);
-  const [head, ...rest] = segments;
-  if (head!.kind === "all") {
-    if (!Array.isArray(current)) return checkRequirement(path, expected, undefined);
-    if (current.length === 0) return undefined;
+  if (index === segments.length) return checkRequirement(path, expected, current);
+  const head = segments[index]!;
+  if (head.kind === "all") {
+    if (!Array.isArray(current)) {
+      return checkRequirement(formatPath(segments.slice(0, index)), "array", current);
+    }
     for (const element of current) {
-      const error = assertSegments(element, rest, path, expected);
+      const error = assertSegments(element, segments, index + 1, path, expected);
       if (error) return error;
     }
     return undefined;
   }
-  return assertSegments(getAtPath(current, [head!]), rest, path, expected);
+  return assertSegments(getAtPath(current, [head]), segments, index + 1, path, expected);
 }
 
 export function checkRequirement(

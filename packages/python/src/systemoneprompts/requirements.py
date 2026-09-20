@@ -276,31 +276,32 @@ def _matches(expected: RequirementType, value: Any) -> bool:
     return value is None
 
 
+def _requirement_error(path: str, expected: str, actual: Any) -> Diagnostic:
+    # Same wording as the TypeScript reference (`typeof undefined`).
+    got = "undefined" if actual is _MISSING else type_name(actual)
+    return diagnostic("error", "state-requirement", f"{path}: expected {expected}, got {got}")
+
+
 def _assert_segments(
     current: Any,
     segments: list[PathSegment],
+    index: int,
     path: str,
     expected: RequirementType,
 ) -> Diagnostic | None:
-    if not segments:
-        if _matches(expected, current):
-            return None
-        got = "undefined" if current is _MISSING else type_name(current)
-        return diagnostic("error", "state-requirement", f"{path}: expected {expected}, got {got}")
-    head, rest = segments[0], segments[1:]
+    """Walk `segments` from `index`; `[]` checks every element and reports a non-array container."""
+    if index == len(segments):
+        return None if _matches(expected, current) else _requirement_error(path, expected, current)
+    head = segments[index]
     if head is ALL_INDEX:
         if type(current) is not list:
-            return diagnostic(
-                "error", "state-requirement", f"{path}: expected {expected}, got undefined"
-            )
-        if not current:
-            return None
+            return _requirement_error(format_path(segments[:index]), "array", current)
         for element in current:
-            error = _assert_segments(element, rest, path, expected)
+            error = _assert_segments(element, segments, index + 1, path, expected)
             if error is not None:
                 return error
         return None
-    return _assert_segments(get_at_path(current, [head]), rest, path, expected)
+    return _assert_segments(get_at_path(current, [head]), segments, index + 1, path, expected)
 
 
 def create_state_assert(requirements: Mapping[str, str]) -> Callable[[Any], None]:
@@ -341,7 +342,7 @@ def create_state_assert(requirements: Mapping[str, str]) -> Callable[[Any], None
 
     def assert_state(state: Any) -> None:
         for path, expected, segments in compiled:
-            error = _assert_segments(state, segments, path, expected)
+            error = _assert_segments(state, segments, 0, path, expected)
             if error is not None:
                 raise SystemOnePromptsError(error)
 

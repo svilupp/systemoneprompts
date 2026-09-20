@@ -7,7 +7,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = (
     ROOT / "README.md",
-    ROOT / "PLAN_packages.md",
     ROOT / "docs" / "SPEC.md",
     ROOT / "docs" / "SPEC.html",
     ROOT / "docs" / "architecture.md",

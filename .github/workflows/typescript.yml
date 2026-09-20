@@ -18,8 +18,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      - run: sh scripts/run-quiet.sh "Checks" -- bun run check
-      - run: sh scripts/run-quiet.sh "Package smoke" -- bun run test:package
+      - run: sh scripts/run-quiet.sh "Release checks" -- bun run release:check
 
   node-import:
     runs-on: ubuntu-latest

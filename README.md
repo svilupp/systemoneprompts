@@ -1,62 +1,42 @@
 # systemoneprompts
 
-TOML decision definitions for System One. The TypeScript and Python packages
-share the format and the v1 conformance cases.
+Define TypeSafe questions, required state, and Boolean factors in TOML.
+Validate definitions and generate typed modules for TypeScript or Python.
 
-Definitions contain native TypeSafe questions, required state paths, and
-Boolean factors. The packages validate them before a provider call and expose
-the results through native language APIs. TypeSafe and JEV are providers, not
-the product name.
+## Install
 
-## Packages
-
-| Package | Install | Default check |
+| Package | Command | Requires |
 | --- | --- | --- |
-| [`packages/typescript`](packages/typescript/) | `bun install --frozen-lockfile` | `bun run check` |
-| [`packages/python`](packages/python/) | `uv sync --locked --dev` | `uv run --locked python scripts/check.py` |
+| [TypeScript](packages/typescript/README.md) | `npm install systemoneprompts` | Node 20+ or Bun |
+| [Python](packages/python/README.md) | `pip install systemoneprompts` | Python 3.11+ |
 
-Run commands from the package directory. The package check runners use
-`scripts/run-quiet.sh`: successful legs stay short; failures print their full
-log.
+Each package README includes a working example. Python API calls need
+`pip install 'systemoneprompts[live]'`. Both clients use `TYPESAFE_API_KEY`.
 
-## Quick start
+## Development
 
-```sh
-cd packages/typescript
-bun install --frozen-lockfile
-bun run check
-```
-
-Use the TypeScript CLI with a definition file:
-
-```sh
-npm install systemoneprompts
-npx systemoneprompts generate triage.toml
-```
-
-## Repository map
-
-- [`docs/SPEC.md`](docs/SPEC.md): language-neutral behavior.
-- [`conformance/`](conformance/): shared behavior cases.
-- [`packages/typescript/examples/`](packages/typescript/examples/): examples and inputs.
-- [`packages/typescript/README.md`](packages/typescript/README.md): TypeScript API and CLI.
-- [`packages/python/README.md`](packages/python/README.md): Python API and CLI.
-- [`docs/releasing.md`](docs/releasing.md): release workflow.
-
-Root checks are convenience wrappers:
+Install dependencies from each package directory with
+`bun install --frozen-lockfile` or `uv sync --locked --dev`. From the repository root:
 
 ```sh
 make check
-make check-conformance
+make release-check-typescript
+make release-check-python
 ```
 
-Publishing is package-specific. The Makefile runs release checks first and
-dry-runs by default:
+Checks use `scripts/run-quiet.sh`: short output on success, full logs on failure.
+Live provider tests are separate.
+
+Both packages follow the [v1 specification](docs/SPEC.md) and
+[shared test cases](conformance/v1/). After editing shared files, run
+`make sync-shared`.
+
+## Publish
 
 ```sh
-make publish-typescript TYPESCRIPT_ARTIFACT=packages/typescript/systemoneprompts-0.1.0.tgz
-make publish-python PYTHON_ARTIFACT=packages/python/dist/systemoneprompts-0.1.0-py3-none-any.whl
-make publish-typescript TYPESCRIPT_ARTIFACT=... EXECUTE=1
+make publish-typescript
+make publish-python
 ```
 
-Live provider tests are opt-in and require `TYPESAFE_API_KEY`.
+Each command runs release checks, builds, and uploads its package.
+See [releasing](docs/releasing.md) for setup.

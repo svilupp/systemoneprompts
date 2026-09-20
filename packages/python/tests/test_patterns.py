@@ -104,6 +104,26 @@ def test_run_many_items_use_their_questions_and_preserve_order() -> None:
     }
 
 
+def test_run_many_items_inherit_shared_model_unless_overridden() -> None:
+    client = FakeClient(
+        lambda request: {"model": request.get("model"), "answers": {}, "usage": {}}
+    )
+    question = {"q": {"type": "noul"}}
+    asyncio.run(
+        run_many(
+            client,
+            items=[
+                {"state": {"id": 1}, "questions": question},
+                {"state": {"id": 2}, "questions": question, "model": None},
+                {"state": {"id": 3}, "questions": question, "model": "own"},
+            ],
+            model="shared",
+        )
+    )
+    by_id = {call["state"]["id"]: call.get("model") for call in client.calls}
+    assert by_id == {1: "shared", 2: "shared", 3: "own"}
+
+
 def test_run_many_rejects_mixing_items_and_states_before_calling() -> None:
     client = FakeClient(lambda _request: {"model": "test", "answers": {}, "usage": {}})
     with pytest.raises(ValueError, match="run_many accepts either items or states, not both"):

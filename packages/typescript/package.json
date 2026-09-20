@@ -11,7 +11,7 @@
     "node": ">=20"
   },
   "bin": {
-    "systemoneprompts": "./dist/cli/index.js"
+    "systemoneprompts": "dist/cli/index.js"
   },
   "exports": {
     ".": {

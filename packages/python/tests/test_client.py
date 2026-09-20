@@ -247,6 +247,60 @@ def test_http_date_retry_after() -> None:
     assert abs(caught.value.retry_after - 2.0) <= 1.0
 
 
+def test_oversized_retry_after_ms_falls_through_to_retry_after() -> None:
+    from systemoneprompts.client import _retry_after_seconds
+
+    assert _retry_after_seconds({"retry-after-ms": "250"}) == 0.25
+    assert _retry_after_seconds({"retry-after-ms": "60001", "retry-after": "1"}) == 1.0
+    assert _retry_after_seconds({"retry-after-ms": "-5", "retry-after": "120"}) == 60.0
+    assert _retry_after_seconds({"retry-after": "soon"}) is None
+
+
+def test_client_owned_headers_win_regardless_of_casing() -> None:
+    seen: list[httpx2.Request] = []
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        seen.append(request)
+        return httpx2.Response(200, json=_ok_body())
+
+    client = TypeSafeClient(
+        api_key="test-key",
+        headers={"authorization": "Bearer default"},
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    client.system_one_sync(
+        state={}, questions={"q": {"type": "noul"}}, headers={"AUTHORIZATION": "Bearer hijack"}
+    )
+    client.close()
+    assert seen[0].headers.get_list("authorization") == ["Bearer test-key"]
+
+
+def test_read_only_cache_miss_is_not_wrapped_or_retried(tmp_path) -> None:
+    from systemoneprompts.cache import CacheMissError, create_caching_fetch
+    from systemoneprompts.provider import wrap_caching_fetch
+
+    calls = {"n": 0}
+
+    def network(_url: str, _init: dict | None = None) -> object:
+        calls["n"] += 1
+        raise AssertionError("network must not be called")
+
+    caching = create_caching_fetch(dir=str(tmp_path), mode="read-only", fetch=network)
+    client = TypeSafeClient(
+        api_key="test", transport=wrap_caching_fetch(caching), max_retries=2
+    )
+    started = time.monotonic()
+    with pytest.raises(CacheMissError) as caught:
+        client.system_one_sync(state={}, questions={"q": {"type": "noul"}})
+    with pytest.raises(CacheMissError):
+        asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert caught.value.ids == ["q"]
+    assert calls["n"] == 0
+    assert time.monotonic() - started < 0.3
+
+
 def test_system_one_sync_posts_json() -> None:
     def respond(_request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(200, json=_ok_body())

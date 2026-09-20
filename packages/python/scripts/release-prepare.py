@@ -9,8 +9,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-# Final releases only: hatchling normalizes pre-release tags (`0.1.2-rc.1` -> `0.1.2rc1`),
-# which would no longer match the artifact names `scripts/publish.py` validates.
+# This first release uses final semver versions only.
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 
 
@@ -28,7 +27,7 @@ def main() -> int:
     path.write_text(updated, encoding="utf-8")
     subprocess.run(["uv", "lock"], cwd=ROOT, check=True)
     print(f"Prepared systemoneprompts -> {args.version}")
-    print("Update CHANGELOG.md, run scripts/release-check.py, review the diff, then publish explicitly.")
+    print("Update CHANGELOG.md, run scripts/release-check.py, review the diff, then run scripts/publish.py.")
     return 0
 
 

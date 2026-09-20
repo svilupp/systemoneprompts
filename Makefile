@@ -1,8 +1,6 @@
 .PHONY: help check-typescript check-python check-conformance check-docs check \
 	sync-shared release-check-typescript release-check-python publish-typescript publish-python
 
-PUBLISH_FLAG = $(if $(EXECUTE),--execute,)
-
 help:
 	@printf '%s\n' \
 		'make check-typescript  Run the self-contained TypeScript package checks' \
@@ -12,8 +10,8 @@ help:
 		'make check             Run all deterministic repository checks' \
 		'make release-check-typescript  Run TypeScript release checks' \
 		'make release-check-python      Run Python release checks' \
-		'make publish-typescript TYPESCRIPT_ARTIFACT=... [EXECUTE=1]' \
-		'make publish-python PYTHON_ARTIFACT=... [EXECUTE=1]'
+		'make publish-typescript  Check and publish the npm package' \
+		'make publish-python      Check and publish the Python package'
 
 check-typescript:
 	cd packages/typescript && sh scripts/run-quiet.sh "Checks" -- bun run check
@@ -42,9 +40,7 @@ release-check-python:
 	cd packages/python && sh scripts/run-quiet.sh "Release checks" -- uv run --locked python scripts/release-check.py
 
 publish-typescript: release-check-typescript
-	@test -n "$(TYPESCRIPT_ARTIFACT)" || { printf '%s\n' 'TYPESCRIPT_ARTIFACT is required'; exit 2; }
-	cd packages/typescript && bun run release:publish -- --artifact "$(abspath $(TYPESCRIPT_ARTIFACT))" $(PUBLISH_FLAG)
+	cd packages/typescript && bun run release:publish
 
 publish-python: release-check-python
-	@test -n "$(PYTHON_ARTIFACT)" || { printf '%s\n' 'PYTHON_ARTIFACT is required'; exit 2; }
-	cd packages/python && uv run --locked python scripts/publish.py --artifact "$(abspath $(PYTHON_ARTIFACT))" $(PUBLISH_FLAG)
+	cd packages/python && uv run --locked python scripts/publish.py

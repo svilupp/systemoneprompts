@@ -11,6 +11,7 @@ from email.utils import parsedate_to_datetime
 from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated, Any, Literal
 
+from .cache import CacheMissError
 from .diagnostics import SystemOnePromptsError, diagnostic
 from .model import DEFAULT_MODEL
 
@@ -295,6 +296,8 @@ class TypeSafeClient:
                 if attempt >= self.max_retries or error.status not in RETRY_STATUSES:
                     raise
                 time.sleep(_retry_delay(attempt, error))
+            except CacheMissError:
+                raise  # a read-only cache transport already decided; never wrap or retry
             except Exception as error:
                 last_error = error
                 if attempt >= self.max_retries or not _is_retryable_connection(error):
@@ -323,6 +326,8 @@ class TypeSafeClient:
                 if attempt >= self.max_retries or error.status not in RETRY_STATUSES:
                     raise
                 await asyncio.sleep(_retry_delay(attempt, error))
+            except CacheMissError:
+                raise  # a read-only cache transport already decided; never wrap or retry
             except Exception as error:
                 last_error = error
                 if attempt >= self.max_retries or not _is_retryable_connection(error):
@@ -352,6 +357,9 @@ class TypeSafeClient:
         if extra:
             merged.update(extra)
         if self.api_key:
+            # Header names are case-insensitive; a caller `authorization` must not merge with ours.
+            for name in [name for name in merged if name.lower() == "authorization"]:
+                del merged[name]
             merged["Authorization"] = f"Bearer {self.api_key}"
         return merged
 
@@ -403,8 +411,9 @@ def _retry_after_seconds(headers: Any) -> float | None:
         except (TypeError, ValueError):
             pass
         else:
-            if value >= 0:
-                return min(value / 1000.0, 60.0)
+            # Same as the TypeScript client: oversized milliseconds fall through to Retry-After.
+            if 0 <= value <= 60_000:
+                return value / 1000.0
     raw = getter("retry-after")
     if raw is None:
         return None

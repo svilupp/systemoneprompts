@@ -7,6 +7,6 @@ These scripts are package-local so the package can be copied out of the reposito
 - `check.mjs` runs all deterministic quality legs and accepts exact stage labels for a subset.
 - `build.mjs` creates clean Node-consumable ESM output and marks the CLI executable.
 - `package-smoke.mjs` packs the actual npm archive and tests it from a fresh consumer directory.
-- `release-check.mjs` runs the complete deterministic check and package smoke gate.
+- `release-check.mjs` runs the complete deterministic check and package smoke gate through `run-quiet.sh`.
 - `release-prepare.mjs` updates the package version only.
-- `publish.mjs` validates an existing archive and defaults to a dry run; `--execute` is required to upload.
+- `publish.mjs` publishes the current package to npm; run `release:check` first.

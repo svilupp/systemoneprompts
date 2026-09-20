@@ -1,4 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { CacheMissError, createCachingFetch } from "../src/dev/index.ts";
 import {
   TypeSafeClient,
   TypeSafeClientError,
@@ -230,5 +234,52 @@ describe("TypeSafeClient", () => {
     });
     await client.systemOne({ state: {}, questions: { q: { type: "noul" } } });
     expect(captured.authorization).toBe("Bearer real-key");
+  });
+
+  test("client-owned headers win regardless of caller header casing", async () => {
+    let sent: Headers | undefined;
+    const client = new TypeSafeClient({
+      apiKey: "real-key",
+      headers: { "user-agent": "my-app/1.0", "x-app": "keep" },
+      maxRetries: 0,
+      fetch: async (_url, init) => {
+        sent = new Headers(init?.headers);
+        return jsonResponse({ model: "jev-test", answers: { q: noulAnswer }, usage });
+      },
+    });
+    await client.systemOne(
+      { state: {}, questions: { q: { type: "noul" } } },
+      { headers: { authorization: "Bearer hijack", accept: "text/html" } },
+    );
+    expect(sent?.get("authorization")).toBe("Bearer real-key");
+    expect(sent?.get("accept")).toBe("application/json");
+    expect(sent?.get("user-agent")).toMatch(/^systemoneprompts\//);
+    expect(sent?.get("x-app")).toBe("keep");
+  });
+
+  test("read-only cache misses surface as CacheMissError without retries", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "jev-cache-"));
+    let networkCalls = 0;
+    const client = new TypeSafeClient({
+      apiKey: "test",
+      maxRetries: 2,
+      fetch: createCachingFetch({
+        dir,
+        mode: "read-only",
+        fetch: async () => {
+          networkCalls += 1;
+          return jsonResponse({ model: "jev-test", answers: { q: noulAnswer }, usage });
+        },
+      }),
+    });
+    const started = Date.now();
+    const error = await client
+      .systemOne({ state: {}, questions: { q: { type: "noul" } } })
+      .catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(CacheMissError);
+    expect(error).toBeInstanceOf(TypeSafeClientError);
+    expect((error as CacheMissError).ids).toEqual(["q"]);
+    expect(networkCalls).toBe(0);
+    expect(Date.now() - started).toBeLessThan(300);
   });
 });

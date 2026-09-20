@@ -111,7 +111,7 @@ def _run_many_jobs(
                 {
                     "state": item["state"],
                     "questions": item["questions"],
-                    "model": item["model"] if "model" in item else model,
+                    "model": model if item.get("model") is None else item["model"],
                 }
             )
         return jobs

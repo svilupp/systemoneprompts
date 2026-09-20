@@ -142,14 +142,19 @@ export class TypeSafeClient {
     const timeout =
       options.timeout === undefined ? this.timeout : positiveMs("timeout", options.timeout);
     const url = `${this.baseURL}${path}`;
-    const headers: Record<string, string> = {
-      ...this.defaultHeaders,
-      ...(options.headers ?? {}),
+    const owned: Record<string, string> = {
       Authorization: `Bearer ${this.#apiKey}`,
       Accept: "application/json",
       "Content-Type": "application/json",
       "User-Agent": `systemoneprompts/${CLIENT_VERSION}`,
     };
+    // Header names are case-insensitive; a caller `authorization` must not merge with ours.
+    const ownedNames = new Set(Object.keys(owned).map((name) => name.toLowerCase()));
+    const headers: Record<string, string> = {};
+    for (const [name, value] of Object.entries({ ...this.defaultHeaders, ...options.headers })) {
+      if (!ownedNames.has(name.toLowerCase())) headers[name] = value;
+    }
+    Object.assign(headers, owned);
     const payload = JSON.stringify(body);
     let lastError: unknown;
 
@@ -186,6 +191,9 @@ export class TypeSafeClient {
         if (options.signal?.aborted) {
           throw new TypeSafeClientError("TypeSafe API request was aborted", { cause: error });
         }
+        // A fetch wrapper (e.g. the dev cache's `CacheMissError`) already produced a client
+        // error; surface it unchanged instead of wrapping and retrying it as a network failure.
+        if (error instanceof TypeSafeClientError) throw error;
         if (attempt >= this.maxRetries) {
           throw new TypeSafeClientError(
             error instanceof Error

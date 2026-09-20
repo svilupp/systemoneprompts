@@ -139,8 +139,16 @@ def test_wildcard_requires_every_element() -> None:
         SystemOnePromptsError, match=r"messages\[\]\.text: expected string, got number"
     ):
         assertion({"messages": [{"text": "a"}, {"text": 1}]})
-    with pytest.raises(SystemOnePromptsError, match="got undefined"):
+    with pytest.raises(SystemOnePromptsError, match="messages: expected array, got object"):
         assertion({"messages": {"text": "a"}})
+    with pytest.raises(SystemOnePromptsError, match="messages: expected array, got string"):
+        assertion({"messages": "bad"})
+    with pytest.raises(SystemOnePromptsError, match="messages: expected array, got undefined"):
+        assertion({})
+    nested = create_state_assert({"grid[][]": "number"})
+    nested({"grid": [[1, 2], []]})
+    with pytest.raises(SystemOnePromptsError, match=r"grid\[\]: expected array, got number"):
+        nested({"grid": [[1], 2]})
 
     mixed = parse_definition(
         """

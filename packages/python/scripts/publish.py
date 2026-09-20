@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Publish an explicitly named artifact; dry-run is the safe default."""
+"""Build and publish both Python distributions for the current version."""
 
 from __future__ import annotations
 
-import argparse
 import subprocess
 import tomllib
 from pathlib import Path
@@ -12,23 +11,24 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--artifact", type=Path, required=True)
-    parser.add_argument("--execute", action="store_true")
-    args = parser.parse_args()
-    artifact = args.artifact.resolve()
-    if not artifact.is_file():
-        parser.error(f"artifact not found: {artifact}")
-    version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
-    expected = {f"systemoneprompts-{version}-py3-none-any.whl", f"systemoneprompts-{version}.tar.gz"}
-    if artifact.name not in expected:
-        parser.error(f"artifact filename must be one of: {', '.join(sorted(expected))}")
-    command = ["uv", "publish", str(artifact)]
-    print("Would run:", " ".join(command))
-    if args.execute:
-        subprocess.run(command, check=True)
-    else:
-        print("Dry run only; pass --execute to publish.")
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    name = project["name"]
+    version = project["version"]
+    run_quiet = ROOT / "scripts" / "run-quiet.sh"
+    subprocess.run(
+        ["sh", str(run_quiet), "Build", "--", "uv", "build", "--clear"],
+        cwd=ROOT,
+        check=True,
+    )
+    dist = ROOT / "dist"
+    artifacts = [
+        dist / f"{name}-{version}-py3-none-any.whl",
+        dist / f"{name}-{version}.tar.gz",
+    ]
+    missing = [str(path) for path in artifacts if not path.is_file()]
+    if missing:
+        raise SystemExit(f"build did not produce: {', '.join(missing)}")
+    subprocess.run(["uv", "publish", *(str(path) for path in artifacts)], cwd=ROOT, check=True)
     return 0
 
 

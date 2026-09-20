@@ -21,8 +21,13 @@ def run(label: str, script: str) -> int:
 
 
 def main() -> int:
-    for script in ("scripts/check.py", "scripts/package-smoke.py"):
-        status = run("Checks" if script.endswith("check.py") else "Package smoke", script)
+    checks = (
+        ("Checks", "scripts/check.py"),
+        ("Package smoke", "scripts/package-smoke.py"),
+        ("Standalone check", "scripts/standalone-check.py"),
+    )
+    for label, script in checks:
+        status = run(label, script)
         if status != 0:
             return status
     print("Release check: OK")

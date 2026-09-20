@@ -164,12 +164,17 @@ describe("createStateAssert", () => {
         "messages[].text: expected string, got number",
       );
     }
+    expect(() => assertAll({ messages: "bad" })).toThrow("messages: expected array, got string");
+    expect(() => assertAll({})).toThrow("messages: expected array, got undefined");
+    const nested: StateAssert = createStateAssert({ "grid[][]": "number" });
+    nested({ grid: [[1, 2], []] });
+    expect(() => nested({ grid: [[1], 2] })).toThrow("grid[]: expected array, got number");
     try {
       assertAll({ messages: { text: "a" } });
       throw new Error("expected failure");
     } catch (error) {
       expect((error as SystemOnePromptsError).message).toContain(
-        "messages[].text: expected string, got undefined",
+        "messages: expected array, got object",
       );
     }
   });

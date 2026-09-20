@@ -19,5 +19,5 @@ packageJson.version = version;
 await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
 console.log(`Prepared ${packageJson.name}: ${previous} -> ${version}`);
 console.log(
-  "Update the package changelog, run release:check, review the diff, then publish explicitly.",
+  "Update the package changelog, run release:check, review the diff, then run release:publish.",
 );
