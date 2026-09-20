@@ -7,7 +7,7 @@ Validate definitions and generate typed modules for TypeScript or Python.
 
 | Package | Command | Requires |
 | --- | --- | --- |
-| [TypeScript](packages/typescript/README.md) | `npm install systemoneprompts` | Node 20+ or Bun |
+| [TypeScript](packages/typescript/README.md) | `npm install systemoneprompts` or `bun add systemoneprompts` | Node 20+ or Bun |
 | [Python](packages/python/README.md) | `pip install systemoneprompts` | Python 3.11+ |
 
 Each package README includes a working example. Both packages ship the same

@@ -8,27 +8,41 @@
     "name": "svilupp",
     "url": "https://github.com/svilupp"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svilupp/systemoneprompts.git"
+  },
+  "homepage": "https://github.com/svilupp/systemoneprompts#readme",
+  "bugs": {
+    "url": "https://github.com/svilupp/systemoneprompts/issues"
+  },
   "publishConfig": {
     "access": "public"
   },
   "engines": {
     "node": ">=20"
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "systemoneprompts": "dist/cli/index.js"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./dev": {
       "types": "./dist/dev/index.d.ts",
-      "import": "./dist/dev/index.js"
+      "import": "./dist/dev/index.js",
+      "default": "./dist/dev/index.js"
     },
     "./patterns": {
       "types": "./dist/patterns/index.d.ts",
-      "import": "./dist/patterns/index.js"
+      "import": "./dist/patterns/index.js",
+      "default": "./dist/patterns/index.js"
     }
   },
   "files": [

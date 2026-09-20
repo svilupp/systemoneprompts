@@ -87,9 +87,11 @@ TypeScript consumer commands:
 
 ```sh
 npm install systemoneprompts
+# or: bun add systemoneprompts
 npx systemoneprompts check support.toml --strict
 npx systemoneprompts generate support.toml
 npx systemoneprompts generate support.toml --check
+# bunx systemoneprompts works the same way
 ```
 
 Generated-module usage; executing the provider call requires live credentials:

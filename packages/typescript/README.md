@@ -9,6 +9,7 @@ Requires Node 20+ or Bun. Set `TYPESAFE_API_KEY` for API calls.
 
 ```sh
 npm install systemoneprompts
+# or: bun add systemoneprompts
 ```
 
 Save as `triage.toml`:
@@ -31,6 +32,7 @@ billing = { ref = "topic", choice = "billing" }
 
 ```sh
 npx systemoneprompts generate triage.toml
+# or: bunx systemoneprompts generate triage.toml
 ```
 
 Use the generated module in your TypeScript app:
@@ -107,6 +109,7 @@ npx systemoneprompts generate triage.toml --check
 npx systemoneprompts run triage.toml --state state.json --cache --json
 npx systemoneprompts eval triage.toml --cases cases.jsonl --report report.json
 npx systemoneprompts cache stats
+# bunx systemoneprompts works the same way
 ```
 
 `generate --check` fails if generated files are stale. `run` accepts state from
@@ -131,8 +134,9 @@ sh scripts/run-quiet.sh "Release checks" -- bun run release:check
 ```
 
 Checks cover types, lint, tests, examples, and public exports. Release checks
-also install and test the npm archive. Use `scripts/run-quiet.sh` for focused
-tests too; it retains full logs and prints failures.
+also pack the npm archive and smoke it from npm and bun consumers under Node
+and Bun. Use `scripts/run-quiet.sh` for focused tests too; it retains full
+logs and prints failures.
 
 After editing example definitions, run `bun run examples:generate`.
 Live tests require `TYPESAFE_API_KEY`:

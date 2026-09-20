@@ -17,7 +17,9 @@ Code map:
 
 Keep TypeSafe question and answer shapes literal, diagnostics stable, generated
 output deterministic, and source imports ESM with `.js` extensions. Runtime
-code uses `smol-toml` and injected `fetch`; live tests are separate.
+code uses `smol-toml` and injected `fetch`; live tests are separate. The
+published package is ESM for Node 20+ and Bun; do not add Bun-only imports
+or a Bun-only CLI shebang.
 
 Default agent checks:
 

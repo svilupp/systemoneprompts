@@ -7,4 +7,6 @@ PyPI:
 2. Run `make publish-typescript`.
 3. Run `make publish-python`.
 
-The packages publish independently to npm and PyPI.
+The TypeScript release check packs the npm tarball and smokes it from
+fresh npm and bun installs under both Node and Bun. The packages publish
+independently to npm and PyPI.
