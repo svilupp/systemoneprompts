@@ -14,8 +14,7 @@ Code map:
 - `examples/`: committed generated examples; regenerate with
   `uv run --locked systemoneprompts generate examples/*/*.toml`.
 
-Keep the core dependency-free, preserve native TypeSafe shapes and stable
-diagnostic codes, and keep live transport in the optional `live` extra.
+Keep native TypeSafe shapes and stable diagnostic codes.
 
 Default agent checks:
 

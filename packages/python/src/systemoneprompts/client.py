@@ -11,6 +11,8 @@ from email.utils import parsedate_to_datetime
 from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated, Any, Literal
 
+import httpx2
+
 from .cache import CacheMissError
 from .cloudflare import (
     cloudflare_error_message,
@@ -19,7 +21,6 @@ from .cloudflare import (
 from .diagnostics import SystemOnePromptsError, diagnostic
 from .model import DEFAULT_MODEL
 
-LIVE_EXTRA = "systemoneprompts[live]"
 DEFAULT_BASE_URL = "https://api.typesafe.ai"
 DEFAULT_TIMEOUT = 10.0
 SYSTEM_ONE_PATH = "/v1/systemone"
@@ -69,23 +70,6 @@ class TypeSafeHttpError(TypeSafeClientError):
 
 class TypeSafeRateLimitError(TypeSafeHttpError):
     pass
-
-
-def require_live() -> Any:
-    try:
-        import httpx2
-        import pydantic as _pydantic
-    except ImportError as error:
-        raise TypeSafeClientError(
-            diagnostic(
-                "error",
-                "missing-live",
-                f"live commands require httpx2 and pydantic; install `{LIVE_EXTRA}`",
-                hint="uv add 'systemoneprompts[live]' or pip install 'systemoneprompts[live]'",
-            )
-        ) from error
-    _ = _pydantic.BaseModel
-    return httpx2
 
 
 def _models() -> Any:
@@ -149,7 +133,6 @@ class TypeSafeClient:
         max_retries: int = 2,
         environ: Mapping[str, str | None] | None = None,
     ) -> None:
-        httpx2 = require_live()
         import os
 
         source: Mapping[str, str | None] = os.environ if environ is None else environ
@@ -528,5 +511,4 @@ __all__ = [
     "TypeSafeClientError",
     "TypeSafeHttpError",
     "TypeSafeRateLimitError",
-    "require_live",
 ]

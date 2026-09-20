@@ -5,12 +5,11 @@ Generate typed Python modules and call the System One API.
 
 ## Quick start
 
-Requires Python 3.11+. The core package has no dependencies; API calls need
-the `live` extra. Native TypeSafe calls use `TYPESAFE_API_KEY`. OpenRouter and
-Cloudflare are described under [Providers](#providers).
+Requires Python 3.11+. Native TypeSafe calls use `TYPESAFE_API_KEY`. OpenRouter
+and Cloudflare are described under [Providers](#providers).
 
 ```sh
-pip install 'systemoneprompts[live]'
+pip install systemoneprompts
 ```
 
 Save as `triage.toml`:
@@ -199,8 +198,8 @@ After editing example definitions, run
 Live tests require `TYPESAFE_API_KEY`:
 
 ```sh
-uv sync --locked --dev --extra live
-sh scripts/run-quiet.sh "Live tests" -- uv run --locked --extra live pytest live
+uv sync --locked --dev
+sh scripts/run-quiet.sh "Live tests" -- uv run --locked pytest live
 ```
 
 After release checks pass, `uv run --locked python scripts/publish.py` builds

@@ -20,9 +20,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.11.14"
-      # The live extra is installed so the httpx2 transport tests run; deterministic
-      # checks still never contact the TypeSafe API (no TYPESAFE_API_KEY here).
-      - run: uv sync --locked --dev --extra live --python 3.11
+      - run: uv sync --locked --dev --python 3.11
       - run: sh scripts/run-quiet.sh "Release checks" -- uv run --locked --python 3.11 python scripts/release-check.py
 
   runtime:
@@ -71,7 +69,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.11.14"
-      - run: uv sync --locked --dev --extra live --python 3.11
+      - run: uv sync --locked --dev --python 3.11
       - name: Live smoke
         if: ${{ env.TYPESAFE_API_KEY != '' }}
-        run: sh scripts/run-quiet.sh "Live tests" -- uv run --locked --extra live --python 3.11 pytest live
+        run: sh scripts/run-quiet.sh "Live tests" -- uv run --locked --python 3.11 pytest live

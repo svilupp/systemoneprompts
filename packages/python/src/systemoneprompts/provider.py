@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+import httpx2
+
 from .cache import (
     CachingFetch,
     FetchResponse,
@@ -14,13 +16,11 @@ from .cache import (
     default_cache_dir,
     transport_headers,
 )
-from .client import TypeSafeClient, TypeSafeClientError, require_live
+from .client import TypeSafeClient, TypeSafeClientError
 from .cloudflare import create_cloudflare_transport
 from .definition import Definition
 from .diagnostics import SystemOnePromptsError, diagnostic
 from .model import read_env_model, resolve_model
-
-LIVE_EXTRA = "systemoneprompts[live]"
 
 
 class LiveClientError(SystemOnePromptsError):
@@ -138,10 +138,6 @@ def create_client(
     own transport, so it cannot be combined with `cache=True`.
     """
     load_dotenv()
-    try:
-        require_live()
-    except TypeSafeClientError as error:
-        raise LiveClientError(error.diagnostic) from error
     resolved = resolve_model(read_env_model(env), definition.model, model)
     source = env if env is not None else os.environ
     cloudflare_account_id = (source.get("CLOUDFLARE_ACCOUNT_ID") or "").strip() or None
@@ -226,22 +222,11 @@ def caching_httpx_transport(
     directory: str | None = None,
     inner: Any = None,
 ) -> Any:
-    """Wrap a CachingFetch as an httpx2.BaseTransport when the live extra is installed.
+    """Wrap a CachingFetch as an httpx2.BaseTransport.
 
     If `caching` is omitted, a cache is created that forwards misses through `inner`
     (an `httpx2.BaseTransport`), defaulting to a fresh `httpx2.HTTPTransport`.
     """
-    try:
-        import httpx2
-    except ImportError as error:
-        raise LiveClientError(
-            diagnostic(
-                "error",
-                "missing-live",
-                f"cache transport requires httpx2 from `{LIVE_EXTRA}`",
-            )
-        ) from error
-
     owned_inner = None
     if caching is None:
         if inner is not None:
@@ -276,17 +261,6 @@ def caching_httpx_transport(
 
 
 def wrap_caching_fetch(caching: CachingFetch, inner: Any = None) -> Any:
-    try:
-        import httpx2
-    except ImportError as error:
-        raise LiveClientError(
-            diagnostic(
-                "error",
-                "missing-live",
-                f"cache transport requires httpx2 from `{LIVE_EXTRA}`",
-            )
-        ) from error
-
     class CachingTransport(httpx2.BaseTransport):  # type: ignore[misc, unused-ignore]
         systemoneprompts_cache = True
         systemoneprompts_cloudflare = bool(

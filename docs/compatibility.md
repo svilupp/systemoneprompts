@@ -16,7 +16,7 @@ The `conformance/v1` corpus is the executable compatibility boundary.
 ## TypeSafe / JEV HTTP client (2026-09-20)
 
 Live commands use a native HTTP client. TypeScript uses global `fetch`.
-Python extra `systemoneprompts[live]` installs `pydantic` and `httpx2`.
+Python depends on `pydantic` and `httpx2`.
 
 | Item | Evidence |
 | --- | --- |

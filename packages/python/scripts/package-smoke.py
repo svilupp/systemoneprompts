@@ -73,7 +73,7 @@ def main() -> int:
                 raise SystemExit("installed package is missing py.typed")
             checks = [
                 [str(python), "-c", "import systemoneprompts; print(systemoneprompts.__file__)"],
-                [str(python), "-c", "from systemoneprompts.client import TypeSafeClient, require_live; print(TypeSafeClient.__name__)"],
+                [str(python), "-c", "from systemoneprompts.client import TypeSafeClient; print(TypeSafeClient.__name__)"],
                 [str(python), "-m", "systemoneprompts", "check", str(definition)],
                 [str(python), "-m", "systemoneprompts", "generate", str(definition)],
                 [

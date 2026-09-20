@@ -83,21 +83,20 @@ def test_load_dotenv_does_not_override_empty_string(tmp_path, monkeypatch) -> No
     assert os.environ["CLOUDFLARE_ACCOUNT_ID"] == ""
 
 
-def test_create_client_missing_live_or_credentials(monkeypatch) -> None:
+def test_create_client_missing_credentials(monkeypatch) -> None:
     definition = parse_definition(fixture("golden/noul-string.toml"))
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
     with pytest.raises(LiveClientError) as caught:
         create_client(definition, env={})
-    assert caught.value.diagnostic.code in {"missing-live", "missing-credentials"}
+    assert caught.value.diagnostic.code == "missing-credentials"
 
 
 def test_create_client_cloudflare_requires_token() -> None:
     definition = parse_definition(fixture("golden/noul-string.toml"))
     with pytest.raises(LiveClientError) as caught:
         create_client(definition, env={"CLOUDFLARE_ACCOUNT_ID": "acct"})
-    assert caught.value.diagnostic.code in {"missing-live", "missing-credentials"}
-    if caught.value.diagnostic.code == "missing-credentials":
-        assert "CLOUDFLARE_API_TOKEN" in caught.value.diagnostic.message
+    assert caught.value.diagnostic.code == "missing-credentials"
+    assert "CLOUDFLARE_API_TOKEN" in caught.value.diagnostic.message
 
 
 def test_create_client_rejects_cloudflare_with_base_url() -> None:
@@ -111,7 +110,7 @@ def test_create_client_rejects_cloudflare_with_base_url() -> None:
                 "TYPESAFE_BASE_URL": "https://openrouter.ai/api",
             },
         )
-    assert caught.value.diagnostic.code in {"missing-live", "cloudflare-base-url"}
+    assert caught.value.diagnostic.code == "cloudflare-base-url"
 
 
 def test_typesafe_client_uses_caller_transport() -> None:

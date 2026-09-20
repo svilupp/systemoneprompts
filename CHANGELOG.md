@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Python now depends on `pydantic` and `httpx2`; the optional `live` extra is removed.
 - Documented OpenRouter via `TYPESAFE_BASE_URL` (`baseURL` / `base_url`). Put the
   OpenRouter key in `TYPESAFE_API_KEY`.
 - Cloudflare Workers AI via `CLOUDFLARE_ACCOUNT_ID` (`cloudflareAccountId` /
