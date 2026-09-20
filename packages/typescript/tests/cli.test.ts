@@ -5,8 +5,8 @@ import { join } from "node:path";
 import { cli, fixture, fixturePath } from "./helpers.ts";
 
 describe("systemoneprompts check", () => {
-  test("passes a clean file and exits 0", () => {
-    const result = cli(["check", fixturePath("golden/triage.toml")]);
+  test("passes a clean file and exits 0", async () => {
+    const result = await cli(["check", fixturePath("golden/triage.toml")]);
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe("");
   });
@@ -16,18 +16,18 @@ describe("systemoneprompts check", () => {
     const broken = join(dir, "broken.toml");
     const missing = join(dir, "missing.toml");
     await writeFile(broken, "oops = [");
-    const result = cli(["check", broken, missing, fixturePath("errors/unknown-option.toml")]);
+    const result = await cli(["check", broken, missing, fixturePath("errors/unknown-option.toml")]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("broken.toml:1");
     expect(result.stderr).toContain("missing.toml");
     expect(result.stderr).toContain("unknown option `billling`");
   });
 
-  test("--strict promotes warnings", () => {
-    const relaxed = cli(["check", fixturePath("errors/backtick-typo.toml")]);
+  test("--strict promotes warnings", async () => {
+    const relaxed = await cli(["check", fixturePath("errors/backtick-typo.toml")]);
     expect(relaxed.exitCode).toBe(0);
     expect(relaxed.stderr).toContain("warning:");
-    const strict = cli(["check", "--strict", fixturePath("errors/backtick-typo.toml")]);
+    const strict = await cli(["check", "--strict", fixturePath("errors/backtick-typo.toml")]);
     expect(strict.exitCode).toBe(1);
     expect(strict.stderr).toContain("error:");
   });
@@ -39,24 +39,24 @@ describe("systemoneprompts generate", () => {
     const toml = join(dir, "triage.toml");
     await writeFile(toml, fixture("golden/triage.toml"));
 
-    const missing = cli(["generate", "--check", toml]);
+    const missing = await cli(["generate", "--check", toml]);
     expect(missing.exitCode).toBe(1);
     expect(missing.stderr).toContain("missing generated file");
 
-    const written = cli(["generate", toml]);
+    const written = await cli(["generate", toml]);
     expect(written.exitCode).toBe(0);
     expect(written.stdout.trim()).toBe(join(dir, "triage.generated.ts"));
 
-    const fresh = cli(["generate", "--check", toml]);
+    const fresh = await cli(["generate", "--check", toml]);
     expect(fresh.exitCode).toBe(0);
 
     await writeFile(toml, `${fixture("golden/triage.toml")}\n# touched\n`);
-    const stale = cli(["generate", "--check", toml]);
+    const stale = await cli(["generate", "--check", toml]);
     expect(stale.exitCode).toBe(1);
     expect(stale.stderr).toContain("stale generated file");
 
     const out = join(dir, "out");
-    const moved = cli(["generate", "--out", out, toml]);
+    const moved = await cli(["generate", "--out", out, toml]);
     expect(moved.exitCode).toBe(0);
     expect(await readFile(join(out, "triage.generated.ts"), "utf8")).toContain(
       "export const questions",
@@ -71,7 +71,7 @@ describe("systemoneprompts generate", () => {
     await writeFile(first, fixture("golden/noul-string.toml"));
     await writeFile(second, fixture("golden/noul-string.toml"));
 
-    const result = cli(["generate", first, missing, second]);
+    const result = await cli(["generate", first, missing, second]);
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain(join(dir, "first.generated.ts"));
     expect(result.stdout).toContain(join(dir, "second.generated.ts"));
@@ -83,7 +83,7 @@ describe("systemoneprompts generate", () => {
     const source = join(dir, "definition.txt");
     await writeFile(source, fixture("golden/noul-string.toml"));
 
-    const result = cli(["generate", source]);
+    const result = await cli(["generate", source]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain(".toml extension");
     expect(await Bun.file(source).exists()).toBe(true);
@@ -97,7 +97,7 @@ describe("systemoneprompts generate", () => {
     await Bun.write(join(left, "same.toml"), fixture("golden/noul-string.toml"));
     await Bun.write(join(right, "same.toml"), fixture("golden/noul-string.toml"));
 
-    const result = cli([
+    const result = await cli([
       "generate",
       "--out",
       out,
@@ -166,7 +166,9 @@ describe("systemoneprompts eval", () => {
       `${JSON.stringify({ id: 42, state: 3, labels: { missing: true }, factors: { "topic.billing": "yes" } })}\n`,
     );
 
-    const result = cli(["eval", fixturePath("golden/triage.toml"), "--cases", cases], { env });
+    const result = await cli(["eval", fixturePath("golden/triage.toml"), "--cases", cases], {
+      env,
+    });
     expect(result.exitCode).toBe(1);
     expect(calls).toBe(0);
     expect(result.stderr).toContain("invalid eval case");
@@ -180,7 +182,7 @@ describe("systemoneprompts eval", () => {
     const cases = join(dir, "cases.jsonl");
     await writeFile(cases, `${JSON.stringify({ state })}\n`);
 
-    const result = cli(
+    const result = await cli(
       ["eval", fixturePath("golden/triage.toml"), "--cases", cases, "--sweep", "missing"],
       { env },
     );
@@ -197,7 +199,7 @@ describe("systemoneprompts eval", () => {
     const original = await readFile(cases, "utf8");
     const report = `${dir}/nested/../cases.jsonl`;
 
-    const result = cli(
+    const result = await cli(
       ["eval", fixturePath("golden/triage.toml"), "--cases", cases, "--report", report],
       { env },
     );
@@ -208,9 +210,12 @@ describe("systemoneprompts eval", () => {
 
     const definition = fixturePath("golden/triage.toml");
     const definitionOriginal = await readFile(definition, "utf8");
-    const definitionResult = cli(["eval", definition, "--cases", cases, "--report", definition], {
-      env,
-    });
+    const definitionResult = await cli(
+      ["eval", definition, "--cases", cases, "--report", definition],
+      {
+        env,
+      },
+    );
     expect(definitionResult.exitCode).toBe(1);
     expect(calls).toBe(0);
     expect(await readFile(definition, "utf8")).toBe(definitionOriginal);
@@ -222,7 +227,7 @@ describe("systemoneprompts eval", () => {
     const cases = join(dir, "cases.jsonl");
     await writeFile(cases, `${JSON.stringify({ state })}\n`);
 
-    const result = cli(
+    const result = await cli(
       [
         "eval",
         fixturePath("golden/triage.toml"),
@@ -253,7 +258,7 @@ describe("systemoneprompts eval", () => {
       })}\n`,
     );
 
-    const result = cli(
+    const result = await cli(
       ["eval", fixturePath("golden/triage.toml"), "--cases", cases, "--report", report],
       { env },
     );
@@ -296,7 +301,7 @@ describe("systemoneprompts eval", () => {
       })}\n`,
     );
 
-    const result = cli(
+    const result = await cli(
       ["eval", fixturePath("golden/triage.toml"), "--cases", cases, "--report", report],
       { env },
     );
@@ -337,7 +342,7 @@ describe("systemoneprompts eval", () => {
       })}\n`,
     );
 
-    const result = cli(
+    const result = await cli(
       [
         "eval",
         fixturePath("golden/triage.toml"),
@@ -403,7 +408,7 @@ describe("systemoneprompts run", () => {
         policy: { sensitive_credentials: [] },
       }),
     );
-    const result = cli(
+    const result = await cli(
       [
         "run",
         fixturePath("golden/triage.toml"),
@@ -430,7 +435,7 @@ describe("systemoneprompts run", () => {
 
   test("a state that violates [requires] fails before any network call", async () => {
     const before = requests.length;
-    const result = cli(["run", fixturePath("golden/triage.toml")], {
+    const result = await cli(["run", fixturePath("golden/triage.toml")], {
       env,
       input: JSON.stringify({ ticket: { message: 42 } }),
     });
@@ -439,8 +444,8 @@ describe("systemoneprompts run", () => {
     expect(requests.length).toBe(before);
   });
 
-  test("malformed state JSON names the source", () => {
-    const result = cli(["run", fixturePath("golden/triage.toml")], { env, input: "{ nope" });
+  test("malformed state JSON names the source", async () => {
+    const result = await cli(["run", fixturePath("golden/triage.toml")], { env, input: "{ nope" });
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("<stdin>:");
   });

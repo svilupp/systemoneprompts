@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,7 +26,7 @@ export function tsc(args: string[]): { exitCode: number; output: string } {
 export function cli(
   args: string[],
   opts: { cwd?: string; input?: string; env?: Record<string, string> } = {},
-): { exitCode: number; stdout: string; stderr: string } {
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   const env = {
     ...process.env,
     TYPESAFE_BASE_URL: "",
@@ -34,11 +34,28 @@ export function cli(
     CLOUDFLARE_API_TOKEN: "",
     ...opts.env,
   };
-  const result = spawnSync("bun", [join(root, "src", "cli", "index.ts"), ...args], {
-    cwd: opts.cwd ?? root,
-    encoding: "utf8",
-    input: opts.input,
-    env,
+  return new Promise((resolve) => {
+    const child = spawn("bun", [join(root, "src", "cli", "index.ts"), ...args], {
+      cwd: opts.cwd ?? root,
+      env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.once("error", (error) => {
+      stderr += `${error.message}\n`;
+    });
+    child.once("close", (code) => {
+      resolve({ exitCode: code ?? 1, stdout, stderr });
+    });
+    child.stdin.end(opts.input ?? "");
   });
-  return { exitCode: result.status ?? 1, stdout: result.stdout, stderr: result.stderr };
 }

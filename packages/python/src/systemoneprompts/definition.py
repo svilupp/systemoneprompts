@@ -260,20 +260,26 @@ def diagnostic_location(
 
 
 def _wrap_toml_error(error: tomllib.TOMLDecodeError, filename: str | None, source: str) -> SystemOnePromptsError:
-    line = getattr(error, "lineno", None)
-    column = getattr(error, "colno", None)
     message = str(error)
+    line: int | None = None
+    column: int | None = None
+    if "at end of document" in message:
+        # Python 3.14 exposes an EOF sentinel as ``lineno``/``colno`` (the
+        # line after a trailing newline), while older versions only expose it
+        # in the message. Point at the unterminated value's source line.
+        lines = split_lines(source)
+        if len(lines) > 1 and lines[-1] == "":
+            lines.pop()  # a trailing newline does not start a new line
+        line = max(1, len(lines))
+        column = None
+    else:
+        line = getattr(error, "lineno", None)
+        column = getattr(error, "colno", None)
     if not isinstance(line, int):
         match = _TOML_POSITION.search(message)
         if match:
             line = int(match.group(1))
             column = int(match.group(2))
-        elif "at end of document" in message:
-            lines = split_lines(source)
-            if len(lines) > 1 and lines[-1] == "":
-                lines.pop()  # a trailing newline does not start a new line
-            line = max(1, len(lines))
-            column = None
         else:
             line = None
             column = None
