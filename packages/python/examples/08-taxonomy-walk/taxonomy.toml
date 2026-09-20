@@ -1,0 +1,17 @@
+title = "Taxonomy walk helper"
+version = "0.1.0"
+description = "The walk is in run.ts; this file documents the leaf questions."
+model = "jev-latest"
+
+[requires]
+"listing.title" = "string"
+"listing.description" = "string"
+
+[questions.department]
+type = "choice"
+instructions.question = "Which top-level department fits `listing.title`?"
+instructions.focus = "Use the listing's intended use, not just the word bottle."
+
+[questions.department.criteria]
+"Sporting Goods" = "Athletic and outdoor equipment, including cycling accessories"
+"Home & Kitchen" = "Household drinkware and kitchen goods"

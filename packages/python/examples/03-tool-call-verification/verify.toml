@@ -1,0 +1,25 @@
+title = "Tool-call verification"
+version = "0.1.0"
+model = "jev-latest"
+
+[requires]
+"trace.tool" = "string"
+"trace.arguments" = "object"
+"trace.result" = "object"
+
+[questions.tool_exists]
+type = "noul"
+instructions = "Does `trace.tool` name a real function that was invoked?"
+
+[questions.args_match_schema]
+type = "noul"
+instructions.question = "Do `trace.arguments` match the tool's expected fields?"
+instructions.inspect = "`trace.arguments`"
+
+[questions.result_addresses_args]
+type = "noul"
+instructions.question = "Does `trace.result` answer the request implied by `trace.arguments`?"
+instructions.compare = ["`trace.arguments`", "`trace.result`"]
+
+[factors]
+verified = { all = ["tool_exists", "args_match_schema", "result_addresses_args"] }

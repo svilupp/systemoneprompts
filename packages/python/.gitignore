@@ -10,5 +10,4 @@ dist/
 *.tar.gz
 .jevprompts/
 .systemoneprompts/
-examples/**/*_generated.py
 
