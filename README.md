@@ -10,8 +10,9 @@ Validate definitions and generate typed modules for TypeScript or Python.
 | [TypeScript](packages/typescript/README.md) | `npm install systemoneprompts` | Node 20+ or Bun |
 | [Python](packages/python/README.md) | `pip install systemoneprompts` | Python 3.11+ |
 
-Each package README includes a working example. Python API calls need
-`pip install 'systemoneprompts[live]'`. Both clients use `TYPESAFE_API_KEY`.
+Each package README includes a working example. Both packages ship the same
+ten examples. Python API calls need `pip install 'systemoneprompts[live]'`.
+Both clients use `TYPESAFE_API_KEY`.
 
 ## Development
 

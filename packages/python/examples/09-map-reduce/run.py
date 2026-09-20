@@ -1,31 +1,22 @@
 from __future__ import annotations
 
 import asyncio
-import importlib.util
+import sys
 from pathlib import Path
-from types import ModuleType
 
 from systemoneprompts.cache import create_caching_fetch
 from systemoneprompts.client import TypeSafeClient
 from systemoneprompts.patterns import run_many
-from systemoneprompts.provider import load_dotenv, wrap_caching_fetch
+from systemoneprompts.provider import wrap_caching_fetch
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
+from _generated import load_generated  # noqa: E402
 
-
-def _generated(name: str) -> ModuleType:
-    path = HERE / name
-    spec = importlib.util.spec_from_file_location(path.stem.replace("-", "_"), path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load generated module {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+generated = load_generated(HERE, "batch_generated.py")
 
 
 async def main() -> None:
-    load_dotenv(str(HERE.parents[1]))
-    generated = _generated("batch_generated.py")
     templates = [
         "I was charged twice for order A-{n}.",
         "Where is my order A-{n}?",

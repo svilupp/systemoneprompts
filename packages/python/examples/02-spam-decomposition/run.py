@@ -1,30 +1,20 @@
 from __future__ import annotations
 
 import asyncio
-import importlib.util
 import json
+import sys
 from pathlib import Path
-from types import ModuleType
 
 from systemoneprompts.client import TypeSafeClient
-from systemoneprompts.provider import load_dotenv
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
+from _generated import load_generated  # noqa: E402
 
-
-def _generated(name: str) -> ModuleType:
-    path = HERE / name
-    spec = importlib.util.spec_from_file_location(path.stem.replace("-", "_"), path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load generated module {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+generated = load_generated(HERE, "spam_generated.py")
 
 
 async def main() -> None:
-    load_dotenv(str(HERE.parents[1]))
-    generated = _generated("spam_generated.py")
     state = json.loads((HERE / "states" / "phish.json").read_text(encoding="utf-8"))
     generated.assert_state(state)
 

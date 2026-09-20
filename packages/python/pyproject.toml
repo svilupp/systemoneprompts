@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
-authors = [{ name = "systemoneprompts contributors" }]
+authors = [{ name = "svilupp" }]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -40,18 +40,9 @@ dev = [
   "httpx2>=2.13,<3",
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/systemoneprompts"]
-
-[tool.hatch.build.targets.sdist]
-exclude = [
-  "/.env.example",
-  "/.github",
-  "/.gitignore",
-  "/.python-version",
-  "/CLAUDE.md",
-  "/docs/SPEC.html",
-]
+[tool.uv.build-backend]
+module-name = "systemoneprompts"
+module-root = "src"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

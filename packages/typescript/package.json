@@ -4,6 +4,10 @@
   "description": "TOML decision definitions for System One; TypeSafe/JEV are providers",
   "type": "module",
   "license": "MIT",
+  "author": {
+    "name": "svilupp",
+    "url": "https://github.com/svilupp"
+  },
   "publishConfig": {
     "access": "public"
   },
