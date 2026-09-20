@@ -1,0 +1,7 @@
+[questions.ok]
+type = "noul"
+instructions = "ok?"
+
+[factors]
+a = { all = ["b"] }
+b = { all = ["a"] }

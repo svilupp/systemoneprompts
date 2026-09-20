@@ -1,0 +1,8 @@
+[questions.amount_present]
+type = "noul"
+instructions.field = { name = "total", type = "currency" }
+instructions.question = "Is a total amount present on the invoice?"
+
+[questions.amount_present.criteria]
+true = "A numeric total is stated"
+false = "No total is recoverable"

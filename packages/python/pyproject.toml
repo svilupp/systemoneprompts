@@ -1,0 +1,77 @@
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13"]
+build-backend = "uv_build"
+
+[project]
+name = "systemoneprompts"
+version = "0.1.0"
+description = "Portable definitions, state contracts, and factor evaluation for System One workflows"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "systemoneprompts contributors" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+live = ["pydantic>=2.13,<3", "httpx2>=2.13,<3"]
+
+[project.scripts]
+systemoneprompts = "systemoneprompts.cli:main"
+
+[dependency-groups]
+dev = [
+  "mypy>=1.15",
+  "pytest>=8.3",
+  "ruff>=0.11",
+  "pydantic>=2.13,<3",
+  "httpx2>=2.13,<3",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/systemoneprompts"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.env.example",
+  "/.github",
+  "/.gitignore",
+  "/.python-version",
+  "/CLAUDE.md",
+  "/PLAN.md",
+  "/docs/SPEC.html",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["httpx2", "httpx2.*"]
+ignore_missing_imports = true

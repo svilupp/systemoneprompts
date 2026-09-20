@@ -1,0 +1,10 @@
+{
+  "support": {
+    "tickets": [
+      {
+        "id": "T-104",
+        "message": "Help! Checkout has been failing for every customer since 9am."
+      }
+    ]
+  }
+}

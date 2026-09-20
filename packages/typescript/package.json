@@ -1,0 +1,76 @@
+{
+  "name": "systemoneprompts",
+  "version": "0.1.0",
+  "description": "TOML decision definitions for System One; TypeSafe/JEV are providers",
+  "type": "module",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "systemoneprompts": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./dev": {
+      "types": "./dist/dev/index.d.ts",
+      "import": "./dist/dev/index.js"
+    },
+    "./patterns": {
+      "types": "./dist/patterns/index.d.ts",
+      "import": "./dist/patterns/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "bun test tests",
+    "test:unit": "bun test tests",
+    "test:cli": "bun test tests/cli.test.ts",
+    "test:fitness": "bun test tests/fitness",
+    "test:conformance": "bun test tests/conformance",
+    "test:live": "bun test live",
+    "typecheck": "tsc -p tsconfig.json",
+    "examples:generate": "bun src/cli/index.ts generate examples/*/*.toml",
+    "examples:check": "bun src/cli/index.ts generate --check examples/*/*.toml",
+    "api:check": "node scripts/check-public-api.mjs",
+    "test:package": "node scripts/package-smoke.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "release:prepare": "node scripts/release-prepare.mjs",
+    "release:publish": "node scripts/publish.mjs",
+    "prepack": "node scripts/build.mjs",
+    "prepublishOnly": "node scripts/build.mjs"
+  },
+  "dependencies": {
+    "smol-toml": "^1.4.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
+    "@types/bun": "^1.2.21",
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  },
+  "keywords": [
+    "typesafe",
+    "jev",
+    "system-one",
+    "toml",
+    "prompts"
+  ]
+}

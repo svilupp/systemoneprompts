@@ -1,0 +1,34 @@
+title = "Invoice field extraction"
+version = "0.1.0"
+model = "jev-latest"
+
+[requires]
+"invoice.text" = "string"
+
+[questions.total_present]
+type = "noul"
+instructions.field = { name = "total", type = "currency" }
+instructions.question = "Is a payable total stated in `invoice.text`?"
+instructions.focus = "Look for a final amount due, not a line-item price."
+
+[questions.currency]
+type = "choice"
+instructions.field = { name = "currency", type = "code" }
+instructions.question = "Which currency is the invoice total in?"
+
+[questions.currency.criteria]
+USD = "US dollars"
+EUR = "Euros"
+GBP = "Pounds sterling"
+other = "Another currency or unspecified"
+
+[questions.amount_magnitude]
+type = "score"
+instructions.field = { name = "total", type = "currency" }
+instructions.question = "How large is the stated total in `invoice.text`?"
+criteria = ["Under 100", "100 to 1000", "Over 1000"]
+
+[factors]
+"total.verified" = { ref = "total_present", noul = { gte = 0.7 } }
+"currency.usd" = { ref = "currency", choice = "USD" }
+"amount.large" = { ref = "amount_magnitude", score = { gte = 1.5 } }

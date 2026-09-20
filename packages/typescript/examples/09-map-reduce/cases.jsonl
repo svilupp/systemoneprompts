@@ -1,0 +1,5 @@
+{"id":"1","state":{"ticket":{"message":"I was charged twice. Refund please."}},"labels":{"topic":"billing","urgent":false},"factors":{"topic.billing":true}}
+{"id":"2","state":{"ticket":{"message":"Where is order A-104?"}},"labels":{"topic":"orders","urgent":false},"factors":{"topic.billing":false}}
+{"id":"3","state":{"ticket":{"message":"I cannot sign in and I need access immediately."}},"labels":{"topic":"account","urgent":true},"factors":{"topic.billing":false,"urgent.yes":true}}
+{"id":"4","state":{"ticket":{"message":"Cancel my shipment if it has not left yet."}},"labels":{"topic":"orders","urgent":false}}
+{"id":"5","state":{"ticket":{"message":"Why is my subscription $20 more this month?"}},"labels":{"topic":"billing","urgent":false},"factors":{"topic.billing":true}}

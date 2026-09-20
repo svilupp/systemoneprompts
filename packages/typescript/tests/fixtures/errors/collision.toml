@@ -1,0 +1,13 @@
+[questions.topic]
+type = "choice"
+instructions = "Which?"
+
+[questions.topic.criteria]
+billing = "Charges"
+
+[factors]
+topic = { all = ["ok"] }
+
+[questions.ok]
+type = "noul"
+instructions = "ok?"

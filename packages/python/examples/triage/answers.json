@@ -1,0 +1,16 @@
+{
+  "topic": {
+    "type": "choice",
+    "choice": "billing",
+    "confidence": 0.86,
+    "probabilities": { "billing": 0.86, "orders": 0.1, "account": 0.04 }
+  },
+  "spam.requests_credentials": { "type": "noul", "noul": 0.08 },
+  "frustration": {
+    "type": "score",
+    "score": 1.7,
+    "confidence": 0.74,
+    "legend": { "0": "Calm", "1": "Civil", "2": "Angry" },
+    "probabilities": { "0": 0.05, "1": 0.2, "2": 0.75 }
+  }
+}

@@ -1,0 +1,17 @@
+**/node_modules/
+**/dist/
+**/.env
+**/.jevprompts/
+**/.systemoneprompts/
+**/.venv/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/coverage/
+**/*.tgz
+**/*.whl
+**/*.egg-info/
+**/release-manifest.json
+.DS_Store
+coverage/
+check-logs/

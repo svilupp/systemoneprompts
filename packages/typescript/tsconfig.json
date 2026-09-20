@@ -1,0 +1,24 @@
+{
+  // Dev / editor config: typechecks src, tests, and examples together.
+  // `paths` lets tests, examples, and generated files import "systemoneprompts" straight
+  // from source (Bun honours it at runtime too). The build uses tsconfig.build.json.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "types": ["node", "bun"],
+    "baseUrl": ".",
+    "paths": {
+      "systemoneprompts": ["./src/index.ts"],
+      "systemoneprompts/*": ["./src/*/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "examples/**/*.ts", "live/**/*.ts"]
+}

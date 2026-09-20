@@ -1,0 +1,6 @@
+[questions.refund_requested]
+type = "noul"
+instructions = "Refund?"
+
+[factors]
+x = { ref = "refund_requested", confidence = { gte = 0.5 } }

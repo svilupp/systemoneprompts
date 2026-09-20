@@ -1,0 +1,17 @@
+title = "Nested state paths"
+version = "0.1.0"
+description = "Index paths in [requires] and backtick lint"
+model = "jev-latest"
+
+[requires]
+"support.tickets[0].message" = "string"
+"support.tickets[0].id" = "string"
+
+[questions.urgent]
+type = "noul"
+instructions.question = "Does `support.tickets[0].message` convey urgency?"
+instructions.inspect = "`support.tickets[0].message`"
+
+[questions.urgent.criteria]
+true = "The first ticket asks for immediate help"
+false = "The first ticket is routine"

@@ -1,0 +1,79 @@
+name: python
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+defaults:
+  run:
+    working-directory: packages/python
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.14"
+      # The live extra is installed so the httpx2 transport tests run; deterministic
+      # checks still never contact the TypeSafe API (no TYPESAFE_API_KEY here).
+      - run: uv sync --locked --dev --extra live --python 3.11
+      - run: sh scripts/run-quiet.sh "Checks" -- uv run --locked --python 3.11 python scripts/check.py
+      - run: sh scripts/run-quiet.sh "Package smoke" -- uv run --locked --python 3.11 python scripts/package-smoke.py
+      - run: sh scripts/run-quiet.sh "Standalone check" -- uv run --locked --python 3.11 python scripts/standalone-check.py
+
+  runtime:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.14"
+      - run: uv sync --locked --dev --python ${{ matrix.python }}
+      - run: sh scripts/run-quiet.sh "Tests" -- uv run --locked --python ${{ matrix.python }} pytest
+      - run: sh scripts/run-quiet.sh "Conformance" -- uv run --locked --python ${{ matrix.python }} python scripts/conformance.py
+      - run: sh scripts/run-quiet.sh "Package smoke" -- uv run --locked --python ${{ matrix.python }} python scripts/package-smoke.py
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.14"
+      - run: uv sync --locked --dev --python 3.12
+      - run: sh scripts/run-quiet.sh "Tests" -- uv run --locked --python 3.12 pytest
+      - run: sh scripts/run-quiet.sh "Conformance" -- uv run --locked --python 3.12 python scripts/conformance.py
+      - run: sh scripts/run-quiet.sh "Package smoke" -- uv run --locked --python 3.12 python scripts/package-smoke.py
+
+  live:
+    runs-on: ubuntu-latest
+    env:
+      TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.14"
+      - run: uv sync --locked --dev --extra live --python 3.11
+      - name: Live smoke
+        if: ${{ env.TYPESAFE_API_KEY != '' }}
+        run: sh scripts/run-quiet.sh "Live tests" -- uv run --locked --extra live --python 3.11 pytest live
