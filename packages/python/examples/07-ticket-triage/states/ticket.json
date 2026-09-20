@@ -1,0 +1,12 @@
+{
+  "ticket": {
+    "message": "I was charged twice for order A-104. Please refund the duplicate.",
+    "sender": { "email": "sam@example.com", "display_name": "Sam Example" }
+  },
+  "customer": {
+    "open_orders": [{ "id": "A-104", "status": "processing" }]
+  },
+  "policy": {
+    "sensitive_credentials": ["password", "security code", "API key"]
+  }
+}

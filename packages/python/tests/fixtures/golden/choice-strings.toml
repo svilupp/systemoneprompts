@@ -1,0 +1,8 @@
+[questions.department]
+type = "choice"
+instructions = "Which team should handle this?"
+
+[questions.department.criteria]
+billing = "Payments, invoicing, refunds"
+technical = "Bugs, outages, integrations"
+sales = "Pricing, upgrades, new accounts"

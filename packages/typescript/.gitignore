@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.jevprompts/
+.systemoneprompts/
+coverage/
+*.tgz
+check-logs/

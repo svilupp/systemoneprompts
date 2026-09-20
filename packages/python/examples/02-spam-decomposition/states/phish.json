@@ -1,0 +1,7 @@
+{
+  "ticket": {
+    "message": "You were selected for a $1000 bonus. Reply with your password to claim it.",
+    "sender": { "display_name": "Acme Payroll", "email": "bonus@claim-now.example" }
+  },
+  "policy": { "sensitive_credentials": ["password", "API key"] }
+}

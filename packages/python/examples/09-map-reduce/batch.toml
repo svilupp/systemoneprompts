@@ -1,0 +1,23 @@
+title = "Map-reduce ticket batch"
+version = "0.1.0"
+model = "jev-latest"
+
+[requires]
+"ticket.message" = "string"
+
+[questions.topic]
+type = "choice"
+instructions = "Which team should handle `ticket.message`?"
+
+[questions.topic.criteria]
+billing = "Charges, invoices, refunds"
+orders = "Shipments and deliveries"
+account = "Login and profile"
+
+[questions.urgent]
+type = "noul"
+instructions = "Does `ticket.message` convey urgency?"
+
+[factors]
+"topic.billing" = { ref = "topic", choice = "billing" }
+"urgent.yes" = { ref = "urgent", noul = { gte = 0.5 } }

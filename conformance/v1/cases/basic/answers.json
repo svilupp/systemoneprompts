@@ -1,0 +1,4 @@
+{
+	"topic": { "choice": "billing", "confidence": 0.9 },
+	"urgent": { "noul": 0.8 }
+}

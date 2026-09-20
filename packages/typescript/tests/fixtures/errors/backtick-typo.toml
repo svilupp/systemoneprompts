@@ -1,0 +1,6 @@
+[requires]
+"ticket.message" = "string"
+
+[questions.x]
+type = "noul"
+instructions = "Look at `ticket.mesage`"

@@ -1,0 +1,5 @@
+title = "oops"
+
+[question.foo]
+type = "noul"
+instructions = "bad table name"

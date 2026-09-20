@@ -1,0 +1,7 @@
+title = "Wildcard requires"
+
+[requires]
+"messages[].text" = "string"
+
+[questions.ok]
+type = "noul"

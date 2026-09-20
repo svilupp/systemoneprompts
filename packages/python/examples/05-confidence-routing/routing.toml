@@ -1,0 +1,23 @@
+title = "Confidence routing"
+version = "0.1.0"
+model = "jev-latest"
+
+[requires]
+"ticket.message" = "string"
+
+[questions.topic]
+type = "choice"
+instructions = "Which team should handle `ticket.message`?"
+
+[questions.topic.criteria]
+billing = "Charges, invoices, refunds"
+orders = "Shipments and deliveries"
+account = "Login and profile"
+
+[questions.refund_requested]
+type = "noul"
+instructions = "Does `ticket.message` explicitly request a refund?"
+
+[factors]
+"topic.confident" = { ref = "topic", confidence = { gte = 0.8 } }
+"refund.gray" = { ref = "refund_requested", noul = { gt = 0.4, lt = 0.6 } }

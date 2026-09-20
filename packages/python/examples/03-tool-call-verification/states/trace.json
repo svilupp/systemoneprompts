@@ -1,0 +1,7 @@
+{
+  "trace": {
+    "tool": "lookup_order",
+    "arguments": { "order_id": "A-104" },
+    "result": { "order_id": "A-104", "status": "shipped", "eta": "Tuesday" }
+  }
+}

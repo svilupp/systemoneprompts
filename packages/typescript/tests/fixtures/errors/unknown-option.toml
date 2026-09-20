@@ -1,0 +1,11 @@
+[questions.topic]
+type = "choice"
+instructions = "Which team?"
+
+[questions.topic.criteria]
+billing = "Charges"
+orders = "Shipments"
+account = "Login"
+
+[factors]
+"topic.billing" = { ref = "topic", choice = "billling" }

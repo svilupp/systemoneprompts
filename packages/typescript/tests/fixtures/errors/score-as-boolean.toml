@@ -1,0 +1,7 @@
+[questions.frustration]
+type = "score"
+instructions = "How frustrated?"
+criteria = ["Calm", "Angry"]
+
+[factors]
+ready = { all = ["frustration"] }
