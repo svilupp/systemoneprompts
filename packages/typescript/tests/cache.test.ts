@@ -52,6 +52,40 @@ describe("createCachingFetch", () => {
     expect(a).toBe(b);
   });
 
+  test("identical bodies with different ids do not share cache", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "jev-cache-"));
+    const body = { type: "noul", instructions: "same?" };
+    expect(
+      questionHash({ model: "jev-latest", id: "a", state: { ticket: "hi" }, question: body }),
+    ).not.toBe(
+      questionHash({ model: "jev-latest", id: "b", state: { ticket: "hi" }, question: body }),
+    );
+    const noul: Record<string, number> = { a: 0.1, b: 0.9 };
+    const mock = mockFetch((raw) => {
+      const questions = (raw as { questions: Record<string, unknown> }).questions;
+      const answers = Object.fromEntries(
+        Object.keys(questions).map((id) => [id, { type: "noul", noul: noul[id] }]),
+      );
+      return {
+        model: "jev-latest",
+        answers,
+        usage: { input_tokens: 3, output_tokens: 1 },
+      };
+    });
+    const fetchImpl = createCachingFetch({ dir, fetch: mock.fetchImpl });
+    const first = (await (await fetchImpl(endpoint, request({ a: body }))).json()) as Body;
+    const second = (await (await fetchImpl(endpoint, request({ b: body }))).json()) as Body;
+    expect(first.answers.a).toEqual({ type: "noul", noul: 0.1 });
+    expect(second.answers.b).toEqual({ type: "noul", noul: 0.9 });
+    expect(mock.calls).toBe(2);
+    const both = (await (await fetchImpl(endpoint, request({ a: body, b: body }))).json()) as Body;
+    expect(both.answers).toEqual({
+      a: { type: "noul", noul: 0.1 },
+      b: { type: "noul", noul: 0.9 },
+    });
+    expect(mock.calls).toBe(2);
+  });
+
   test("per-question invalidation, usage arithmetic, cumulative stats", async () => {
     const dir = await mkdtemp(join(tmpdir(), "jev-cache-"));
     const mock = mockFetch((body) => {
@@ -77,7 +111,10 @@ describe("createCachingFetch", () => {
     const cacheFiles = await readdir(
       join(
         dir,
-        questionHash({ model: "jev-latest", state: { ticket: "hi" }, question: a }).slice(0, 2),
+        questionHash({ model: "jev-latest", id: "a", state: { ticket: "hi" }, question: a }).slice(
+          0,
+          2,
+        ),
       ),
     );
     expect(cacheFiles).toEqual(expect.arrayContaining([expect.stringMatching(/\.json$/)]));
@@ -142,7 +179,7 @@ describe("createCachingFetch", () => {
   test("corrupt cache records are misses, including in read-only mode", async () => {
     const question = { type: "noul", instructions: "A?" };
     const state = { ticket: "hi" };
-    const hash = questionHash({ model: "jev-latest", state, question });
+    const hash = questionHash({ model: "jev-latest", id: "a", state, question });
     const records: unknown[] = [
       null,
       [],

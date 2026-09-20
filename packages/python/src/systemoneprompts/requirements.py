@@ -13,7 +13,7 @@ from .locate import EMPTY_INDEX, SourceIndex, locate
 RequirementType = Literal["string", "number", "boolean", "array", "object", "null", "exists"]
 REQUIREMENT_TYPES = ("string", "number", "boolean", "array", "object", "null", "exists")
 _IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
-_INDEX = re.compile(r"\[([0-9]+)\]")
+_INDEX = re.compile(r"\[(-?[0-9]+)\]")
 MAX_INDEX = 2**32 - 2
 _MISSING = object()
 
@@ -53,7 +53,7 @@ def parse_path(path: str) -> list[PathSegment] | None:
         if match is None:
             return None
         index = int(match.group(1))
-        if index > MAX_INDEX:
+        if abs(index) > MAX_INDEX:
             return None
         result.append(index)
         cursor = match.end()
@@ -218,7 +218,7 @@ def parse_requirements(
                     "invalid-require-path",
                     f"invalid [requires] path `{path}`",
                     location,
-                    "use dotted identifiers and [n] or [] indexes, e.g. ticket.message or tickets[0].id",
+                    "use dotted identifiers and [n], [-n], or [] indexes, e.g. ticket.message or messages[-1].text",
                 )
             )
         elif expected not in REQUIREMENT_TYPES:
@@ -243,9 +243,12 @@ def get_at_path(state: Any, segments: list[PathSegment]) -> Any:
         if segment is ALL_INDEX:
             return _MISSING
         if isinstance(segment, int):
-            if type(current) is not list or segment < 0 or segment >= len(current):
+            if type(current) is not list:
                 return _MISSING
-            current = current[segment]
+            index = segment if segment >= 0 else len(current) + segment
+            if index < 0 or index >= len(current):
+                return _MISSING
+            current = current[index]
         else:
             # Any mapping is traversable (TypeScript walks any non-array object); the
             # `object` requirement itself still demands a plain JSON object.

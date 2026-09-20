@@ -53,9 +53,11 @@ export function defaultCacheDir(cwd = process.cwd()): string {
 
 /**
  * A `fetch` for `new TypeSafeClient({ fetch })` that caches System One answers per
- * `(model, state, question)`. Questions are evaluated independently by the API, so a
- * request is split into cached hits and a smaller live request for the misses; the merged
- * response reports only the tokens actually spent. Non-System-One traffic passes through.
+ * `(model, id, state, question)`. `id` is required so two questions with identical
+ * bodies cannot share an entry. `state` is the request state as sent; callers that
+ * need inspect-isolation send separate requests. A request is split into cached hits
+ * and a smaller live request for the misses; the merged response reports only the
+ * tokens actually spent. Non-System-One traffic passes through.
  */
 export function createCachingFetch(opts: CachingFetchOptions = {}): CachingFetch {
   const dir = opts.dir ?? defaultCacheDir();
@@ -88,7 +90,7 @@ export function createCachingFetch(opts: CachingFetchOptions = {}): CachingFetch
 
     for (const id of ids) {
       const question = questions[id];
-      const hash = questionHash({ model, state, question });
+      const hash = questionHash({ model, id, state, question });
       if (mode === "refresh") {
         misses[id] = question;
         continue;
@@ -158,7 +160,7 @@ export function createCachingFetch(opts: CachingFetchOptions = {}): CachingFetch
       model ??
       "jev-latest";
     for (const id of Object.keys(validLiveAnswers)) {
-      const hash = questionHash({ model, state, question: misses[id] });
+      const hash = questionHash({ model, id, state, question: misses[id] });
       const entry: CachedEntry = {
         hash,
         requestedModel: model,
@@ -190,12 +192,28 @@ export function createCachingFetch(opts: CachingFetchOptions = {}): CachingFetch
 
   cachingFetch.stats = () => ({ ...stats, keys: [...stats.keys] });
   Object.defineProperty(cachingFetch, "dir", { value: dir });
+  if ((baseFetch as { systemonepromptsCloudflare?: unknown }).systemonepromptsCloudflare === true) {
+    (
+      cachingFetch as CachingFetch & { systemonepromptsCloudflare: boolean }
+    ).systemonepromptsCloudflare = true;
+  }
   return cachingFetch;
 }
 
-/** Cache key: sha256 of the canonical JSON of `{ model, state, question }`. */
-export function questionHash(parts: { model?: string; state: unknown; question: unknown }): string {
-  return createHash("sha256").update(canonicalJson(parts)).digest("hex");
+/** Cache key: sha256 of the canonical JSON of `{ model, id, state, question }`. */
+export function questionHash(parts: {
+  model?: string;
+  id?: string;
+  state: unknown;
+  question: unknown;
+}): string {
+  const payload: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(parts)) {
+    if (key === "model" && value == null) continue;
+    if (key === "id" && value == null) continue;
+    payload[key] = value;
+  }
+  return createHash("sha256").update(canonicalJson(payload)).digest("hex");
 }
 
 export async function cacheStats(dir = defaultCacheDir()): Promise<{

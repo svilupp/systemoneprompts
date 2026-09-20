@@ -15,6 +15,7 @@ from .cache import (
     transport_headers,
 )
 from .client import TypeSafeClient, TypeSafeClientError, require_live
+from .cloudflare import create_cloudflare_transport
 from .definition import Definition
 from .diagnostics import SystemOnePromptsError, diagnostic
 from .model import read_env_model, resolve_model
@@ -143,7 +144,19 @@ def create_client(
         raise LiveClientError(error.diagnostic) from error
     resolved = resolve_model(read_env_model(env), definition.model, model)
     source = env if env is not None else os.environ
-    api_key = source.get("TYPESAFE_API_KEY")
+    cloudflare_account_id = (source.get("CLOUDFLARE_ACCOUNT_ID") or "").strip() or None
+    if cloudflare_account_id and (source.get("TYPESAFE_BASE_URL") or "").strip():
+        raise LiveClientError(
+            diagnostic(
+                "error",
+                "cloudflare-base-url",
+                "CLOUDFLARE_ACCOUNT_ID cannot be combined with TYPESAFE_BASE_URL",
+            )
+        )
+    if cloudflare_account_id:
+        api_key = source.get("CLOUDFLARE_API_TOKEN")
+    else:
+        api_key = source.get("TYPESAFE_API_KEY")
     provided_transport = transport is not None or http_client is not None
     caching: CachingFetch | None = None
     if cache:
@@ -156,9 +169,20 @@ def create_client(
                 )
             )
         directory = cache_dir or default_cache_dir()
+        if cache_fetch is not None and cloudflare_account_id:
+            raise LiveClientError(
+                diagnostic(
+                    "error",
+                    "cloudflare-cache",
+                    "cache_fetch cannot be combined with CLOUDFLARE_ACCOUNT_ID",
+                )
+            )
         if cache_fetch is not None:
             caching = create_caching_fetch(dir=directory, fetch=cache_fetch)
             transport = wrap_caching_fetch(caching)
+        elif cloudflare_account_id:
+            inner = create_cloudflare_transport(cloudflare_account_id, inner=transport)
+            transport, caching = caching_httpx_transport(directory=directory, inner=inner)
         else:
             transport, caching = caching_httpx_transport(directory=directory, inner=transport)
     missing_key = not (isinstance(api_key, str) and api_key.strip())
@@ -167,17 +191,25 @@ def create_client(
             diagnostic(
                 "error",
                 "missing-credentials",
-                "TYPESAFE_API_KEY is not set",
-                hint="export TYPESAFE_API_KEY or place it in a local .env for live commands only",
+                "CLOUDFLARE_API_TOKEN is not set"
+                if cloudflare_account_id
+                else "TYPESAFE_API_KEY is not set",
+                hint=(
+                    "export CLOUDFLARE_API_TOKEN or place it in a local .env for live commands only"
+                    if cloudflare_account_id
+                    else "export TYPESAFE_API_KEY or place it in a local .env for live commands only"
+                ),
             )
         )
     try:
         client = TypeSafeClient(
-            api_key=str(api_key).strip() if not missing_key else "",
-            base_url=source.get("TYPESAFE_BASE_URL") or None,
+            api_key=str(api_key).strip() if not missing_key else None,
+            base_url=None if cloudflare_account_id else (source.get("TYPESAFE_BASE_URL") or None),
+            cloudflare_account_id=cloudflare_account_id,
             model=resolved,
             transport=transport,
             http_client=http_client,
+            environ=source,
         )
     except TypeSafeClientError as error:
         raise LiveClientError(error.diagnostic) from error
@@ -214,6 +246,7 @@ def caching_httpx_transport(
     if caching is None:
         if inner is not None:
             forward = inner
+            owned_inner = forward
         else:
             forward = httpx2.HTTPTransport()
             owned_inner = forward
@@ -255,6 +288,11 @@ def wrap_caching_fetch(caching: CachingFetch, inner: Any = None) -> Any:
         ) from error
 
     class CachingTransport(httpx2.BaseTransport):  # type: ignore[misc, unused-ignore]
+        systemoneprompts_cache = True
+        systemoneprompts_cloudflare = bool(
+            getattr(inner, "systemoneprompts_cloudflare", False)
+        )
+
         def handle_request(self, request: httpx2.Request) -> httpx2.Response:
             request.read()
             headers = {key: value for key, value in request.headers.items()}

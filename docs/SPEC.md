@@ -65,7 +65,8 @@ Packages may expose helpers that read those fields and that partition answers in
 
 `[requires]` maps dotted and indexed paths to one of:
 `string`, `number`, `boolean`, `array`, `object`, `null`, or `exists`.
-Paths use own object keys, zero-based `[n]` indexes, and empty `[]` indexes.
+Paths use own object keys, zero-based `[n]` indexes, negative `[-n]` indexes
+from the end of an array, and empty `[]` indexes.
 `[]` means every array element: `"messages[].text" = "string"` requires
 `messages` to be an array and every element's `text` to be a string. An empty
 array satisfies a `[]` requirement; a container that is not an array fails as

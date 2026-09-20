@@ -49,7 +49,7 @@ export function parseRequirements(
           "invalid-require-path",
           `invalid [requires] path \`${path}\``,
           loc,
-          "use dotted identifiers and [n] or [] indexes, e.g. ticket.message or tickets[0].id",
+          "use dotted identifiers and [n], [-n], or [] indexes, e.g. ticket.message or messages[-1].text",
         ),
       );
       continue;

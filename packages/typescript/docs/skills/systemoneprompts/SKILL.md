@@ -78,8 +78,9 @@ Quote date/time values intended as strings and avoid non-finite numbers.
    for the project.
 2. Generate the module using the package CLI, or load and validate definitions
    at runtime using its API. Do not hand-edit generated files.
-3. Assert state, call the native provider API, and evaluate factors against its
-   answers. Application code owns thresholds, routing and side effects.
+3. Assert state, call `TypeSafeClient.systemOne` (or Python
+   `TypeSafeClient.system_one`), and evaluate factors against its answers.
+   Application code owns thresholds, routing and side effects.
 4. After source changes, regenerate checked-in output and use `generate --check`
    to detect stale artifacts. Follow the target package's output-path options.
 
@@ -112,6 +113,18 @@ const factors = evaluateFactors(response.answers);
 `assertState` returns nothing; do not assign its result to state. For an
 offline answer check, call the generated `evaluateFactors` with supplied
 answers. The TypeScript CLI has no `run --answers` option.
+
+Live `run` and `eval` build `{ state, questions, model }`. Native TypeSafe uses
+`TYPESAFE_API_KEY`. OpenRouter is the same client with
+`baseURL: "https://openrouter.ai/api"`; pass the OpenRouter key as `apiKey`, or
+put it in `TYPESAFE_API_KEY` for CLI. There is no `OPENROUTER_API_KEY`
+integration. Cloudflare Workers AI is the same client with
+`cloudflareAccountId` / `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`
+(not `TYPESAFE_API_KEY`); do not set `TYPESAFE_BASE_URL` at the same time. The
+client rewrites the body to `{ model: "typesafe/jev", input: { state, questions } }`
+at `https://api.cloudflare.com/client/v4/accounts/{id}/ai/run`. `--model` does
+not change that catalog id. `--cache` wraps Cloudflare inside the cache so keys
+stay System One JSON. See the package README Providers section for model ids.
 
 `check` and `generate` are offline. Live `run` and `eval` use provider
 credentials; a format or rendering edit alone does not require a live call.

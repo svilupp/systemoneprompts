@@ -141,6 +141,21 @@ describe("createStateAssert", () => {
     expect(parsePath("items[4294967294]")).not.toBeNull();
     expect(parsePath("items[4294967295]")).toBeNull();
     expect(parsePath("items[9007199254740992]")).toBeNull();
+    expect(parsePath("messages[-1].text")).toEqual([
+      { kind: "key", name: "messages" },
+      { kind: "index", index: -1 },
+      { kind: "key", name: "text" },
+    ]);
+    expect(parsePath("items[-4294967294]")).not.toBeNull();
+    expect(parsePath("items[-4294967295]")).toBeNull();
+    const last: StateAssert = createStateAssert({ "messages[-1].text": "string" });
+    last({ messages: [{ text: "first" }, { text: "last" }] });
+    try {
+      last({ messages: [] });
+      throw new Error("expected failure");
+    } catch (error) {
+      expect((error as SystemOnePromptsError).message).toContain("messages[-1].text");
+    }
   });
 
   test("parses [] as every array element", () => {
@@ -355,6 +370,18 @@ instructions = "Inspect \`messages[0].text\`."
 `);
     expect(
       checkDefinition(allCoversIndex).filter((d) => d.code === "unguaranteed-backtick"),
+    ).toEqual([]);
+
+    const allCoversLast = parseDefinition(`
+[requires]
+"messages[].text" = "string"
+
+[questions.q]
+type = "noul"
+instructions = "Inspect \`messages[-1].text\`."
+`);
+    expect(
+      checkDefinition(allCoversLast).filter((d) => d.code === "unguaranteed-backtick"),
     ).toEqual([]);
 
     const indexDoesNotCoverAll = parseDefinition(`

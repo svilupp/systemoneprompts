@@ -20,11 +20,14 @@ Python extra `systemoneprompts[live]` installs `pydantic` and `httpx2`.
 
 | Item | Evidence |
 | --- | --- |
-| Auth | `TYPESAFE_API_KEY` as `Authorization: Bearer …` |
-| Base URL | `TYPESAFE_BASE_URL`, default `https://api.typesafe.ai` |
+| Auth | `TYPESAFE_API_KEY` as `Authorization: Bearer …`. Cloudflare mode uses `CLOUDFLARE_API_TOKEN` when `apiKey` / `api_key` is omitted. There is no `OPENROUTER_API_KEY` integration: pass the OpenRouter key as `apiKey` / `api_key`, or put it in `TYPESAFE_API_KEY` for CLI. |
+| Base URL | `TYPESAFE_BASE_URL`, default `https://api.typesafe.ai`. OpenRouter: `https://openrouter.ai/api`. |
+| Routing options | TypeScript `apiKey`, `baseURL`, `cloudflareAccountId`; Python `api_key`, `base_url`, `cloudflare_account_id`. |
+| OpenRouter models | `jev-1.13` or `typesafe/jev-1.13` (not native `jev-latest` / `jev-1.13.0`). |
+| Cloudflare | `CLOUDFLARE_ACCOUNT_ID` routes to `https://api.cloudflare.com/client/v4/accounts/{id}/ai/run` with `{ model: "typesafe/jev", input: { state, questions } }`. Unwraps a Workers AI envelope to `{ model, answers, usage }` whether `answers` is nested once or twice. Mutually exclusive with `TYPESAFE_BASE_URL`. TOML `model` and CLI `--model` do not change the catalog id. Token permission: Account → Workers AI → Read. |
 | Native call | TypeScript `TypeSafeClient.systemOne({ state, questions, model })`; Python `await TypeSafeClient.system_one(state=..., questions=..., model=...)` |
-| Response | `{ model, answers, usage }` with noul/choice/score objects |
-| Cache hook | TypeScript intercepts `fetch`; Python wraps `httpx2.BaseTransport`. Same per-question cache records. |
+| Response | Contract shape is `{ model, answers, usage }` with noul/choice/score objects. TypeScript leaves unknown JSON fields on the object; Python validation strips them (including `usage.cost`). |
+| Cache hook | TypeScript intercepts `fetch`; Python wraps `httpx2.BaseTransport`. Same per-question cache records. Cloudflare rewrite sits inside the cache so keys stay System One JSON `{ state, questions, model }`. Passing a cache as `fetch` / `transport` without that inner wrap skips the rewrite. |
 | Injected transport | TypeScript `new TypeSafeClient({ fetch, timeout })`; Python `TypeSafeClient(http_client=..., transport=..., timeout=...)` |
 | Python pin | `pydantic>=2.13,<3` and `httpx2>=2.13,<3` |
 

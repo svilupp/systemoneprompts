@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { TypeSafeClient } from "../client.js";
+import { createCloudflareFetch } from "../cloudflare.js";
 import { checkDefinition } from "../definition/check.js";
 import { type Diagnostic, formatDiagnostic, hasErrors } from "../definition/diagnostics.js";
 import { parseDefinition } from "../definition/parse.js";
@@ -44,16 +45,30 @@ export async function loadChecked(file: string): Promise<Definition> {
 /**
  * Build the TypeSafe client for a live CLI call. Model precedence, later wins:
  * default → `TYPESAFE_DEFAULT_MODEL` / `TYPESAFE_MODEL` → TOML `model` → `--model`.
+ *
+ * Cloudflare mode (`CLOUDFLARE_ACCOUNT_ID`) uses `CLOUDFLARE_API_TOKEN` and is
+ * mutually exclusive with `TYPESAFE_BASE_URL`.
  */
 export function createClient(
   def: Definition,
   options: { cache?: boolean; model?: string },
 ): { client: TypeSafeClient; model: string; cache?: CachingFetch } {
   loadDotEnv();
-  const cache = options.cache ? createCachingFetch() : undefined;
   const model = resolveModel(readEnvModel(), def.model, options.model);
+  const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim() || undefined;
   try {
-    const client = new TypeSafeClient({ ...(cache ? { fetch: cache } : {}), defaultModel: model });
+    const cache = options.cache
+      ? createCachingFetch(
+          cloudflareAccountId
+            ? { fetch: createCloudflareFetch({ accountId: cloudflareAccountId }) }
+            : {},
+        )
+      : undefined;
+    const client = new TypeSafeClient({
+      ...(cache ? { fetch: cache } : {}),
+      ...(cloudflareAccountId ? { cloudflareAccountId } : {}),
+      defaultModel: model,
+    });
     return { client, model, cache };
   } catch (error) {
     fail(error instanceof Error ? error.message : String(error));

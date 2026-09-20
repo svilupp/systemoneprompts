@@ -1,3 +1,9 @@
+import {
+  cloudflareErrorMessage,
+  createCloudflareFetch,
+  isCachingFetch,
+  isCloudflareFetch,
+} from "./cloudflare.js";
 import { DEFAULT_MODEL } from "./model.js";
 import type { Fetch, Questions, SystemOneRequest, SystemOneResult } from "./native.js";
 
@@ -63,10 +69,15 @@ export class TypeSafeTimeoutError extends TypeSafeClientError {
 }
 
 export interface TypeSafeClientOptions {
-  /** Falls back to `TYPESAFE_API_KEY`. */
+  /** Falls back to `CLOUDFLARE_API_TOKEN` in Cloudflare mode, otherwise `TYPESAFE_API_KEY`. */
   apiKey?: string;
-  /** Falls back to `TYPESAFE_BASE_URL`, then `https://api.typesafe.ai`. */
+  /** Falls back to `TYPESAFE_BASE_URL`, then `https://api.typesafe.ai`. Incompatible with Cloudflare mode. */
   baseURL?: string;
+  /**
+   * Cloudflare account id. Falls back to `CLOUDFLARE_ACCOUNT_ID`.
+   * When set, requests go to Workers AI `/client/v4/accounts/{id}/ai/run` and `apiKey` is a Cloudflare token.
+   */
+  cloudflareAccountId?: string;
   /** Falls back to `TYPESAFE_DEFAULT_MODEL`, then `jev-latest`. */
   defaultModel?: string;
   /** Inject fetch for tests, cache, or a wrapper with its own timeouts. */
@@ -98,23 +109,48 @@ export class TypeSafeClient {
   readonly fetch: Fetch;
   readonly maxRetries: number;
   readonly defaultHeaders: Readonly<Record<string, string>>;
+  readonly cloudflareAccountId: string | undefined;
   readonly #apiKey: string;
 
   constructor(options: TypeSafeClientOptions = {}) {
-    this.#apiKey = trimEnv(options.apiKey) ?? trimEnv(process.env.TYPESAFE_API_KEY) ?? "";
-    if (!this.#apiKey) {
+    const cloudflareAccountId =
+      trimEnv(options.cloudflareAccountId) ?? trimEnv(process.env.CLOUDFLARE_ACCOUNT_ID);
+    const envBaseURL = trimEnv(process.env.TYPESAFE_BASE_URL);
+    const optionBaseURL = trimEnv(options.baseURL);
+    if (cloudflareAccountId && (optionBaseURL !== undefined || envBaseURL !== undefined)) {
       throw new TypeSafeClientError(
-        "TYPESAFE_API_KEY is not set. Pass apiKey or export TYPESAFE_API_KEY.",
+        "cloudflareAccountId cannot be combined with baseURL or TYPESAFE_BASE_URL.",
       );
     }
-    this.baseURL = stripSlash(
-      trimEnv(options.baseURL) ?? trimEnv(process.env.TYPESAFE_BASE_URL) ?? DEFAULT_BASE_URL,
-    );
+    this.cloudflareAccountId = cloudflareAccountId;
+    this.#apiKey =
+      trimEnv(options.apiKey) ??
+      (cloudflareAccountId
+        ? trimEnv(process.env.CLOUDFLARE_API_TOKEN)
+        : trimEnv(process.env.TYPESAFE_API_KEY)) ??
+      "";
+    if (!this.#apiKey) {
+      throw new TypeSafeClientError(
+        cloudflareAccountId
+          ? "CLOUDFLARE_API_TOKEN is not set. Pass apiKey or export CLOUDFLARE_API_TOKEN."
+          : "TYPESAFE_API_KEY is not set. Pass apiKey or export TYPESAFE_API_KEY.",
+      );
+    }
+    this.baseURL = stripSlash(optionBaseURL ?? envBaseURL ?? DEFAULT_BASE_URL);
     this.defaultModel =
       trimEnv(options.defaultModel) ?? trimEnv(process.env.TYPESAFE_DEFAULT_MODEL) ?? DEFAULT_MODEL;
     this.timeout = positiveMs("timeout", options.timeout ?? DEFAULT_TIMEOUT_MS);
     this.maxRetries = nonNegativeInt("maxRetries", options.maxRetries ?? DEFAULT_MAX_RETRIES);
-    this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis);
+    const inner = options.fetch ?? globalThis.fetch.bind(globalThis);
+    if (cloudflareAccountId && isCachingFetch(inner) && !isCloudflareFetch(inner)) {
+      throw new TypeSafeClientError(
+        "cloudflareAccountId with a caching fetch requires wrapping Cloudflare inside the cache: createCachingFetch({ fetch: createCloudflareFetch({ accountId }) }).",
+      );
+    }
+    this.fetch =
+      cloudflareAccountId && !isCloudflareFetch(inner)
+        ? createCloudflareFetch({ accountId: cloudflareAccountId, fetch: inner })
+        : inner;
     if (typeof this.fetch !== "function") {
       throw new TypeSafeClientError("No fetch is available. Pass fetch to TypeSafeClient.");
     }
@@ -333,7 +369,9 @@ function describeHttpError(status: number, body: unknown, requestId: string | un
     return `TypeSafe API error ${status}${id}: ${body.trim()}`;
   if (body && typeof body === "object") {
     const record = body as Record<string, unknown>;
+    const cloudflare = cloudflareErrorMessage(body);
     const message =
+      cloudflare ||
       (typeof record.error === "string" && record.error) ||
       (typeof record.message === "string" && record.message) ||
       (record.error &&

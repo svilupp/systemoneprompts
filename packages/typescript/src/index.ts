@@ -20,6 +20,11 @@ export {
   TypeSafeRateLimitError,
   TypeSafeTimeoutError,
 } from "./client.js";
+export {
+  CLOUDFLARE_MODEL,
+  cloudflareRunUrl,
+  createCloudflareFetch,
+} from "./cloudflare.js";
 export { checkDefinition } from "./definition/check.js";
 export {
   type Diagnostic,

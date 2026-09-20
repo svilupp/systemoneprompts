@@ -6,7 +6,8 @@ Generate typed Python modules and call the System One API.
 ## Quick start
 
 Requires Python 3.11+. The core package has no dependencies; API calls need
-the `live` extra and `TYPESAFE_API_KEY`.
+the `live` extra. Native TypeSafe calls use `TYPESAFE_API_KEY`. OpenRouter and
+Cloudflare are described under [Providers](#providers).
 
 ```sh
 pip install 'systemoneprompts[live]'
@@ -69,6 +70,7 @@ Import core functions from `systemoneprompts`:
 | `create_factor_evaluator(definition.factor_definitions)` | Compute Boolean factors from answers |
 | `generate(definition, output)` | Write a Python module |
 | `run_many` / `walk_taxonomy` | Run batches or search Choice trees |
+| `TypeSafeClient` (from `systemoneprompts.client`) | Call System One; accepts `api_key`, `base_url`, `cloudflare_account_id`, `http_client`/`transport`, `timeout`, and `model` |
 
 Invalid TOML throws `SystemOnePromptsError`. Definition errors are returned as
 diagnostics; generation rejects definitions with errors.
@@ -76,6 +78,80 @@ diagnostics; generation rejects definitions with errors.
 Generated `<stem>_generated.py` modules export questions, model, metadata,
 application data, state assertions, and factor evaluators, with types for
 state, answers, and factors. See the [examples](examples/) for patterns.
+
+## Providers
+
+`TypeSafeClient` builds System One JSON `{ state, questions, model }` (this is
+what the cache hashes). In Cloudflare mode the body is rewritten before the
+network. Cloudflare mode and `base_url` / `TYPESAFE_BASE_URL` cannot be
+combined.
+
+### Native TypeSafe
+
+Default. `TYPESAFE_API_KEY` authenticates against `https://api.typesafe.ai`.
+Send TypeSafe model ids such as `jev-1.13.0` or `jev-latest`.
+
+```python
+client = TypeSafeClient()  # TYPESAFE_API_KEY
+```
+
+### OpenRouter
+
+Pass an OpenRouter key as `api_key` and set `base_url` to OpenRouter's System
+One API. The client does not read `OPENROUTER_API_KEY`. OpenRouter accepts
+`jev-1.13` or `typesafe/jev-1.13`. Extra fields such as `id`, `provider`, and
+`usage.cost` are dropped by response validation; TypeScript leaves them on the
+object.
+
+```python
+import os
+
+from systemoneprompts.client import TypeSafeClient
+
+client = TypeSafeClient(
+    api_key=os.environ["TYPESAFE_API_KEY"],  # OpenRouter key
+    base_url="https://openrouter.ai/api",
+)
+response = client.system_one_sync(
+    state=state, questions=questions, model="typesafe/jev-1.13"
+)
+```
+
+CLI: `TYPESAFE_BASE_URL=https://openrouter.ai/api` and put the OpenRouter key
+in `TYPESAFE_API_KEY`.
+
+### Cloudflare
+
+Set `cloudflare_account_id` (or `CLOUDFLARE_ACCOUNT_ID`). The client then
+treats `api_key` as a Cloudflare token (`CLOUDFLARE_API_TOKEN` when `api_key`
+is omitted), posts to
+`https://api.cloudflare.com/client/v4/accounts/{id}/ai/run` as
+`{ model: "typesafe/jev", input: { state, questions } }`, and unwraps the
+Workers AI envelope to `{ model, answers, usage }`. TOML `model` and CLI
+`--model` are not sent as the Cloudflare catalog id.
+
+```python
+import os
+
+from systemoneprompts.client import TypeSafeClient
+
+client = TypeSafeClient(
+    api_key=os.environ["CLOUDFLARE_API_TOKEN"],
+    cloudflare_account_id=os.environ["CLOUDFLARE_ACCOUNT_ID"],
+)
+```
+
+CLI: set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`. Do not also set
+`TYPESAFE_BASE_URL`. The token needs Account → Workers AI → Read. For
+`--cache`, the CLI wraps Cloudflare inside the caching transport so cache keys
+stay System One JSON. If you pass your own cache as `transport`, wrap
+Cloudflare inside it first; otherwise the client rejects the combination.
+
+| Host | Model to send |
+| --- | --- |
+| `api.typesafe.ai` | `jev-1.13.0` / `jev-latest` |
+| OpenRouter | `jev-1.13` or `typesafe/jev-1.13` |
+| Cloudflare | catalog `typesafe/jev` (set by the client) |
 
 ## CLI
 
@@ -98,7 +174,9 @@ Labels are Choice strings, Noul Booleans, or integer Score levels.
 `--sweep <factor>` compares thresholds.
 
 CLI model precedence: `--model`, TOML `model`, `TYPESAFE_MODEL`,
-`TYPESAFE_DEFAULT_MODEL`, then `jev-latest`.
+`TYPESAFE_DEFAULT_MODEL`, then `jev-latest`. In Cloudflare mode `--model` does
+not change the catalog id `typesafe/jev`; the reported `response["model"]` is
+whatever Cloudflare returned.
 
 ## Development
 

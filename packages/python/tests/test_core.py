@@ -131,6 +131,14 @@ def test_wildcard_requires_every_element() -> None:
 
     assert parse_path("[]") is None
     assert parse_path("messages[].text") == ["messages", ALL_INDEX, "text"]
+    assert parse_path("messages[-1].text") == ["messages", -1, "text"]
+    assert parse_path("items[-4294967294]") is not None
+    assert parse_path("items[-4294967295]") is None
+
+    last = create_state_assert({"messages[-1].text": "string"})
+    last({"messages": [{"text": "first"}, {"text": "last"}]})
+    with pytest.raises(SystemOnePromptsError, match=r"messages\[-1\]\.text"):
+        last({"messages": []})
 
     assertion = create_state_assert({"messages[].text": "string"})
     assertion({"messages": []})
@@ -201,6 +209,19 @@ instructions = "Inspect `messages[0].text`."
     )
     assert [
         item for item in check_definition(covered) if item.code == "unguaranteed-backtick"
+    ] == []
+    covered_last = parse_definition(
+        """
+[requires]
+"messages[].text" = "string"
+
+[questions.q]
+type = "noul"
+instructions = "Inspect `messages[-1].text`."
+"""
+    )
+    assert [
+        item for item in check_definition(covered_last) if item.code == "unguaranteed-backtick"
     ] == []
 
     not_covered = parse_definition(

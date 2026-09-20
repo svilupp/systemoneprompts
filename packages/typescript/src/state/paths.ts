@@ -4,7 +4,7 @@ export type PathSegment =
   | { kind: "all" };
 
 const IDENT = "[A-Za-z_][A-Za-z0-9_]*";
-const INDEX = "\\[(\\d+)\\]";
+const INDEX = "\\[(-?\\d+)\\]";
 const ALL = "\\[\\]";
 const PATH_RE = new RegExp(`^(${IDENT})((?:\\.${IDENT}|${INDEX}|${ALL})*)$`);
 const TAIL_RE = new RegExp(`\\.(${IDENT})|${INDEX}|${ALL}`, "g");
@@ -20,7 +20,7 @@ export function parsePath(path: string): PathSegment[] | null {
     if (part[1] != null) segments.push({ kind: "key", name: part[1] });
     else if (part[2] != null) {
       const index = Number(part[2]);
-      if (!Number.isInteger(index) || index < 0 || index > MAX_INDEX) return null;
+      if (!Number.isInteger(index) || Math.abs(index) > MAX_INDEX) return null;
       segments.push({ kind: "index", index });
     } else {
       segments.push({ kind: "all" });
@@ -40,11 +40,12 @@ export function getAtPath(value: unknown, segments: readonly PathSegment[]): unk
       continue;
     }
     if (segment.kind === "all") return undefined;
-    if (!Array.isArray(current) || !Number.isInteger(segment.index) || segment.index < 0) {
+    if (!Array.isArray(current) || !Number.isInteger(segment.index)) {
       return undefined;
     }
-    if (!Object.hasOwn(current, segment.index)) return undefined;
-    current = current[segment.index];
+    const index = segment.index >= 0 ? segment.index : current.length + segment.index;
+    if (index < 0 || index >= current.length) return undefined;
+    current = current[index];
   }
   return current;
 }

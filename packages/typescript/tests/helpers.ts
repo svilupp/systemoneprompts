@@ -27,11 +27,18 @@ export function cli(
   args: string[],
   opts: { cwd?: string; input?: string; env?: Record<string, string> } = {},
 ): { exitCode: number; stdout: string; stderr: string } {
+  const env = {
+    ...process.env,
+    TYPESAFE_BASE_URL: "",
+    CLOUDFLARE_ACCOUNT_ID: "",
+    CLOUDFLARE_API_TOKEN: "",
+    ...opts.env,
+  };
   const result = spawnSync("bun", [join(root, "src", "cli", "index.ts"), ...args], {
     cwd: opts.cwd ?? root,
     encoding: "utf8",
     input: opts.input,
-    env: { ...process.env, ...opts.env },
+    env,
   });
   return { exitCode: result.status ?? 1, stdout: result.stdout, stderr: result.stderr };
 }

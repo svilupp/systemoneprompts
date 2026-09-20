@@ -87,8 +87,15 @@ def default_cache_dir(cwd: str | None = None) -> str:
 
 
 def question_hash(parts: Mapping[str, Any]) -> str:
+    # Key is `(model, id, state, question)`. Question *bodies* can be identical
+    # across ids; `id` keeps those entries from colliding. State is the request
+    # state as sent — callers that need inspect-isolation send separate requests.
     # JS `JSON.stringify` omits `undefined` (`model` when absent) but keeps `null` state.
-    payload = {key: value for key, value in parts.items() if key != "model" or value is not None}
+    payload = {
+        key: value
+        for key, value in parts.items()
+        if (key != "model" or value is not None) and (key != "id" or value is not None)
+    }
     import hashlib
 
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
@@ -100,6 +107,12 @@ def create_caching_fetch(
     mode: CacheMode = "read-write",
     fetch: FetchHandler | None = None,
 ) -> CachingFetch:
+    """Cache System One answers per ``(model, id, state, question)``.
+
+    Question *bodies* can be identical across ids; ``id`` keeps those entries
+    from colliding. ``state`` is the request state as sent — callers that need
+    inspect-isolation send separate requests.
+    """
     directory = dir or default_cache_dir()
     base_fetch = fetch or _stdlib_fetch
     stats = CacheStats()
@@ -129,7 +142,7 @@ def create_caching_fetch(
         misses: dict[str, Any] = {}
         for question_id in ids:
             question = questions[question_id]
-            digest = question_hash({**hash_base, "question": question})
+            digest = question_hash({**hash_base, "id": question_id, "question": question})
             if mode == "refresh":
                 misses[question_id] = question
                 continue
@@ -199,7 +212,7 @@ def create_caching_fetch(
             or "jev-latest"
         )
         for question_id, answer in valid_live.items():
-            digest = question_hash({**hash_base, "question": misses[question_id]})
+            digest = question_hash({**hash_base, "id": question_id, "question": misses[question_id]})
             entry = CachedEntry(
                 hash=digest,
                 requested_model=model,

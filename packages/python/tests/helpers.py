@@ -26,8 +26,18 @@ def run_cli(
     stdin: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     merged = os.environ.copy()
-    for key in ("TYPESAFE_API_KEY", "TYPESAFE_MODEL", "TYPESAFE_DEFAULT_MODEL", "TYPESAFE_BASE_URL"):
+    for key in (
+        "TYPESAFE_API_KEY",
+        "TYPESAFE_MODEL",
+        "TYPESAFE_DEFAULT_MODEL",
+        "TYPESAFE_BASE_URL",
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN",
+    ):
         merged.pop(key, None)
+    merged["TYPESAFE_BASE_URL"] = ""
+    merged["CLOUDFLARE_ACCOUNT_ID"] = ""
+    merged["CLOUDFLARE_API_TOKEN"] = ""
     if env:
         merged.update(env)
     return subprocess.run(

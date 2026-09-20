@@ -12,6 +12,10 @@ from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated, Any, Literal
 
 from .cache import CacheMissError
+from .cloudflare import (
+    cloudflare_error_message,
+    create_cloudflare_transport,
+)
 from .diagnostics import SystemOnePromptsError, diagnostic
 from .model import DEFAULT_MODEL
 
@@ -20,6 +24,13 @@ DEFAULT_BASE_URL = "https://api.typesafe.ai"
 DEFAULT_TIMEOUT = 10.0
 SYSTEM_ONE_PATH = "/v1/systemone"
 RETRY_STATUSES = frozenset({408, 429, *range(500, 600)})
+
+
+def _trim_env(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    trimmed = value.strip()
+    return trimmed or None
 
 
 def _package_version() -> str:
@@ -129,35 +140,58 @@ class TypeSafeClient:
         *,
         api_key: str | None = None,
         base_url: str | None = None,
+        cloudflare_account_id: str | None = None,
         model: str | None = None,
         timeout: float | Any | None = None,
         http_client: Any = None,
         transport: Any = None,
         headers: Mapping[str, str] | None = None,
         max_retries: int = 2,
+        environ: Mapping[str, str | None] | None = None,
     ) -> None:
         httpx2 = require_live()
         import os
 
-        if api_key is not None:
-            key = api_key.strip()
-        else:
-            key = (os.environ.get("TYPESAFE_API_KEY") or "").strip()
+        source: Mapping[str, str | None] = os.environ if environ is None else environ
+        account = (
+            cloudflare_account_id.strip()
+            if isinstance(cloudflare_account_id, str) and cloudflare_account_id.strip()
+            else (source.get("CLOUDFLARE_ACCOUNT_ID") or "").strip() or None
+        )
+        explicit_base = base_url.strip() if isinstance(base_url, str) and base_url.strip() else None
+        env_base = (source.get("TYPESAFE_BASE_URL") or "").strip() or None
+        if account and (explicit_base or env_base):
+            raise TypeSafeClientError(
+                diagnostic(
+                    "error",
+                    "cloudflare-base-url",
+                    "cloudflare_account_id cannot be combined with base_url or TYPESAFE_BASE_URL",
+                )
+            )
+        self.cloudflare_account_id = account
+        key = _trim_env(api_key)
+        if key is None:
+            if account:
+                key = _trim_env(source.get("CLOUDFLARE_API_TOKEN")) or ""
+            else:
+                key = _trim_env(source.get("TYPESAFE_API_KEY")) or ""
         if not key and http_client is None and transport is None:
             raise TypeSafeClientError(
                 diagnostic(
                     "error",
                     "missing-credentials",
-                    "TYPESAFE_API_KEY is not set",
-                    hint="export TYPESAFE_API_KEY or place it in a local .env for live commands only",
+                    "CLOUDFLARE_API_TOKEN is not set" if account else "TYPESAFE_API_KEY is not set",
+                    hint=(
+                        "export CLOUDFLARE_API_TOKEN or pass api_key"
+                        if account
+                        else "export TYPESAFE_API_KEY or place it in a local .env for live commands only"
+                    ),
                 )
             )
         self.api_key = key
-        self.base_url = (
-            base_url or os.environ.get("TYPESAFE_BASE_URL") or DEFAULT_BASE_URL
-        ).rstrip("/")
+        self.base_url = (explicit_base or env_base or DEFAULT_BASE_URL).rstrip("/")
         self.default_model = (
-            model or os.environ.get("TYPESAFE_DEFAULT_MODEL") or DEFAULT_MODEL
+            model or source.get("TYPESAFE_DEFAULT_MODEL") or DEFAULT_MODEL
         ).strip() or DEFAULT_MODEL
         self.timeout = DEFAULT_TIMEOUT if timeout is None else timeout
         if type(max_retries) is not int or max_retries < 0:
@@ -174,6 +208,29 @@ class TypeSafeClient:
             self.default_headers["Authorization"] = f"Bearer {key}"
         self._owns_client = http_client is None
         self._async = False
+        if account and http_client is not None:
+            raise TypeSafeClientError(
+                diagnostic(
+                    "error",
+                    "cloudflare-http-client",
+                    "cloudflare_account_id cannot be combined with http_client; pass transport=",
+                )
+            )
+        if account:
+            if transport is None:
+                transport = create_cloudflare_transport(account)
+            elif getattr(transport, "systemoneprompts_cache", False) and not getattr(
+                transport, "systemoneprompts_cloudflare", False
+            ):
+                raise TypeSafeClientError(
+                    diagnostic(
+                        "error",
+                        "cloudflare-cache",
+                        "cloudflare_account_id with a cache requires wrapping Cloudflare inside the cache",
+                    )
+                )
+            elif not getattr(transport, "systemoneprompts_cloudflare", False):
+                transport = create_cloudflare_transport(account, inner=transport)
         if http_client is not None:
             self._http = http_client
             request = getattr(http_client, "request", None)
@@ -380,7 +437,11 @@ class TypeSafeClient:
         if isinstance(body, str) and body.strip():
             message = f"TypeSafe API error {status}{suffix}: {body.strip()}"
         elif isinstance(body, Mapping):
-            detail = body.get("error") or body.get("message")
+            detail = (
+                cloudflare_error_message(body)
+                or body.get("error")
+                or body.get("message")
+            )
             if isinstance(detail, Mapping):
                 detail = detail.get("message")
             if isinstance(detail, str) and detail:

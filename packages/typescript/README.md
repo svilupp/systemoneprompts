@@ -5,7 +5,8 @@ Generate typed TypeScript modules and call the System One API.
 
 ## Quick start
 
-Requires Node 20+ or Bun. Set `TYPESAFE_API_KEY` for API calls.
+Requires Node 20+ or Bun. Set `TYPESAFE_API_KEY` for native TypeSafe API calls.
+OpenRouter and Cloudflare credentials are described under [Providers](#providers).
 
 ```sh
 npm install systemoneprompts
@@ -92,7 +93,7 @@ Import core functions from `systemoneprompts`:
 | `createStateAssert(def.requires)` | Validate state |
 | `createFactorEvaluator(def.factorDefinitions)` | Compute Boolean factors from answers |
 | `generate(toml, { filename })` | Generate TypeScript source |
-| `TypeSafeClient` | Call System One; accepts `apiKey`, `fetch`, and `timeout` |
+| `TypeSafeClient` | Call System One; accepts `apiKey`, `baseURL`, `cloudflareAccountId`, `fetch`, and `timeout` |
 
 Invalid TOML throws `SystemOnePromptsError`. Definition errors are returned as
 diagnostics; generation rejects definitions with errors.
@@ -100,6 +101,69 @@ diagnostics; generation rejects definitions with errors.
 `systemoneprompts/dev` exports `createCachingFetch` for per-question caching.
 `systemoneprompts/patterns` exports `runMany` for batches and `walkTaxonomy`
 for Choice tree searches.
+
+## Providers
+
+The client builds System One JSON `{ state, questions, model }` (this is what
+the cache hashes). Where that JSON goes depends on how you construct
+`TypeSafeClient`. In Cloudflare mode the body is rewritten before the network.
+Cloudflare mode and `baseURL` / `TYPESAFE_BASE_URL` cannot be combined.
+
+### Native TypeSafe
+
+Default. `TYPESAFE_API_KEY` authenticates against `https://api.typesafe.ai`.
+Send TypeSafe model ids such as `jev-1.13.0` or `jev-latest`.
+
+```ts
+const client = new TypeSafeClient(); // TYPESAFE_API_KEY
+```
+
+### OpenRouter
+
+Point `baseURL` at OpenRouter's System One API and pass an OpenRouter key as
+`apiKey`. The client does not read `OPENROUTER_API_KEY`. OpenRouter accepts
+`jev-1.13` or `typesafe/jev-1.13`. Extra response fields such as `id`,
+`provider`, and `usage.cost` are left in place; Python validation strips them.
+
+```ts
+const client = new TypeSafeClient({
+  apiKey: process.env.TYPESAFE_API_KEY, // OpenRouter key
+  baseURL: "https://openrouter.ai/api",
+});
+await client.systemOne({ state, questions, model: "typesafe/jev-1.13" });
+```
+
+CLI: `TYPESAFE_BASE_URL=https://openrouter.ai/api` and put the OpenRouter key
+in `TYPESAFE_API_KEY`.
+
+### Cloudflare
+
+Set `cloudflareAccountId` (or `CLOUDFLARE_ACCOUNT_ID`). The client then treats
+`apiKey` as a Cloudflare token (`CLOUDFLARE_API_TOKEN` when `apiKey` is
+omitted), posts to
+`https://api.cloudflare.com/client/v4/accounts/{id}/ai/run` as
+`{ model: "typesafe/jev", input: { state, questions } }`, and unwraps the
+Workers AI envelope to `{ model, answers, usage }`. TOML `model` and CLI
+`--model` are not sent as the Cloudflare catalog id.
+
+```ts
+const client = new TypeSafeClient({
+  apiKey: process.env.CLOUDFLARE_API_TOKEN,
+  cloudflareAccountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+});
+```
+
+CLI: set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`. Do not also set
+`TYPESAFE_BASE_URL`. The token needs Account → Workers AI → Read. For
+`--cache`, the CLI wraps Cloudflare inside `createCachingFetch` so cache keys
+stay System One JSON. If you pass your own cache as `fetch`, wrap Cloudflare
+inside it first; otherwise the client rejects the combination.
+
+| Host | Model to send |
+| --- | --- |
+| `api.typesafe.ai` | `jev-1.13.0` / `jev-latest` |
+| OpenRouter | `jev-1.13` or `typesafe/jev-1.13` |
+| Cloudflare | catalog `typesafe/jev` (set by the client) |
 
 ## CLI
 
@@ -121,7 +185,9 @@ Labels are Choice strings, Noul Booleans, or integer Score levels.
 `--sweep <factor>` compares thresholds.
 
 CLI model precedence: `--model`, TOML `model`, `TYPESAFE_MODEL`,
-`TYPESAFE_DEFAULT_MODEL`, then `jev-latest`.
+`TYPESAFE_DEFAULT_MODEL`, then `jev-latest`. In Cloudflare mode `--model` does
+not change the catalog id `typesafe/jev`; the reported `response.model` is
+whatever Cloudflare returned.
 
 ## Development
 

@@ -59,6 +59,37 @@ def test_hash_is_stable_under_key_order() -> None:
     assert left == right
 
 
+def test_identical_bodies_different_ids_do_not_share_cache(tmp_path: Path) -> None:
+    body = {"type": "noul", "instructions": "same?"}
+    assert question_hash({"model": "jev-latest", "id": "a", "state": {"ticket": "hi"}, "question": body}) != question_hash(
+        {"model": "jev-latest", "id": "b", "state": {"ticket": "hi"}, "question": body}
+    )
+
+    def handler(payload: dict[str, object]) -> dict[str, object]:
+        questions = payload["questions"]
+        noul = {"a": 0.1, "b": 0.9}
+        answers = {qid: {"type": "noul", "noul": noul[qid]} for qid in questions}  # type: ignore[union-attr]
+        return {
+            "model": "jev-latest",
+            "answers": answers,
+            "usage": {"input_tokens": 3, "output_tokens": 1},
+        }
+
+    fetch = mock_fetch(handler)
+    cached = create_caching_fetch(dir=str(tmp_path), fetch=fetch)
+    first = cached(ENDPOINT, request({"a": body})).json()
+    second = cached(ENDPOINT, request({"b": body})).json()
+    assert first["answers"]["a"] == {"type": "noul", "noul": 0.1}
+    assert second["answers"]["b"] == {"type": "noul", "noul": 0.9}
+    assert fetch.calls["n"] == 2  # type: ignore[attr-defined]
+    both = cached(ENDPOINT, request({"a": body, "b": body})).json()
+    assert both["answers"] == {
+        "a": {"type": "noul", "noul": 0.1},
+        "b": {"type": "noul", "noul": 0.9},
+    }
+    assert fetch.calls["n"] == 2  # type: ignore[attr-defined]
+
+
 def test_per_question_invalidation_and_usage(tmp_path: Path) -> None:
     def handler(body: dict[str, object]) -> dict[str, object]:
         questions = body["questions"]
@@ -81,7 +112,9 @@ def test_per_question_invalidation_and_usage(tmp_path: Path) -> None:
     assert (stats.requests, stats.hits, stats.misses) == (1, 0, 2)
     assert stats.keys == ["a", "b"]
 
-    digest = question_hash({"model": "jev-latest", "state": {"ticket": "hi"}, "question": a})
+    digest = question_hash(
+        {"model": "jev-latest", "id": "a", "state": {"ticket": "hi"}, "question": a}
+    )
     shard = tmp_path / digest[:2]
     assert any(path.suffix == ".json" for path in shard.iterdir())
 
@@ -138,7 +171,7 @@ def test_prototype_looking_ids(tmp_path: Path) -> None:
 def test_corrupt_records_are_read_only_misses(tmp_path: Path) -> None:
     question = {"type": "noul", "instructions": "A?"}
     state = {"ticket": "hi"}
-    digest = question_hash({"model": "jev-latest", "state": state, "question": question})
+    digest = question_hash({"model": "jev-latest", "id": "a", "state": state, "question": question})
     records = [
         None,
         [],
@@ -408,8 +441,8 @@ def test_absent_state_key_hashes_differently_from_null_state(tmp_path: Path) -> 
     assert fetch.calls["n"] == 2  # type: ignore[attr-defined]
     written = {path.stem for path in tmp_path.rglob("*.json")}
     assert written == {
-        question_hash({"model": "m", "question": question}),
-        question_hash({"model": "m", "state": None, "question": question}),
+        question_hash({"model": "m", "id": "q", "question": question}),
+        question_hash({"model": "m", "id": "q", "state": None, "question": question}),
     }
 
 
@@ -418,7 +451,7 @@ def test_records_are_written_like_typescript(tmp_path: Path) -> None:
     fetch = mock_fetch(lambda body: {"model": "m-2", "answers": {"q": {"type": "noul", "noul": 1.0}}})
     cached = create_caching_fetch(dir=str(tmp_path), fetch=fetch)
     cached(ENDPOINT, {"method": "POST", "body": json.dumps({"model": "m", "state": None, "questions": {"q": question}})})
-    digest = question_hash({"model": "m", "state": None, "question": question})
+    digest = question_hash({"model": "m", "id": "q", "state": None, "question": question})
     text = (tmp_path / digest[:2] / f"{digest}.json").read_text(encoding="utf-8")
     assert text == (
         "{\n"
@@ -460,7 +493,7 @@ def test_hostile_bodies_and_records_are_handled_like_javascript(tmp_path: Path) 
     # Corrupt or over-precise records are misses, never tracebacks.
     records = tmp_path / "records"
     cached = create_caching_fetch(dir=str(records), fetch=fetch)
-    digest = question_hash({"model": "m", "state": None, "question": {"type": "noul"}})
+    digest = question_hash({"model": "m", "id": "q", "state": None, "question": {"type": "noul"}})
     path = records / digest[:2] / f"{digest}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     body = '{"model":"m","state":null,"questions":{"q":{"type":"noul"}}}'

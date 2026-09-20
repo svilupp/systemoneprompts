@@ -14,8 +14,20 @@ from systemoneprompts.client import (
     TypeSafeHttpError,
     TypeSafeRateLimitError,
 )
+from systemoneprompts.cloudflare import CLOUDFLARE_MODEL, cloudflare_run_url
 
 httpx2 = pytest.importorskip("httpx2")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_provider_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in (
+        "TYPESAFE_API_KEY",
+        "TYPESAFE_BASE_URL",
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN",
+    ):
+        monkeypatch.delenv(key, raising=False)
 
 
 def _ok_body(noul: float = 0.7) -> dict[str, object]:
@@ -334,3 +346,263 @@ def test_empty_questions_rejected() -> None:
         asyncio.run(client.system_one(state={}, questions={}))
     client.close()
     assert caught.value.diagnostic.code == "provider-client"
+
+
+def test_cloudflare_rejects_custom_base_url() -> None:
+    with pytest.raises(TypeSafeClientError) as caught:
+        TypeSafeClient(
+            api_key="cf-token",
+            cloudflare_account_id="acct",
+            base_url="https://openrouter.ai/api",
+            transport=httpx2.MockTransport(lambda r: httpx2.Response(200)),
+        )
+    assert caught.value.diagnostic.code == "cloudflare-base-url"
+
+
+def test_cloudflare_posts_envelope_and_unwraps_result() -> None:
+    seen: list[httpx2.Request] = []
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        seen.append(request)
+        return httpx2.Response(
+            200,
+            json={
+                "success": True,
+                "errors": [],
+                "result": {
+                    "state": "Completed",
+                    "result": _ok_body(0.8),
+                    "gatewayMetadata": {"keySource": "BYOK"},
+                },
+            },
+        )
+
+    client = TypeSafeClient(
+        api_key="cf-token",
+        cloudflare_account_id="acct-1",
+        model="jev-1.13.0",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    result = asyncio.run(
+        client.system_one(state={"text": "now"}, questions={"q": {"type": "noul"}})
+    )
+    client.close()
+    assert result["answers"]["q"]["noul"] == 0.8
+    assert result["model"] == "jev-test"
+    assert "gatewayMetadata" not in result
+    request = seen[0]
+    request.read()
+    assert str(request.url) == cloudflare_run_url("acct-1")
+    assert request.headers.get("host") == "api.cloudflare.com"
+    assert request.headers.get("authorization") == "Bearer cf-token"
+    body = json.loads(request.content)
+    assert body["model"] == CLOUDFLARE_MODEL
+    assert body["input"]["state"] == {"text": "now"}
+    assert "model" not in body["input"]
+
+
+def test_cloudflare_error_message() -> None:
+    def respond(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            402,
+            json={
+                "success": False,
+                "errors": [
+                    {
+                        "code": 2021,
+                        "message": "Insufficient balance; add money to your gateway or use BYOK",
+                    }
+                ],
+                "result": {},
+            },
+        )
+
+    client = TypeSafeClient(
+        api_key="cf-token",
+        cloudflare_account_id="acct-1",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    with pytest.raises(TypeSafeHttpError) as caught:
+        asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert caught.value.status == 402
+    assert "Insufficient balance" in str(caught.value)
+
+
+def test_openrouter_extra_fields_are_stripped() -> None:
+    def respond(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            200,
+            json={
+                "id": "gen-1",
+                "provider": "TypeSafe",
+                "model": "typesafe/jev-1.13",
+                "answers": {"q": {"type": "noul", "noul": 0.7}},
+                "usage": {"input_tokens": 1, "output_tokens": 1, "cost": 0.00001},
+            },
+        )
+
+    client = TypeSafeClient(
+        api_key="or-key",
+        base_url="https://openrouter.ai/api",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    result = asyncio.run(client.system_one(state="hi", questions={"q": {"type": "noul"}}))
+    client.close()
+    assert result["model"] == "typesafe/jev-1.13"
+    assert set(result) == {"model", "answers", "usage"}
+    assert result["usage"]["input_tokens"] == 1
+
+
+def _cf_ok(noul: float = 0.7) -> dict[str, object]:
+    return {
+        "success": True,
+        "result": {"state": "Completed", "result": _ok_body(noul)},
+    }
+
+
+def test_cloudflare_empty_api_key_falls_back_to_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "from-env")
+    seen: list[str] = []
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        seen.append(request.headers.get("authorization", ""))
+        return httpx2.Response(200, json=_cf_ok())
+
+    client = TypeSafeClient(
+        api_key="",
+        cloudflare_account_id="acct-1",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert seen == ["Bearer from-env"]
+
+
+def test_cloudflare_preserves_401() -> None:
+    def respond(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            401,
+            json={"success": False, "errors": [{"code": 10000, "message": "Authentication error"}]},
+        )
+
+    client = TypeSafeClient(
+        api_key="cf-token",
+        cloudflare_account_id="acct-1",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    with pytest.raises(TypeSafeHttpError) as caught:
+        asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert caught.value.status == 401
+    assert "Authentication error" in str(caught.value)
+
+
+def test_cloudflare_200_error_envelope_becomes_400() -> None:
+    def respond(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json={"success": False, "errors": [{"message": "nope"}]})
+
+    client = TypeSafeClient(
+        api_key="cf-token",
+        cloudflare_account_id="acct-1",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    with pytest.raises(TypeSafeHttpError) as caught:
+        asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert caught.value.status == 400
+
+
+def test_cloudflare_200_insufficient_balance_becomes_402() -> None:
+    def respond(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            200,
+            json={
+                "success": False,
+                "errors": [{"code": 2021, "message": "Insufficient balance"}],
+            },
+        )
+
+    client = TypeSafeClient(
+        api_key="cf-token",
+        cloudflare_account_id="acct-1",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    with pytest.raises(TypeSafeHttpError) as caught:
+        asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert caught.value.status == 402
+    assert "Insufficient balance" in str(caught.value)
+
+
+def test_cloudflare_incomplete_job_is_502() -> None:
+    def respond(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json={"success": True, "result": {"state": "Running"}})
+
+    client = TypeSafeClient(
+        api_key="cf-token",
+        cloudflare_account_id="acct-1",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    with pytest.raises(TypeSafeHttpError) as caught:
+        asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert caught.value.status == 502
+
+
+def test_cloudflare_unrecognized_success_is_502() -> None:
+    def respond(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json={"success": True, "result": {"state": "Completed"}})
+
+    client = TypeSafeClient(
+        api_key="cf-token",
+        cloudflare_account_id="acct-1",
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    with pytest.raises(TypeSafeHttpError) as caught:
+        asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert caught.value.status == 502
+
+
+def test_cloudflare_rejects_http_client() -> None:
+    http = httpx2.Client(transport=httpx2.MockTransport(lambda r: httpx2.Response(200)))
+    try:
+        with pytest.raises(TypeSafeClientError) as caught:
+            TypeSafeClient(
+                api_key="cf-token",
+                cloudflare_account_id="acct",
+                http_client=http,
+            )
+        assert caught.value.diagnostic.code == "cloudflare-http-client"
+    finally:
+        http.close()
+
+
+def test_cloudflare_forwards_timeout_extensions() -> None:
+    seen: list[object] = []
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        seen.append(dict(request.extensions))
+        return httpx2.Response(200, json=_cf_ok())
+
+    client = TypeSafeClient(
+        api_key="cf-token",
+        cloudflare_account_id="acct-1",
+        timeout=7,
+        transport=httpx2.MockTransport(respond),
+        max_retries=0,
+    )
+    asyncio.run(client.system_one(state={}, questions={"q": {"type": "noul"}}))
+    client.close()
+    assert seen
+    assert seen[0] != {}

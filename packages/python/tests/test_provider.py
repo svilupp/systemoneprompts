@@ -18,6 +18,17 @@ from systemoneprompts.provider import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _isolate_create_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in (
+        "TYPESAFE_API_KEY",
+        "TYPESAFE_BASE_URL",
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN",
+    ):
+        monkeypatch.delenv(key, raising=False)
+
+
 def test_native_result_from_mapping_and_object() -> None:
     dumped = native_result(
         {
@@ -64,12 +75,43 @@ def test_load_dotenv_does_not_override_existing(tmp_path, monkeypatch) -> None:
     assert os.environ["OTHER"] == "value"
 
 
+def test_load_dotenv_does_not_override_empty_string(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("CLOUDFLARE_ACCOUNT_ID=from-file\n", encoding="utf-8")
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "")
+    load_dotenv(str(tmp_path))
+    assert os.environ["CLOUDFLARE_ACCOUNT_ID"] == ""
+
+
 def test_create_client_missing_live_or_credentials(monkeypatch) -> None:
     definition = parse_definition(fixture("golden/noul-string.toml"))
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
     with pytest.raises(LiveClientError) as caught:
         create_client(definition, env={})
     assert caught.value.diagnostic.code in {"missing-live", "missing-credentials"}
+
+
+def test_create_client_cloudflare_requires_token() -> None:
+    definition = parse_definition(fixture("golden/noul-string.toml"))
+    with pytest.raises(LiveClientError) as caught:
+        create_client(definition, env={"CLOUDFLARE_ACCOUNT_ID": "acct"})
+    assert caught.value.diagnostic.code in {"missing-live", "missing-credentials"}
+    if caught.value.diagnostic.code == "missing-credentials":
+        assert "CLOUDFLARE_API_TOKEN" in caught.value.diagnostic.message
+
+
+def test_create_client_rejects_cloudflare_with_base_url() -> None:
+    definition = parse_definition(fixture("golden/noul-string.toml"))
+    with pytest.raises(LiveClientError) as caught:
+        create_client(
+            definition,
+            env={
+                "CLOUDFLARE_ACCOUNT_ID": "acct",
+                "CLOUDFLARE_API_TOKEN": "cf",
+                "TYPESAFE_BASE_URL": "https://openrouter.ai/api",
+            },
+        )
+    assert caught.value.diagnostic.code in {"missing-live", "cloudflare-base-url"}
 
 
 def test_typesafe_client_uses_caller_transport() -> None:
@@ -246,3 +288,87 @@ def test_cache_misses_forward_with_a_fresh_content_length(tmp_path: Path) -> Non
     assert seen[1]["questions"] == sorted(ids[1:])
     stats = created["cache"].stats()
     assert (stats.requests, stats.hits, stats.misses) == (3, 1 + len(ids), len(ids))
+
+
+def test_create_client_env_mapping_ignores_process_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    httpx2 = pytest.importorskip("httpx2")
+    monkeypatch.setenv("TYPESAFE_BASE_URL", "https://openrouter.ai/api")
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "ambient")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "ambient-token")
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            200,
+            json={
+                "success": True,
+                "result": {
+                    "state": "Completed",
+                    "result": {
+                        "model": "jev-test",
+                        "answers": {"is_urgent": {"type": "noul", "noul": 0.8}},
+                        "usage": {"input_tokens": 1, "output_tokens": 1},
+                    },
+                },
+            },
+        )
+
+    definition = parse_definition(fixture("golden/noul-string.toml"))
+    created = create_client(
+        definition,
+        env={"CLOUDFLARE_ACCOUNT_ID": "acct", "CLOUDFLARE_API_TOKEN": "cf"},
+        transport=httpx2.MockTransport(respond),
+    )
+    assert created["client"].cloudflare_account_id == "acct"
+    result = asyncio.run(
+        created["client"].system_one(state={"a": 1}, questions=definition.questions)
+    )
+    created["client"].close()
+    assert result["answers"]["is_urgent"]["noul"] == 0.8
+
+
+def test_create_client_cache_cloudflare_hashes_system_one(tmp_path: Path) -> None:
+    httpx2 = pytest.importorskip("httpx2")
+    from systemoneprompts import load_definition
+
+    seen: list[str] = []
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        seen.append(str(request.url))
+        payload = json.loads(request.content.decode("utf-8"))
+        ids = list(payload["input"]["questions"])
+        answers = {qid: {"type": "noul", "noul": 0.8} for qid in ids}
+        return httpx2.Response(
+            200,
+            json={
+                "success": True,
+                "result": {
+                    "state": "Completed",
+                    "result": {
+                        "model": "jev-test",
+                        "answers": answers,
+                        "usage": {"input_tokens": 1, "output_tokens": 1},
+                    },
+                },
+            },
+        )
+
+    definition = load_definition(str(fixture_path("golden/noul-string.toml")))
+    created = create_client(
+        definition,
+        cache=True,
+        cache_dir=str(tmp_path),
+        env={"CLOUDFLARE_ACCOUNT_ID": "acct-1", "CLOUDFLARE_API_TOKEN": "cf"},
+        transport=httpx2.MockTransport(respond),
+    )
+    first = asyncio.run(
+        created["client"].system_one(state={"a": 1}, questions=definition.questions, model="jev-test")
+    )
+    again = asyncio.run(
+        created["client"].system_one(state={"a": 1}, questions=definition.questions, model="jev-test")
+    )
+    created["client"].close()
+    assert first["answers"]["is_urgent"]["noul"] == 0.8
+    assert again["usage"] == {"input_tokens": 0, "output_tokens": 0}
+    assert len(seen) == 1
+    assert seen[0].endswith("/accounts/acct-1/ai/run")
+
