@@ -11,6 +11,8 @@ Code map:
 - `cli.py`, `provider.py`: command dispatch and provider setup.
 - `tests/fixtures/` and `tests/test_conformance.py`: contract coverage.
 - `scripts/conformance.py`: adapter checks against `conformance/v1`.
+- `examples/`: committed generated examples; regenerate with
+  `uv run --locked systemoneprompts generate examples/*/*.toml`.
 
 Keep the core dependency-free, preserve native TypeSafe shapes and stable
 diagnostic codes, and keep live transport in the optional `live` extra.

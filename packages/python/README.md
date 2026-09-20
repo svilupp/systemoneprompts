@@ -75,8 +75,7 @@ diagnostics; generation rejects definitions with errors.
 
 Generated `<stem>_generated.py` modules export questions, model, metadata,
 application data, state assertions, and factor evaluators, with types for
-state, answers, and factors. See the [triage example](examples/triage/) for
-use with saved answers.
+state, answers, and factors. See the [examples](examples/) for patterns.
 
 ## CLI
 
@@ -111,10 +110,13 @@ sh scripts/run-quiet.sh "Checks" -- uv run --locked python scripts/check.py
 sh scripts/run-quiet.sh "Release checks" -- uv run --locked python scripts/release-check.py
 ```
 
-Checks cover lint, tests, types, builds, and shared test cases. Release checks
-also test wheel and sdist installs and a copy of the package outside the
-repository. Use `scripts/run-quiet.sh` for focused tests too; it retains full
-logs and prints failures.
+Checks cover lint, tests, types, builds, shared test cases, and generated
+examples. Release checks also test wheel and sdist installs and a copy of the
+package outside the repository. Use `scripts/run-quiet.sh` for focused tests
+too; it retains full logs and prints failures.
+
+After editing example definitions, run
+`uv run --locked systemoneprompts generate examples/*/*.toml`.
 
 Live tests require `TYPESAFE_API_KEY`:
 
