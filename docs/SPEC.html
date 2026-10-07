@@ -16,7 +16,28 @@
 </head>
 <body>
 <h1 id="systemoneprompts-definition-contract">systemoneprompts definition contract</h1>
-<p>Status: contract version <code>v1</code>. The TypeScript package is the reference implementation; the Python package is required to match the language-neutral rules below. Package-specific APIs may be idiomatic, but the parsed questions, state guarantees, factor truth tables, diagnostics, and generated artifacts must preserve the same behavior.</p>
+<p>Package version: <code>0.2.0</code> for TypeScript and Python. Contract version: <code>v1</code>. Package versions and author-owned TOML <code>version</code> metadata are independent of the contract version.</p>
+<p>The TypeScript package is the reference implementation; the Python package is required to match the language-neutral rules below. Package-specific APIs may be idiomatic, but the parsed questions, state guarantees, factor truth tables, diagnostics, and generated artifacts must preserve the same behavior.</p>
+<h2 id="providers-in-0-2-0">Providers in 0.2.0</h2>
+<p>TOML <code>provider</code> and CLI <code>--provider</code> select one of four backends:</p>
+<ul>
+<li><code>typesafe</code>: <code>TypeSafeClient</code>, native TypeSafe API, <code>TYPESAFE_API_KEY</code>.</li>
+</ul>
+<p>  The base URL is <code>https://api.typesafe.ai</code> (<code>TYPESAFE_BASE_URL</code> overrides it).   The default model is <code>jev-latest</code>; <code>TYPESAFE_DEFAULT_MODEL</code> can override it.   The CLI also accepts <code>TYPESAFE_MODEL</code>, ahead of <code>TYPESAFE_DEFAULT_MODEL</code>.</p>
+<ul>
+<li><code>openai</code>: <code>OpenAIDecisionsClient</code>, direct OpenAI Decisions API,</li>
+</ul>
+<p>  <code>OPENAI_API_KEY</code>, default model <code>gpt-6-luna</code>.   The base URL is <code>https://api.openai.com/v1</code> (<code>OPENAI_BASE_URL</code> overrides it).</p>
+<ul>
+<li><code>openrouter</code>: <code>TypeSafeClient</code> with explicit OpenRouter mode,</li>
+</ul>
+<p>  <code>OPENROUTER_API_KEY</code>, default model <code>~typesafe/jev-latest</code>.   The base URL is <code>https://openrouter.ai/api/alpha</code> (<code>OPENROUTER_BASE_URL</code> overrides it).   <code>openai/gpt-6-luna-decisions</code> uses the same native wire format on this route.</p>
+<ul>
+<li><code>cloudflare</code>: <code>CloudflareDecisionsClient</code>, Cloudflare Workers AI,</li>
+</ul>
+<p>  <code>CLOUDFLARE_API_TOKEN</code> and <code>CLOUDFLARE_ACCOUNT_ID</code>, default model <code>clef</code>.   <code>clef-flash</code> and both full catalog IDs are supported.   The run base URL is <code>https://api.cloudflare.com/client/v4/accounts/&lt;account&gt;/ai/run</code>.</p>
+<p>Selection is CLI &gt; TOML &gt; <code>typesafe</code>. An explicit model pin survives provider selection. TOML <code>base_url</code> and CLI <code>--base-url</code> override the selected endpoint; credentials stay outside definitions. Provider limits and cache scopes are specified below.</p>
+<p>Legacy <code>TypeSafeClient</code> Cloudflare mode remains separate: in <code>typesafe</code> mode, <code>CLOUDFLARE_ACCOUNT_ID</code> selects the fixed <code>typesafe/jev</code> catalog model. It requires string-only Score levels and cannot be combined with a custom TypeSafe base URL.</p>
 <h2 id="definition-shape">Definition shape</h2>
 <p>A definition is a TOML document with optional scalar metadata (<code>title</code>, <code>version</code>, <code>description</code>, <code>model</code>, <code>provider</code>, <code>base_url</code>, plus other scalar keys) and four recognized tables: <code>[requires]</code>, <code>[questions]</code>, <code>[factors]</code>, and optional <code>[data]</code>. Unknown top-level tables produce warnings and are not silently interpreted. <code>model</code> is an optional non-empty string; a blank model is an error. <code>provider</code> is optional and must be exactly <code>"typesafe"</code>, <code>"openai"</code>, <code>"cloudflare"</code>, or <code>"openrouter"</code>; invalid values produce a positioned <code>provider-value</code> error. The parser exposes <code>Definition.provider</code> and preserves valid selection in <code>meta.provider</code>. Omitting it preserves existing behavior.</p>
 <p>The parser throws only for invalid TOML. Structural problems are returned as diagnostics and the invalid entry is omitted. <code>checkDefinition</code>/<code>check_definition</code> adds cross-cutting reference, conflict, cycle, and lint diagnostics.</p>

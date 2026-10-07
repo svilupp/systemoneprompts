@@ -8,17 +8,14 @@ from pathlib import Path
 import httpx2
 import pytest
 
+from provider_fixtures import provider_fixtures
 from systemoneprompts import CloudflareDecisionsClient, CloudflareDecisionsError, parse_definition
 from systemoneprompts.cache import CacheMissError, cache_stats, question_hash
 from systemoneprompts.cli import _cache
 from systemoneprompts.dev import cloudflare_cache_dir, create_cached_cloudflare_decisions_client
 from systemoneprompts.provider import create_client
 
-FIXTURES = json.loads(
-    (
-        Path(__file__).resolve().parents[1] / "conformance/v1/providers/cloudflare-decisions.json"
-    ).read_text()
-)
+FIXTURES = provider_fixtures("cloudflare-decisions")
 BASE = FIXTURES[0]
 
 

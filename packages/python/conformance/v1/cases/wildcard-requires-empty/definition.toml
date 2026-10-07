@@ -1,7 +1,0 @@
-title = "Wildcard requires empty"
-
-[requires]
-"messages[].text" = "string"
-
-[questions.ok]
-type = "noul"

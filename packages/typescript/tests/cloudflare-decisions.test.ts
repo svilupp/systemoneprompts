@@ -18,13 +18,9 @@ import {
 } from "../src/index.js";
 import type { Questions } from "../src/native.js";
 import { cli } from "./helpers.js";
+import { providerFixtures } from "./provider-fixtures.js";
 
-const fixtures = JSON.parse(
-  await readFile(
-    new URL("../conformance/v1/providers/cloudflare-decisions.json", import.meta.url),
-    "utf8",
-  ),
-);
+const fixtures = providerFixtures("cloudflare-decisions");
 const base = fixtures[0];
 const defaults = { apiKey: "test-token", accountId: "test-account", maxRetries: 0 };
 for (const fixture of fixtures) {

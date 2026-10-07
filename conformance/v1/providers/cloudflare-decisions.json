@@ -1,5 +1,5 @@
-[
-  {
+{
+  "base": {
     "name": "structured-native",
     "model": "clef",
     "state": {
@@ -174,2392 +174,574 @@
       }
     }
   },
-  {
-    "name": "flash-full-catalog-alias",
-    "model": "@cf/cloudflare/clef-flash",
-    "state": {
-      "message": "The service is down"
+  "cases": [
+    {
+      "name": "structured-native",
+      "set": []
     },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
+    {
+      "name": "flash-full-catalog-alias",
+      "set": [
+        [
+          [
+            "name"
           ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "flash-full-catalog-alias"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef-flash",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "model"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef-flash",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "result": {
-      "model": "clef-flash",
-      "answers": {
-        "__proto__": {
-          "type": "noul",
-          "noul": 0.9
-        },
-        "ticket / équipe": {
-          "type": "choice",
-          "choice": "__proto__",
-          "probabilities": {
-            "__proto__": 0.8,
-            "billing": 0.2
-          },
-          "confidence": 0.6
-        },
-        "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-          "type": "score",
-          "score": 0.75,
-          "probabilities": {
-            "0": 0.25,
-            "1": 0.75
-          },
-          "legend": {
-            "0": {
-              "impact": "None"
-            },
-            "1": [
-              "Critical"
-            ]
-          },
-          "confidence": 0.5
-        }
-      },
-      "usage": {
-        "input_tokens": 123,
-        "output_tokens": 0
-      }
-    }
-  },
-  {
-    "name": "fallback-instructions",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "criteria": [
-          {
-            "impact": "None"
-          },
-          [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": "Evaluate the supplied evidence against the criteria.",
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": "Evaluate the supplied evidence against the criteria.",
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "Evaluate the supplied evidence against the criteria.",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "result": {
-      "model": "clef",
-      "answers": {
-        "__proto__": {
-          "type": "noul",
-          "noul": 0.9
-        },
-        "ticket / équipe": {
-          "type": "choice",
-          "choice": "__proto__",
-          "probabilities": {
-            "__proto__": 0.8,
-            "billing": 0.2
-          },
-          "confidence": 0.6
-        },
-        "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-          "type": "score",
-          "score": 0.75,
-          "probabilities": {
-            "0": 0.25,
-            "1": 0.75
-          },
-          "legend": {
-            "0": {
-              "impact": "None"
-            },
-            "1": [
-              "Critical"
-            ]
-          },
-          "confidence": 0.5
-        }
-      },
-      "usage": {
-        "input_tokens": 123,
-        "output_tokens": 0
-      }
-    }
-  },
-  {
-    "name": "missing-answer",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "@cf/cloudflare/clef-flash"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "request",
+            "model"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "unexpected-answer",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "clef-flash"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "response",
+            "result",
+            "model"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
+          "clef-flash"
+        ],
+        [
+          [
+            "result",
+            "model"
+          ],
+          "clef-flash"
+        ]
+      ]
     },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          },
-          "extra": {
+    {
+      "name": "fallback-instructions",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "fallback-instructions"
+        ],
+        [
+          [
+            "request",
+            "questions",
+            "q0",
+            "instructions"
+          ],
+          "Evaluate the supplied evidence against the criteria."
+        ],
+        [
+          [
+            "request",
+            "questions",
+            "q1",
+            "instructions"
+          ],
+          "Evaluate the supplied evidence against the criteria."
+        ],
+        [
+          [
+            "request",
+            "questions",
+            "q2",
+            "instructions"
+          ],
+          "Evaluate the supplied evidence against the criteria."
+        ]
+      ],
+      "remove": [
+        [
+          "questions",
+          "__proto__",
+          "instructions"
+        ],
+        [
+          "questions",
+          "ticket / équipe",
+          "instructions"
+        ],
+        [
+          "questions",
+          "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "instructions"
+        ]
+      ]
+    },
+    {
+      "name": "missing-answer",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "missing-answer"
+        ],
+        [
+          [
+            "error"
+          ],
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ],
+        [
+          "response",
+          "result",
+          "answers",
+          "q0"
+        ]
+      ]
+    },
+    {
+      "name": "unexpected-answer",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "unexpected-answer"
+        ],
+        [
+          [
+            "response",
+            "result",
+            "answers",
+            "extra"
+          ],
+          {
             "type": "noul",
             "noul": 0.1
           }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "wrong-type",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
+            "error"
+          ],
+          "response"
         ]
-      }
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
     },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+    {
+      "name": "wrong-type",
+      "set": [
+        [
+          [
+            "name"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "choice",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "invalid-noul",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "wrong-type"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "response",
+            "result",
+            "answers",
+            "q0",
+            "type"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 1.1
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "incomplete-distribution",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "choice"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
+            "error"
+          ],
+          "response"
         ]
-      }
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
     },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+    {
+      "name": "invalid-noul",
+      "set": [
+        [
+          [
+            "name"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "extra-distribution",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "invalid-noul"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "response",
+            "result",
+            "answers",
+            "q0",
+            "noul"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2,
-              "other": 0
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "unknown-choice",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          1.1
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
+            "error"
+          ],
+          "response"
         ]
-      }
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
     },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+    {
+      "name": "incomplete-distribution",
+      "set": [
+        [
+          [
+            "name"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "unknown",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "invalid-confidence",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "incomplete-distribution"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
+            "error"
+          ],
+          "response"
         ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
-          ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": -0.1
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "invalid-probability",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+      ],
+      "remove": [
+        [
+          "result"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
-          [
-            "Critical"
-          ]
+        [
+          "response",
+          "result",
+          "answers",
+          "q1",
+          "probabilities",
+          "billing"
         ]
-      }
+      ]
     },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+    {
+      "name": "extra-distribution",
+      "set": [
+        [
+          [
+            "name"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": -0.1
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "invalid-score",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "extra-distribution"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "response",
+            "result",
+            "answers",
+            "q1",
+            "probabilities",
+            "other"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 2,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "changed-legend",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          0
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
+            "error"
+          ],
+          "response"
         ]
-      }
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
     },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+    {
+      "name": "unknown-choice",
+      "set": [
+        [
+          [
+            "name"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": "changed",
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "missing-usage",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "unknown-choice"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "response",
+            "result",
+            "answers",
+            "q1",
+            "choice"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "fractional-usage",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "unknown"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
+            "error"
+          ],
+          "response"
         ]
-      }
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
     },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+    {
+      "name": "invalid-confidence",
+      "set": [
+        [
+          [
+            "name"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 1.2,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "negative-usage",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          "invalid-confidence"
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "response",
+            "result",
+            "answers",
+            "q1",
+            "confidence"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
-    },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "clef",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": -1
-        }
-      },
-      "errors": []
-    },
-    "error": "response"
-  },
-  {
-    "name": "empty-model",
-    "model": "clef",
-    "state": {
-      "message": "The service is down"
-    },
-    "questions": {
-      "__proto__": {
-        "type": "noul",
-        "instructions": {
-          "task": "Is the service down?"
-        },
-        "criteria": {
-          "true": [
-            "Outage"
-          ],
-          "false": {
-            "status": "Healthy"
-          }
-        }
-      },
-      "ticket / équipe": {
-        "type": "choice",
-        "instructions": [
-          "Route the ticket"
+          -0.1
         ],
-        "criteria": {
-          "__proto__": {
-            "team": "Technical"
-          },
-          "billing": null
-        }
-      },
-      "severity.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": {
-        "type": "score",
-        "instructions": "How severe is the impact?",
-        "criteria": [
-          {
-            "impact": "None"
-          },
+        [
           [
-            "Critical"
-          ]
-        ]
-      }
-    },
-    "request": {
-      "model": "clef",
-      "state": {
-        "message": "The service is down"
-      },
-      "questions": {
-        "q0": {
-          "type": "noul",
-          "instructions": {
-            "task": "Is the service down?"
-          },
-          "criteria": {
-            "true": [
-              "Outage"
-            ],
-            "false": {
-              "status": "Healthy"
-            }
-          }
-        },
-        "q1": {
-          "type": "choice",
-          "instructions": [
-            "Route the ticket"
+            "error"
           ],
-          "criteria": {
-            "__proto__": {
-              "team": "Technical"
-            },
-            "billing": null
-          }
-        },
-        "q2": {
-          "type": "score",
-          "instructions": "How severe is the impact?",
-          "criteria": [
-            {
-              "impact": "None"
-            },
-            [
-              "Critical"
-            ]
-          ]
-        }
-      }
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
     },
-    "response": {
-      "success": true,
-      "result": {
-        "model": "",
-        "answers": {
-          "q0": {
-            "type": "noul",
-            "noul": 0.9
-          },
-          "q1": {
-            "type": "choice",
-            "choice": "__proto__",
-            "probabilities": {
-              "__proto__": 0.8,
-              "billing": 0.2
-            },
-            "confidence": 0.6
-          },
-          "q2": {
-            "type": "score",
-            "score": 0.75,
-            "probabilities": {
-              "0": 0.25,
-              "1": 0.75
-            },
-            "legend": {
-              "0": {
-                "impact": "None"
-              },
-              "1": [
-                "Critical"
-              ]
-            },
-            "confidence": 0.5
-          }
-        },
-        "usage": {
-          "input_tokens": 123,
-          "output_tokens": 0
-        }
-      },
-      "errors": []
+    {
+      "name": "invalid-probability",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "invalid-probability"
+        ],
+        [
+          [
+            "response",
+            "result",
+            "answers",
+            "q1",
+            "probabilities",
+            "billing"
+          ],
+          -0.1
+        ],
+        [
+          [
+            "error"
+          ],
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
     },
-    "error": "response"
-  }
-]
+    {
+      "name": "invalid-score",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "invalid-score"
+        ],
+        [
+          [
+            "response",
+            "result",
+            "answers",
+            "q2",
+            "score"
+          ],
+          2
+        ],
+        [
+          [
+            "error"
+          ],
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
+    },
+    {
+      "name": "changed-legend",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "changed-legend"
+        ],
+        [
+          [
+            "response",
+            "result",
+            "answers",
+            "q2",
+            "legend",
+            "0"
+          ],
+          "changed"
+        ],
+        [
+          [
+            "error"
+          ],
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
+    },
+    {
+      "name": "missing-usage",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "missing-usage"
+        ],
+        [
+          [
+            "error"
+          ],
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ],
+        [
+          "response",
+          "result",
+          "usage"
+        ]
+      ]
+    },
+    {
+      "name": "fractional-usage",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "fractional-usage"
+        ],
+        [
+          [
+            "response",
+            "result",
+            "usage",
+            "input_tokens"
+          ],
+          1.2
+        ],
+        [
+          [
+            "error"
+          ],
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
+    },
+    {
+      "name": "negative-usage",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "negative-usage"
+        ],
+        [
+          [
+            "response",
+            "result",
+            "usage",
+            "output_tokens"
+          ],
+          -1
+        ],
+        [
+          [
+            "error"
+          ],
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
+    },
+    {
+      "name": "empty-model",
+      "set": [
+        [
+          [
+            "name"
+          ],
+          "empty-model"
+        ],
+        [
+          [
+            "response",
+            "result",
+            "model"
+          ],
+          ""
+        ],
+        [
+          [
+            "error"
+          ],
+          "response"
+        ]
+      ],
+      "remove": [
+        [
+          "result"
+        ]
+      ]
+    }
+  ]
+}

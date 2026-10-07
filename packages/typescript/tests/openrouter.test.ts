@@ -5,7 +5,7 @@ import { join } from "node:path";
 import endpointFixtures from "../conformance/v1/providers/endpoint-selection.json" with {
   type: "json",
 };
-import fixture from "../conformance/v1/providers/openrouter-decisions.json" with { type: "json" };
+import fixture from "../conformance/v1/providers/native-decisions.json" with { type: "json" };
 import { createClient } from "../src/cli/io.js";
 import { createCachingFetch } from "../src/dev/cache.js";
 import { OpenAIDecisionsClient, parseDefinition, TypeSafeClient } from "../src/index.js";

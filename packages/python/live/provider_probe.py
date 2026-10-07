@@ -33,8 +33,7 @@ class CountingTransport(httpx2.BaseTransport):
         self.inner.close()
 
 
-def main() -> int:
-    config = json.load(sys.stdin)
+def probe(config):
     with tempfile.TemporaryDirectory(prefix="provider-live-") as directory:
         transport = CountingTransport()
         common = {"transport": transport, "timeout": 20, "max_retries": 0, "model": config["model"]}
@@ -53,7 +52,7 @@ def main() -> int:
                 client = cached["client"]
             else:
                 router = config["provider"] == "openrouter"
-                cache_dir = openrouter_cache_dir(dir=directory, base_url=config["baseURL"]) if router else str(Path(directory) / "cache")
+                cache_dir = openrouter_cache_dir(dir=directory, base_url=config.get("baseURL")) if router else str(Path(directory) / "cache")
                 # Legacy Cloudflare must be inside the cache.
                 if config["provider"] == "cloudflare-jev":
                     from systemoneprompts.cloudflare import create_cloudflare_transport
@@ -77,17 +76,20 @@ def main() -> int:
                 return result
 
             result = asyncio.run(run())
-            print(json.dumps({"status": "pass", "model": result["model"], "usage": result["usage"], "answers": result["answers"], "networkCalls": transport.calls}))
-            return 0
-        except Exception as error:
-            print(json.dumps({"status": "fail", "error": type(error).__name__, "kind": getattr(error, "kind", None), "httpStatus": getattr(error, "status", None), "message": str(error)}))
-            return 1
+            return {"status": "pass", "model": result["model"], "usage": result["usage"], "answers": result["answers"], "networkCalls": transport.calls}
         finally:
             if cached:
                 cached["client"].close()
             if network:
                 network.close()
+            transport.close()
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        print(json.dumps(probe(json.load(sys.stdin))))
+    except Exception as error:
+        print(json.dumps({"status": "fail", "error": type(error).__name__,
+                          "kind": getattr(error, "kind", None),
+                          "httpStatus": getattr(error, "status", None), "message": str(error)}))
+        raise SystemExit(1) from None

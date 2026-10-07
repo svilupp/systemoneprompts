@@ -1,54 +1,44 @@
-# Live provider validation
+# Live provider testing
 
-Executed on 2026-10-07 against the TypeScript and Python source packages.
-Credentials came from exported variables and repository-root `.env`; the local
-Cloudflare bearer-token alias was mapped only in child environments.
+Live checks make paid requests and stay outside deterministic checks. Export the
+credentials listed in the [specification](SPEC.md#providers-in-020).
 
-The main matrix passed **108 of 110 checks**, with no credential skips. The two
-failures were the same legacy Cloudflare Jev structured Score limitation in both
-languages. Four targeted diagnostic checks then passed text state with string-only
-Score criteria and reproduced the structured Score failure with JSON state.
-Total evidence: **110 passes, 4 failures, 0 skips across 114 checks**.
+From the repository root:
 
-| Provider / model | TypeScript | Python |
-| --- | --- | --- |
-| TypeSafe `jev-latest` | 5/5 | 5/5 |
-| TypeSafe `jev-1.13.0` | 5/5 | 5/5 |
-| Direct OpenAI `gpt-6-luna` | 5/5 | 5/5 |
-| OpenRouter `~typesafe/jev-latest` | 5/5 | 5/5 |
-| OpenRouter `typesafe/jev-1.13` | 5/5 | 5/5 |
-| OpenRouter `openai/gpt-6-luna-decisions` | 5/5 | 5/5 |
-| Cloudflare `clef` | 5/5 | 5/5 |
-| Cloudflare `clef-flash` | 5/5 | 5/5 |
-| Cloudflare `@cf/cloudflare/clef` | 5/5 | 5/5 |
-| Cloudflare `@cf/cloudflare/clef-flash` | 5/5 | 5/5 |
-| Legacy Cloudflare Jev `typesafe/jev` | 4/5 | 4/5 |
+```sh
+sh packages/typescript/scripts/run-quiet.sh "Live providers" -- python3 tools/run-live-providers.py --live --report /tmp/provider-matrix.json
+```
 
-The five variations cover environment configuration, explicit constructor keys
-and URLs, text state with structured Score criteria, CLI file state, and CLI stdin.
-Every variation asks Noul, Choice, and Score questions. Programmatic probes assert
-exactly one network call for a request followed by an identical cache hit. CLI
-variations run twice, execute eval, inspect cache stats, and clear the selected scope.
-All-hit usage must be zero. No accuracy threshold is inferred from these smoke tests.
+The runner loads root `.env`, preserves exported values, skips missing credentials,
+and writes redacted results to the requested path. Keep execution reports outside
+the source tree. Add `--language typescript|python` or `--provider NAME` to narrow
+the run. Repeat `--variation environment|explicit|text|cli|stdin` to select checks.
+
+The matrix covers native TypeSafe, OpenAI, OpenRouter Jev/Luna, Clef/Clef Flash
+and their catalog aliases, and legacy Cloudflare Jev. All use one small native
+sample with Noul, Choice, and Score questions. Programmatic checks share the
+package smoke probes and verify native answers, one network request followed by
+an identical cache hit, and zero all-hit usage. CLI checks cover file/stdin state,
+eval, scoped cache stats, and clear.
+
+## Package smoke checks
+
+From the selected package directory, after exporting credentials:
+
+```sh
+# TypeScript
+sh scripts/run-quiet.sh "Live smoke" -- bun run test:live
+# Python
+sh scripts/run-quiet.sh "Live smoke" -- uv run --locked pytest live
+```
+
+Package smoke checks cover each explicit provider and both Clef models.
+The full matrix adds endpoint overrides, catalog aliases, legacy routing, and CLI
+management. These checks verify integration behavior, not model accuracy.
 
 ## Legacy Cloudflare Jev limitation
 
-The gateway returned HTTP 500 with `Model execution failed (Failed to parse model
-output)` when a Score rubric contained an object entry. This happened with both
-JSON state and text state in both packages. String-only Score levels passed with
-both state forms. Structured Choice instructions and Noul outcome criteria passed.
-The adapters preserve payloads and surface the upstream failure; there is no
-silent conversion or fallback. Use string-only Score levels on this legacy route,
-or use one of the other validated providers.
-
-## Reproduce
-
-```sh
-sh packages/typescript/scripts/run-quiet.sh "Live matrix" -- python3 tools/run-live-providers.py --live --cloudflare-token-alias --report /tmp/provider-matrix.json
-sh packages/typescript/scripts/run-quiet.sh "Legacy diagnostics" -- python3 tools/run-live-providers.py --live --cloudflare-token-alias --provider cloudflare-jev --variation text-simple --variation json-structured --report /tmp/legacy-diagnostics.json
-```
-
-Omit `--cloudflare-token-alias` when `CLOUDFLARE_API_TOKEN` is already exported.
-The runner deliberately returns nonzero for failed variations, including this
-known upstream limitation. See the [redacted JSON execution record](provider-live-results.json)
-for each variation's answers, reported model, token usage, timing, and error.
+Legacy `typesafe/jev` rejects structured Score levels with an upstream HTTP 500.
+Use string-only Score criteria. Text and JSON state both work with those levels.
+The matrix retains a structured-Score diagnostic variation and reports its failure.
+Use `--variation text-simple` to check the supported form.

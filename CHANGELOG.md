@@ -17,7 +17,7 @@
 - Reused canonical per-question caching for OpenAI, including scoped stats/clear,
   strict cached-answer validation, and byte-identical cross-language records.
 - Added shared fixtures, example 11, and live checks. Recorded 21 calls per
-  provider with latencies and list-price costs in `docs/provider-benchmark.md`.
+  provider with latencies and list-price costs in [the release benchmark](https://github.com/svilupp/systemoneprompts/blob/4b06afe51b177a9542c49551b58742abb77ad0e5/docs/provider-benchmark.md).
 - Compatibility: top-level `provider` is now reserved for `typesafe` or `openai`.
 - Python now depends on `pydantic` and `httpx2`; the optional `live` extra is removed.
 - Documented OpenRouter via `TYPESAFE_BASE_URL` (`baseURL` / `base_url`). Put the

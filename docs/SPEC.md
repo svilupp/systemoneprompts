@@ -1,10 +1,43 @@
 # systemoneprompts definition contract
 
-Status: contract version `v1`. The TypeScript package is the reference
+Package version: `0.2.0` for TypeScript and Python. Contract version: `v1`.
+Package versions and author-owned TOML `version` metadata are independent of
+the contract version.
+
+The TypeScript package is the reference
 implementation; the Python package is required to match the language-neutral
 rules below. Package-specific APIs may be idiomatic, but the parsed questions,
 state guarantees, factor truth tables, diagnostics, and generated artifacts
 must preserve the same behavior.
+
+## Providers in 0.2.0
+
+TOML `provider` and CLI `--provider` select one of four backends:
+
+- `typesafe`: `TypeSafeClient`, native TypeSafe API, `TYPESAFE_API_KEY`.
+  The base URL is `https://api.typesafe.ai` (`TYPESAFE_BASE_URL` overrides it).
+  The default model is `jev-latest`; `TYPESAFE_DEFAULT_MODEL` can override it.
+  The CLI also accepts `TYPESAFE_MODEL`, ahead of `TYPESAFE_DEFAULT_MODEL`.
+- `openai`: `OpenAIDecisionsClient`, direct OpenAI Decisions API,
+  `OPENAI_API_KEY`, default model `gpt-6-luna`.
+  The base URL is `https://api.openai.com/v1` (`OPENAI_BASE_URL` overrides it).
+- `openrouter`: `TypeSafeClient` with explicit OpenRouter mode,
+  `OPENROUTER_API_KEY`, default model `~typesafe/jev-latest`.
+  The base URL is `https://openrouter.ai/api/alpha` (`OPENROUTER_BASE_URL` overrides it).
+  `openai/gpt-6-luna-decisions` uses the same native wire format on this route.
+- `cloudflare`: `CloudflareDecisionsClient`, Cloudflare Workers AI,
+  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, default model `clef`.
+  `clef-flash` and both full catalog IDs are supported.
+  The run base URL is `https://api.cloudflare.com/client/v4/accounts/<account>/ai/run`.
+
+Selection is CLI > TOML > `typesafe`. An explicit model pin survives provider
+selection. TOML `base_url` and CLI `--base-url` override the selected endpoint;
+credentials stay outside definitions. Provider limits and cache scopes are
+specified below.
+
+Legacy `TypeSafeClient` Cloudflare mode remains separate: in `typesafe` mode,
+`CLOUDFLARE_ACCOUNT_ID` selects the fixed `typesafe/jev` catalog model. It requires
+string-only Score levels and cannot be combined with a custom TypeSafe base URL.
 
 ## Definition shape
 
