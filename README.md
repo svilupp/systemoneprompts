@@ -96,7 +96,7 @@ Other explicit model IDs pass through to the selected provider, which validates
 availability. The OpenAI integration is verified with `gpt-6-luna`.
 
 See the [changelog](CHANGELOG.md) for release notes and the dated
-[provider benchmark](docs/provider-benchmark.md) for the OpenAI/Jev comparison.
+[provider benchmark](docs/provider-benchmark.md) for the comparison across all providers.
 
 ## Development
 

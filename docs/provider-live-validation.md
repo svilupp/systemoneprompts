@@ -28,8 +28,7 @@ Both TypeScript and Python run every row below, with five variations per model
 
 Verified on 2026-10-07: all 110 checks passed, with no failures or skips.
 
-If a local Workers AI bearer token is named
-`CLOUDFLARE_API_KEY`, add `--cloudflare-token-alias`; global API keys are unsupported.
+If a local Workers AI bearer token is named `CLOUDFLARE_API_KEY`, add `--cloudflare-token-alias`; global API keys are unsupported.
 
 All use one small native sample with Noul, Choice, and Score questions.
 Programmatic matrix checks verify native answers, one network request followed

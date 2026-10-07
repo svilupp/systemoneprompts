@@ -16,13 +16,14 @@ Set the credentials for each provider you want to exercise:
 Run from the repository root:
 
 ```sh
-sh packages/typescript/scripts/run-quiet.sh "Live providers" -- python3 tools/run-live-providers.py --live --report /tmp/provider-matrix.json
+sh packages/typescript/scripts/run-quiet.sh "Live providers" -- python3 tools/run-live-providers.py --live --require-credentials --report /tmp/provider-matrix.json
 ```
 
 Add `--language typescript` or `--language python` to run one package. The runner
 loads repository-root `.env`, preserves exported variables, and runs from temporary
 directories so package CLI dotenv files cannot change provider selection.
-Missing credentials become explicit skips; failures remain failures. It writes
+Missing credentials become explicit skips and fail the run with
+`--require-credentials`; omit that flag for a partial local run. It writes
 redacted JSON results with model, usage, timing, and error details.
 
 Five variations run for every provider/model in each language:
