@@ -1,0 +1,4 @@
+provider = "openai"
+[questions.ok]
+type = "noul"
+instructions = "Is it OK?"

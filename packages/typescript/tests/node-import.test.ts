@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { root, tsc } from "./helpers.ts";
 
+// Compilation and a real npm install need more than the unit-test default on CI.
 test("node can import built output", async () => {
   const build = tsc(["-p", "tsconfig.build.json"]);
   if (build.exitCode !== 0) throw new Error(build.output);
@@ -33,4 +34,4 @@ console.log("ok");
   expect(run.stderr).toBe("");
   expect(run.status).toBe(0);
   expect(run.stdout).toContain("ok");
-});
+}, 30_000);

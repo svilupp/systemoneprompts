@@ -1,0 +1,24 @@
+provider = "cloudflare"
+model = "clef"
+title = "Cloudflare Clef ticket decisions"
+
+[requires]
+"ticket.message" = "string"
+
+[questions.duplicate]
+type = "noul"
+instructions = "Does `ticket.message` report two charges for one order?"
+criteria = { true = "Two charges for one order", false = "Only one charge" }
+
+[questions.department]
+type = "choice"
+instructions = "Which department handles `ticket.message`?"
+criteria = { billing = "Payments and refunds", shipping = "Delivery and tracking" }
+
+[questions.severity]
+type = "score"
+instructions = "Rate the severity of `ticket.message`."
+criteria = ["No issue", { issue = "Payment or delivery requires correction" }, "Permanent account loss"]
+
+[factors]
+refund = { ref = "duplicate", noul = { gte = 0.8 } }

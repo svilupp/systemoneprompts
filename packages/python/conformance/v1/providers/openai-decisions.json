@@ -1,0 +1,3883 @@
+[
+  {
+    "name": "mixed",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "result": {
+      "model": "gpt-6-luna",
+      "answers": {
+        "charged.twice": {
+          "type": "noul",
+          "noul": 0.86
+        },
+        "__proto__": {
+          "type": "choice",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "shipping": 0.0
+          },
+          "choice": "billing"
+        },
+        "severity": {
+          "type": "score",
+          "confidence": 1.0,
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          },
+          "score": 1.0,
+          "legend": {
+            "0": "No issue",
+            "1": {
+              "issue": "Payment requires correction"
+            },
+            "2": "Permanent account loss"
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 420,
+        "output_tokens": 0
+      }
+    }
+  },
+  {
+    "name": "fractional_reordered",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.1,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "result": {
+      "model": "gpt-6-luna",
+      "answers": {
+        "charged.twice": {
+          "type": "noul",
+          "noul": 0.86
+        },
+        "__proto__": {
+          "type": "choice",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "shipping": 0.0
+          },
+          "choice": "billing"
+        },
+        "severity": {
+          "type": "score",
+          "confidence": 1.0,
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          },
+          "score": 1.1,
+          "legend": {
+            "0": "No issue",
+            "1": {
+              "issue": "Payment requires correction"
+            },
+            "2": "Permanent account loss"
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 420,
+        "output_tokens": 0
+      }
+    }
+  },
+  {
+    "name": "missing",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "duplicate",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "unexpected",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "unknown",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "wrong_type",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "score",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "probability_range",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 1.1
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "boolean_probability",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": true
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "confidence_range",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": -0.1
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "choice_missing",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "choice_extra",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            },
+            {
+              "value": "extra",
+              "probability": 0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "choice_duplicate",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            },
+            {
+              "value": "billing",
+              "probability": 1.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "choice_invalid",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "unknown",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "score_fractional_index",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0.5,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "score_range",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 3,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "usage_missing",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "usage_boolean",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": true,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "usage_negative",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": -1,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "response"
+  },
+  {
+    "name": "refusal",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "refusal",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "error": "refusal"
+  },
+  {
+    "name": "state_19",
+    "state": null,
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "null",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "result": {
+      "model": "gpt-6-luna",
+      "answers": {
+        "charged.twice": {
+          "type": "noul",
+          "noul": 0.86
+        },
+        "__proto__": {
+          "type": "choice",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "shipping": 0.0
+          },
+          "choice": "billing"
+        },
+        "severity": {
+          "type": "score",
+          "confidence": 1.0,
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          },
+          "score": 1.0,
+          "legend": {
+            "0": "No issue",
+            "1": {
+              "issue": "Payment requires correction"
+            },
+            "2": "Permanent account loss"
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 420,
+        "output_tokens": 0
+      }
+    }
+  },
+  {
+    "name": "state_20",
+    "state": true,
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "true",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "result": {
+      "model": "gpt-6-luna",
+      "answers": {
+        "charged.twice": {
+          "type": "noul",
+          "noul": 0.86
+        },
+        "__proto__": {
+          "type": "choice",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "shipping": 0.0
+          },
+          "choice": "billing"
+        },
+        "severity": {
+          "type": "score",
+          "confidence": 1.0,
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          },
+          "score": 1.0,
+          "legend": {
+            "0": "No issue",
+            "1": {
+              "issue": "Payment requires correction"
+            },
+            "2": "Permanent account loss"
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 420,
+        "output_tokens": 0
+      }
+    }
+  },
+  {
+    "name": "state_21",
+    "state": [
+      1,
+      null
+    ],
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "[1,null]",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "result": {
+      "model": "gpt-6-luna",
+      "answers": {
+        "charged.twice": {
+          "type": "noul",
+          "noul": 0.86
+        },
+        "__proto__": {
+          "type": "choice",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "shipping": 0.0
+          },
+          "choice": "billing"
+        },
+        "severity": {
+          "type": "score",
+          "confidence": 1.0,
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          },
+          "score": 1.0,
+          "legend": {
+            "0": "No issue",
+            "1": {
+              "issue": "Payment requires correction"
+            },
+            "2": "Permanent account loss"
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 420,
+        "output_tokens": 0
+      }
+    }
+  },
+  {
+    "name": "state_22",
+    "state": "plain evidence",
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "plain evidence",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "result": {
+      "model": "gpt-6-luna",
+      "answers": {
+        "charged.twice": {
+          "type": "noul",
+          "noul": 0.86
+        },
+        "__proto__": {
+          "type": "choice",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "shipping": 0.0
+          },
+          "choice": "billing"
+        },
+        "severity": {
+          "type": "score",
+          "confidence": 1.0,
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          },
+          "score": 1.0,
+          "legend": {
+            "0": "No issue",
+            "1": {
+              "issue": "Payment requires correction"
+            },
+            "2": "Permanent account loss"
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 420,
+        "output_tokens": 0
+      }
+    }
+  },
+  {
+    "name": "state_23",
+    "state": {
+      "é": {
+        "z": 1e-07,
+        "a": 1e+21
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": "Was the customer charged twice?",
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": "Delivery and tracking"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          "No issue",
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"é\":{\"a\":1e+21,\"z\":1e-7}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping",
+              "description": "Delivery and tracking"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0",
+              "description": "No issue"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "result": {
+      "model": "gpt-6-luna",
+      "answers": {
+        "charged.twice": {
+          "type": "noul",
+          "noul": 0.86
+        },
+        "__proto__": {
+          "type": "choice",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "shipping": 0.0
+          },
+          "choice": "billing"
+        },
+        "severity": {
+          "type": "score",
+          "confidence": 1.0,
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          },
+          "score": 1.0,
+          "legend": {
+            "0": "No issue",
+            "1": {
+              "issue": "Payment requires correction"
+            },
+            "2": "Permanent account loss"
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 420,
+        "output_tokens": 0
+      }
+    }
+  },
+  {
+    "name": "structured_instructions_null_descriptions",
+    "state": {
+      "ticket": {
+        "message": "I was charged twice for my order."
+      }
+    },
+    "questions": {
+      "charged.twice": {
+        "type": "noul",
+        "instructions": {
+          "z": [
+            "é",
+            1e-07
+          ],
+          "a": "Keep literal `x[].y`"
+        },
+        "criteria": {
+          "true": "Two charges for one order",
+          "false": "Only one charge"
+        }
+      },
+      "__proto__": {
+        "type": "choice",
+        "instructions": "Which department handles this?",
+        "criteria": {
+          "billing": "Payments and refunds",
+          "shipping": null
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Rate issue severity.",
+        "criteria": [
+          null,
+          {
+            "issue": "Payment requires correction"
+          },
+          "Permanent account loss"
+        ]
+      }
+    },
+    "request": {
+      "model": "gpt-6-luna",
+      "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+      "questions": [
+        {
+          "name": "q0",
+          "instructions": "{\"a\":\"Keep literal `x[].y`\",\"z\":[\"é\",1e-7]}\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+          "type": "predicate"
+        },
+        {
+          "name": "q1",
+          "instructions": "Which department handles this?",
+          "type": "choice",
+          "choices": [
+            {
+              "value": "billing",
+              "description": "Payments and refunds"
+            },
+            {
+              "value": "shipping"
+            }
+          ]
+        },
+        {
+          "name": "q2",
+          "instructions": "Rate issue severity.",
+          "type": "score",
+          "levels": [
+            {
+              "label": "0"
+            },
+            {
+              "label": "1",
+              "description": "{\"issue\":\"Payment requires correction\"}"
+            },
+            {
+              "label": "2",
+              "description": "Permanent account loss"
+            }
+          ]
+        }
+      ]
+    },
+    "response": {
+      "model": "gpt-6-luna",
+      "answers": [
+        {
+          "type": "predicate",
+          "name": "q0",
+          "probability": 0.86
+        },
+        {
+          "type": "choice",
+          "name": "q1",
+          "choice": "billing",
+          "probabilities": [
+            {
+              "value": "billing",
+              "probability": 1.0
+            },
+            {
+              "value": "shipping",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        },
+        {
+          "type": "score",
+          "name": "q2",
+          "score": 1.0,
+          "probabilities": [
+            {
+              "value": 0,
+              "label": "0",
+              "probability": 0.0
+            },
+            {
+              "value": 1,
+              "label": "1",
+              "probability": 1.0
+            },
+            {
+              "value": 2,
+              "label": "2",
+              "probability": 0.0
+            }
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "usage": {
+        "input_tokens": 420,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 0,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 420
+      }
+    },
+    "result": {
+      "model": "gpt-6-luna",
+      "answers": {
+        "charged.twice": {
+          "type": "noul",
+          "noul": 0.86
+        },
+        "__proto__": {
+          "type": "choice",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "shipping": 0.0
+          },
+          "choice": "billing"
+        },
+        "severity": {
+          "type": "score",
+          "confidence": 1.0,
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          },
+          "score": 1.0,
+          "legend": {
+            "0": null,
+            "1": {
+              "issue": "Payment requires correction"
+            },
+            "2": "Permanent account loss"
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 420,
+        "output_tokens": 0
+      }
+    }
+  }
+]

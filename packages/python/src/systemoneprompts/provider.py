@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 import httpx2
 
@@ -18,9 +18,22 @@ from .cache import (
 )
 from .client import TypeSafeClient, TypeSafeClientError
 from .cloudflare import create_cloudflare_transport
+from .cloudflare_decisions import CloudflareDecisionsClient, CloudflareDecisionsError
+from .cloudflare_dev import create_cached_cloudflare_decisions_client
 from .definition import Definition
+from .dev import create_cached_openai_decisions_client
 from .diagnostics import SystemOnePromptsError, diagnostic
 from .model import read_env_model, resolve_model
+from .openai_decisions import OpenAIDecisionsClient, OpenAIDecisionsError
+from .openrouter import openrouter_base_url, openrouter_cache_dir
+from .patterns import SystemOneClient
+
+
+class ClientConstruction(TypedDict):
+    client: SystemOneClient
+    model: str
+    cache: CachingFetch | None
+    raw: TypeSafeClient | OpenAIDecisionsClient | CloudflareDecisionsClient
 
 
 class LiveClientError(SystemOnePromptsError):
@@ -122,26 +135,81 @@ class FakeClient:
 def create_client(
     definition: Definition,
     *,
+    base_url: str | None = None,
     cache: bool = False,
+    provider: str | None = None,
     model: str | None = None,
     env: Mapping[str, str | None] | None = None,
     transport: Any = None,
     http_client: Any = None,
     cache_dir: str | None = None,
+    cache_root: str | None = None,
     cache_fetch: Any = None,
-) -> dict[str, Any]:
+) -> ClientConstruction:
     """Build a live client. Invalid definitions/state must be checked by the caller first.
 
-    With `cache=True`, requests flow through a per-question cache. Misses are forwarded
-    through `cache_fetch` when given, otherwise through the caller's `transport`,
-    otherwise through a fresh `httpx2.HTTPTransport`. A caller `http_client` owns its
-    own transport, so it cannot be combined with `cache=True`.
+    With `cache=True`, requests flow through the canonical per-question cache.
+    TypeSafe misses use `cache_fetch`, the caller's `transport`, or a fresh
+    `httpx2.HTTPTransport`; a TypeSafe caller `http_client` cannot be combined
+    with caching. OpenAI wraps its raw client with the dev cache factory and
+    supports caller-owned HTTP clients. `cache_fetch` is TypeSafe-only.
     """
     load_dotenv()
+    selected = provider if provider is not None else definition.provider or "typesafe"
+    if selected not in ("typesafe", "openai", "cloudflare", "openrouter"):
+        raise LiveClientError(diagnostic("error", "provider-value", 'provider must be "typesafe", "openai", "cloudflare", or "openrouter"'))
+    base_url = base_url if base_url is not None else definition.base_url
+    if selected == "cloudflare":
+        if model is not None and not model.strip():
+            raise LiveClientError(diagnostic("error", "cloudflare-model", "model must be nonblank"))
+        if cache and cache_fetch is not None:
+            raise LiveClientError(diagnostic("error", "cloudflare-cache-transport", "Use the dev factory with a raw Cloudflare client"))
+        resolved = resolve_model(None, definition.model, model, default="clef")
+        try:
+            network = CloudflareDecisionsClient(base_url=base_url, model=resolved, transport=transport, http_client=http_client, environ=env)
+        except CloudflareDecisionsError as error:
+            raise LiveClientError(error.diagnostic) from error
+        resolved = network.default_model
+        if cache:
+            cached_cloudflare = create_cached_cloudflare_decisions_client(client=network, dir=cache_root if cache_root is not None else cache_dir)
+            return {"client": cached_cloudflare["client"], "model": resolved, "cache": cached_cloudflare["cache"], "raw": network}
+        return {"client": network, "model": resolved, "cache": None, "raw": network}
+    if selected == "openai":
+        if model is not None and not model.strip():
+            raise LiveClientError(diagnostic("error", "openai-model-empty", "model must be nonblank"))
+        if cache and cache_fetch is not None:
+            raise LiveClientError(diagnostic("error", "openai-cache-transport", "Use the dev factory with a raw OpenAI client; cache_fetch is a TypeSafe transport option"))
+        resolved = resolve_model(None, definition.model, model, default="gpt-6-luna")
+        try:
+            client_openai = OpenAIDecisionsClient(base_url=base_url, model=resolved, transport=transport, http_client=http_client, environ=env)
+        except OpenAIDecisionsError as error:
+            raise LiveClientError(error.diagnostic) from error
+        if cache:
+            cached = create_cached_openai_decisions_client(client=client_openai, dir=cache_root if cache_root is not None else cache_dir)
+            return {"client": cached["client"], "model": resolved, "cache": cached["cache"], "raw": client_openai}
+        return {"client": client_openai, "model": resolved, "cache": None, "raw": client_openai}
+    if selected == "openrouter":
+        source = env if env is not None else os.environ
+        endpoint = openrouter_base_url(base_url or source.get("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/alpha")
+        resolved = resolve_model(None, definition.model, model, default="~typesafe/jev-latest")
+        router_cache = None
+        if not (source.get("OPENROUTER_API_KEY") or "").strip() and transport is None and http_client is None:
+            raise LiveClientError(diagnostic("error", "missing-credentials", "OPENROUTER_API_KEY is not set"))
+        if cache:
+            if http_client is not None:
+                raise LiveClientError(diagnostic("error", "cache-transport", "cache=True requires transport= instead of http_client"))
+            directory = openrouter_cache_dir(dir=cache_root if cache_root is not None else cache_dir, base_url=endpoint)
+            if cache_fetch is not None:
+                router_cache = create_caching_fetch(dir=directory, fetch=cache_fetch)
+                transport = wrap_caching_fetch(router_cache)
+            else:
+                transport, router_cache = caching_httpx_transport(directory=directory, inner=transport)
+        network_router = TypeSafeClient(provider="openrouter", base_url=endpoint, model=resolved, transport=transport, http_client=http_client, environ=source)
+        return {"client": network_router, "model": resolved, "cache": router_cache, "raw": network_router}
     resolved = resolve_model(read_env_model(env), definition.model, model)
     source = env if env is not None else os.environ
     cloudflare_account_id = (source.get("CLOUDFLARE_ACCOUNT_ID") or "").strip() or None
-    if cloudflare_account_id and (source.get("TYPESAFE_BASE_URL") or "").strip():
+    if cloudflare_account_id and (base_url or source.get("TYPESAFE_BASE_URL") or "").strip():
         raise LiveClientError(
             diagnostic(
                 "error",
@@ -164,7 +232,7 @@ def create_client(
                     "cache=True cannot wrap a caller-supplied http_client; pass transport= instead",
                 )
             )
-        directory = cache_dir or default_cache_dir()
+        directory = cache_dir or (str(Path(cache_root) / "cache") if cache_root is not None else default_cache_dir())
         if cache_fetch is not None and cloudflare_account_id:
             raise LiveClientError(
                 diagnostic(
@@ -200,7 +268,7 @@ def create_client(
     try:
         client = TypeSafeClient(
             api_key=str(api_key).strip() if not missing_key else None,
-            base_url=None if cloudflare_account_id else (source.get("TYPESAFE_BASE_URL") or None),
+            base_url=None if cloudflare_account_id else (base_url or source.get("TYPESAFE_BASE_URL") or None),
             cloudflare_account_id=cloudflare_account_id,
             model=resolved,
             transport=transport,

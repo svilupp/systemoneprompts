@@ -1,0 +1,551 @@
+{
+  "date": "2026-10-07T08:12:12.089391+00:00",
+  "endpoint": "https://api.openai.com/v1/decisions",
+  "model": "gpt-6-luna",
+  "cases": [
+    {
+      "name": "translated_mixed",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+        "questions": [
+          {
+            "name": "q0",
+            "instructions": "Was the customer charged twice?\nOutcome criteria (JSON): {\"false\":\"Only one charge\",\"true\":\"Two charges for one order\"}",
+            "type": "predicate"
+          },
+          {
+            "name": "q1",
+            "instructions": "Which department handles this?",
+            "type": "choice",
+            "choices": [
+              {
+                "value": "billing",
+                "description": "Payments and refunds"
+              },
+              {
+                "value": "shipping",
+                "description": "Delivery and tracking"
+              }
+            ]
+          },
+          {
+            "name": "q2",
+            "instructions": "Rate issue severity.",
+            "type": "score",
+            "levels": [
+              {
+                "label": "0",
+                "description": "No issue"
+              },
+              {
+                "label": "1",
+                "description": "{\"issue\":\"Payment requires correction\"}"
+              },
+              {
+                "label": "2",
+                "description": "Permanent account loss"
+              }
+            ]
+          }
+        ]
+      },
+      "status": 200,
+      "elapsed_ms": 295,
+      "request_id": "req_cdd7e05a464b4572b24acd220bd62091",
+      "response": {
+        "model": "gpt-6-luna",
+        "answers": [
+          {
+            "type": "predicate",
+            "name": "q0",
+            "probability": 0.86
+          },
+          {
+            "type": "choice",
+            "name": "q1",
+            "choice": "billing",
+            "probabilities": [
+              {
+                "value": "billing",
+                "probability": 1.0
+              },
+              {
+                "value": "shipping",
+                "probability": 0.0
+              }
+            ],
+            "confidence": 1.0
+          },
+          {
+            "type": "score",
+            "name": "q2",
+            "score": 1.0,
+            "probabilities": [
+              {
+                "value": 0,
+                "label": "0",
+                "probability": 0.0
+              },
+              {
+                "value": 1,
+                "label": "1",
+                "probability": 1.0
+              },
+              {
+                "value": 2,
+                "label": "2",
+                "probability": 0.0
+              }
+            ],
+            "confidence": 1.0
+          }
+        ],
+        "usage": {
+          "input_tokens": 420,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 420
+        }
+      },
+      "normalized": {
+        "model": "gpt-6-luna",
+        "answers": {
+          "charged.twice": {
+            "type": "noul",
+            "noul": 0.86
+          },
+          "__proto__": {
+            "type": "choice",
+            "confidence": 1.0,
+            "probabilities": {
+              "billing": 1.0,
+              "shipping": 0.0
+            },
+            "choice": "billing"
+          },
+          "severity": {
+            "type": "score",
+            "confidence": 1.0,
+            "probabilities": {
+              "0": 0.0,
+              "1": 1.0,
+              "2": 0.0
+            },
+            "score": 1.0,
+            "legend": {
+              "0": "No issue",
+              "1": {
+                "issue": "Payment requires correction"
+              },
+              "2": "Permanent account loss"
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 420,
+          "output_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "object_instructions",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "predicate",
+            "name": "p",
+            "instructions": {
+              "condition": "sky is blue"
+            }
+          }
+        ]
+      },
+      "status": 400,
+      "elapsed_ms": 86,
+      "request_id": "req_0ba6a35937ff49a79538874d6d254b49",
+      "response": {
+        "error": {
+          "message": "Invalid type for 'questions[0].instructions': expected a string, but got an object instead.",
+          "type": "invalid_request_error",
+          "param": "questions[0].instructions",
+          "code": "invalid_type"
+        }
+      }
+    },
+    {
+      "name": "missing_instructions",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "predicate",
+            "name": "p"
+          }
+        ]
+      },
+      "status": 400,
+      "elapsed_ms": 860,
+      "request_id": "req_d574a9c6ab344917b6bf30161f3a293b",
+      "response": {
+        "error": {
+          "message": "Missing required parameter: 'questions[0].instructions'.",
+          "type": "invalid_request_error",
+          "param": "questions[0].instructions",
+          "code": "missing_required_parameter"
+        }
+      }
+    },
+    {
+      "name": "predicate_criteria",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "predicate",
+            "name": "p",
+            "instructions": "Is the sky blue?",
+            "criteria": {
+              "true": "Blue"
+            }
+          }
+        ]
+      },
+      "status": 400,
+      "elapsed_ms": 83,
+      "request_id": "req_1429d2c85ef448c1898904e467e65526",
+      "response": {
+        "error": {
+          "message": "Unknown parameter: 'questions[0].criteria'.",
+          "type": "invalid_request_error",
+          "param": "questions[0].criteria",
+          "code": "unknown_parameter"
+        }
+      }
+    },
+    {
+      "name": "duplicate_names",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "predicate",
+            "name": "p",
+            "instructions": "Is the sky blue?"
+          },
+          {
+            "type": "predicate",
+            "name": "p",
+            "instructions": "Is the sky blue?"
+          }
+        ]
+      },
+      "status": 400,
+      "elapsed_ms": 90,
+      "request_id": "req_5e065232829941768dfbd0597cd696a8",
+      "response": {
+        "error": {
+          "message": "Question names must be unique within the request.",
+          "type": "invalid_request_error",
+          "param": "questions[1].name",
+          "code": null
+        }
+      }
+    },
+    {
+      "name": "literal_names",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "predicate",
+            "name": "__proto__.a[-1]",
+            "instructions": "Is the sky blue?"
+          }
+        ]
+      },
+      "status": 200,
+      "elapsed_ms": 1485,
+      "request_id": "req_fc2c06b04b654a8f854f88fe860f9e66",
+      "response": {
+        "model": "gpt-6-luna",
+        "answers": [
+          {
+            "type": "predicate",
+            "name": "__proto__.a[-1]",
+            "probability": 1.0
+          }
+        ],
+        "usage": {
+          "input_tokens": 158,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 158
+        }
+      }
+    },
+    {
+      "name": "unsupported_model",
+      "request": {
+        "model": "jev-latest",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "predicate",
+            "name": "p",
+            "instructions": "Is the sky blue?"
+          }
+        ]
+      },
+      "status": 404,
+      "elapsed_ms": 86,
+      "request_id": "req_e1c8af70fe9a4d33901bc9e8efcb837b",
+      "response": {
+        "error": {
+          "message": "The model `jev-latest` does not exist or you do not have access to it.",
+          "type": "invalid_request_error",
+          "param": null,
+          "code": "model_not_found"
+        }
+      }
+    },
+    {
+      "name": "null_description",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "choice",
+            "name": "p",
+            "instructions": "Choose a color.",
+            "choices": [
+              {
+                "value": "blue",
+                "description": null
+              },
+              {
+                "value": "red"
+              }
+            ]
+          }
+        ]
+      },
+      "status": 400,
+      "elapsed_ms": 95,
+      "request_id": "req_87d5ffafab1c4b48a68409d6f704bc4b",
+      "response": {
+        "error": {
+          "message": "Invalid type for 'questions[0].choices[0].description': expected a string, but got null instead.",
+          "type": "invalid_request_error",
+          "param": "questions[0].choices[0].description",
+          "code": "invalid_type"
+        }
+      }
+    },
+    {
+      "name": "single_choice",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "choice",
+            "name": "p",
+            "instructions": "Choose a color.",
+            "choices": [
+              {
+                "value": "blue"
+              }
+            ]
+          }
+        ]
+      },
+      "status": 400,
+      "elapsed_ms": 75,
+      "request_id": "req_c35dc5b7597244f08104574585b32628",
+      "response": {
+        "error": {
+          "message": "Invalid 'questions[0].choices': array too short. Expected an array with minimum length 2, but got an array with length 1 instead.",
+          "type": "invalid_request_error",
+          "param": "questions[0].choices",
+          "code": "array_below_min_length"
+        }
+      }
+    },
+    {
+      "name": "empty_questions",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": []
+      },
+      "status": 400,
+      "elapsed_ms": 76,
+      "request_id": "req_e5216e1227d841ae81e37fea69d3e504",
+      "response": {
+        "error": {
+          "message": "Invalid 'questions': empty array. Expected an array with minimum length 1, but got an empty array instead.",
+          "type": "invalid_request_error",
+          "param": "questions",
+          "code": "empty_array"
+        }
+      }
+    },
+    {
+      "name": "user_message",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "input_text",
+                "text": "The sky is blue."
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "type": "predicate",
+            "name": "p",
+            "instructions": "Is the sky blue?"
+          }
+        ]
+      },
+      "status": 200,
+      "elapsed_ms": 220,
+      "request_id": "req_df458906a01244ec943e74a3e617a970",
+      "response": {
+        "model": "gpt-6-luna",
+        "answers": [
+          {
+            "type": "predicate",
+            "name": "p",
+            "probability": 1.0
+          }
+        ],
+        "usage": {
+          "input_tokens": 158,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 158
+        }
+      }
+    },
+    {
+      "name": "structured_instruction_rendering",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "{\"ticket\":{\"message\":\"I was charged twice for my order.\"}}",
+        "questions": [
+          {
+            "name": "q0",
+            "instructions": "{\"condition\":\"ticket.message reports duplicate billing\"}\nOutcome criteria (JSON): {\"false\":\"No duplicate charge\",\"true\":[\"Two charges\",\"One order\"]}",
+            "type": "predicate"
+          }
+        ]
+      },
+      "status": 200,
+      "elapsed_ms": 218,
+      "request_id": "req_3ec02171d9624e03af94aac9ee7e184e",
+      "response": {
+        "model": "gpt-6-luna",
+        "answers": [
+          {
+            "type": "predicate",
+            "name": "q0",
+            "probability": 0.89
+          }
+        ],
+        "usage": {
+          "input_tokens": 192,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 192
+        }
+      },
+      "normalized": {
+        "model": "gpt-6-luna",
+        "answers": {
+          "nested": {
+            "type": "noul",
+            "noul": 0.89
+          }
+        },
+        "usage": {
+          "input_tokens": 192,
+          "output_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "object_description",
+      "request": {
+        "model": "gpt-6-luna",
+        "input": "The sky is blue.",
+        "questions": [
+          {
+            "type": "choice",
+            "name": "p",
+            "instructions": "Choose a color.",
+            "choices": [
+              {
+                "value": "blue",
+                "description": {
+                  "color": "blue"
+                }
+              },
+              {
+                "value": "red"
+              }
+            ]
+          }
+        ]
+      },
+      "status": 400,
+      "elapsed_ms": 84,
+      "request_id": "req_2db45ea5cc3a43f28e8ef25ef4ee6ccb",
+      "response": {
+        "error": {
+          "message": "Invalid type for 'questions[0].choices[0].description': expected a string, but got an object instead.",
+          "type": "invalid_request_error",
+          "param": "questions[0].choices[0].description",
+          "code": "invalid_type"
+        }
+      }
+    }
+  ]
+}

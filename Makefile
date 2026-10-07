@@ -1,5 +1,5 @@
 .PHONY: help check-typescript check-python check-conformance check-docs check \
-	sync-shared release-check-typescript release-check-python publish-typescript publish-python
+	sync-shared check-cache-parity release-check-typescript release-check-python publish-typescript publish-python
 
 help:
 	@printf '%s\n' \
@@ -31,7 +31,11 @@ check-docs:
 	python3 tools/render-spec.py --check
 	python3 tools/check-docs.py
 
-check: check-typescript check-python check-conformance check-docs
+check-cache-parity:
+	cd packages/typescript && sh scripts/run-quiet.sh "Cloudflare cache parity" -- python3 ../../tools/check-cloudflare-cache-parity.py
+	cd packages/typescript && sh scripts/run-quiet.sh "OpenAI cache parity" -- python3 ../../tools/check-openai-cache-parity.py
+
+check: check-typescript check-python check-conformance check-docs check-cache-parity
 
 release-check-typescript:
 	cd packages/typescript && sh scripts/run-quiet.sh "Release checks" -- bun run release:check

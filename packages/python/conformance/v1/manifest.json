@@ -1,16 +1,38 @@
 {
-	"version": "v1",
-	"cases": ["basic", "wildcard-requires", "wildcard-requires-empty", "wildcard-requires-invalid"],
-	"artifacts": [
-		"definition.toml",
-		"state.json",
-		"answers.json",
-		"expected.json"
-	],
-	"operations": {
-		"basic": ["parse", "assert_state", "evaluate_factors"],
-		"wildcard-requires": ["parse", "assert_state"],
-		"wildcard-requires-empty": ["parse", "assert_state"],
-		"wildcard-requires-invalid": ["parse", "assert_state"]
-	}
+  "version": "v1",
+  "cases": [
+    "basic",
+    "wildcard-requires",
+    "wildcard-requires-empty",
+    "wildcard-requires-invalid",
+    "provider-openai"
+  ],
+  "artifacts": [
+    "definition.toml",
+    "state.json",
+    "answers.json",
+    "expected.json"
+  ],
+  "operations": {
+    "basic": [
+      "parse",
+      "assert_state",
+      "evaluate_factors"
+    ],
+    "wildcard-requires": [
+      "parse",
+      "assert_state"
+    ],
+    "wildcard-requires-empty": [
+      "parse",
+      "assert_state"
+    ],
+    "wildcard-requires-invalid": [
+      "parse",
+      "assert_state"
+    ],
+    "provider-openai": [
+      "parse"
+    ]
+  }
 }

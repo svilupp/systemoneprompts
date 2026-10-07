@@ -4,10 +4,20 @@ import { createClient, fail, loadChecked, parseJson, readStdin, readText } from 
 
 export async function runRun(
   file: string | undefined,
-  options: { state?: string; cache?: boolean; json?: boolean; model?: string },
+  options: {
+    state?: string;
+    cache?: boolean;
+    json?: boolean;
+    model?: string;
+    provider?: string;
+    baseURL?: string;
+    cacheRoot?: string;
+  },
 ): Promise<void> {
   if (!file) {
-    fail("systemoneprompts run <file> --state s.json | <stdin> [--cache] [--json] [--model name]");
+    fail(
+      "systemoneprompts run <file> --state s.json | <stdin> [--cache] [--json] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]",
+    );
   }
   const def = await loadChecked(file);
 

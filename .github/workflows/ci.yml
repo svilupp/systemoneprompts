@@ -16,3 +16,21 @@ jobs:
       - name: Check generated shared corpus copies
         run: python tools/sync-shared.py --check
 
+  cache-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.14"
+      - run: bun install --frozen-lockfile
+        working-directory: packages/typescript
+      - run: uv sync --locked --dev --python 3.11
+        working-directory: packages/python
+      - run: make check-cache-parity

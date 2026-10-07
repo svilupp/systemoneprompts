@@ -25,6 +25,11 @@ export {
   cloudflareRunUrl,
   createCloudflareFetch,
 } from "./cloudflare.js";
+export {
+  CloudflareDecisionsClient,
+  type CloudflareDecisionsClientOptions,
+  CloudflareDecisionsError,
+} from "./cloudflare-decisions.js";
 export { checkDefinition } from "./definition/check.js";
 export {
   type Diagnostic,
@@ -75,6 +80,11 @@ export type {
   SystemOneResult,
   Usage,
 } from "./native.js";
+export {
+  OpenAIDecisionsClient,
+  type OpenAIDecisionsClientOptions,
+  OpenAIDecisionsError,
+} from "./openai-decisions.js";
 export { QUESTION_TYPES, type QuestionType } from "./questions/schema.js";
 export {
   createStateAssert,

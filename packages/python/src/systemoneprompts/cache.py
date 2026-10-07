@@ -106,6 +106,7 @@ def create_caching_fetch(
     dir: str | None = None,
     mode: CacheMode = "read-write",
     fetch: FetchHandler | None = None,
+    validate_entry: Callable[[Any, Any], bool] | None = None,
 ) -> CachingFetch:
     """Cache System One answers per ``(model, id, state, question)``.
 
@@ -147,7 +148,7 @@ def create_caching_fetch(
                 misses[question_id] = question
                 continue
             cached = _read_entry(directory, digest, question)
-            if cached:
+            if cached and (validate_entry is None or validate_entry(question, cached.answer)):
                 hits[question_id] = cached
             else:
                 misses[question_id] = question
@@ -199,7 +200,8 @@ def create_caching_fetch(
                 if question_id in answers and _is_answer_for_question(
                     misses[question_id], answers[question_id]
                 ):
-                    valid_live[question_id] = answers[question_id]
+                    if validate_entry is None or validate_entry(misses[question_id], answers[question_id]):
+                        valid_live[question_id] = answers[question_id]
 
         all_misses_valid = all(question_id in valid_live for question_id in miss_ids)
         if not all_misses_valid and not hits:
@@ -275,9 +277,11 @@ def cache_stats(directory: str | None = None) -> dict[str, Any]:
     return {"entries": entries, "models": models, "drift": drift}
 
 
-def clear_cache(directory: str | None = None) -> None:
+def clear_cache(directory: str | None = None, *, root: str | None = None) -> None:
     path = Path(directory or default_cache_dir()).resolve()
-    if path.name != "cache" or ".systemoneprompts" not in path.parts:
+    provider_scope = (len(path.parts) >= 6 and path.parts[-5:-2] in (("providers", "openrouter-decisions", "v1"), ("providers", "openai-decisions", "v1"), ("providers", "cloudflare-decisions", "v1"))
+                      and len(path.parts[-2]) == 64 and all(c in "0123456789abcdef" for c in path.parts[-2]))
+    if path.name != "cache" or not (".systemoneprompts" in path.parts or provider_scope or (root is not None and path == (Path(root) / "cache").resolve())):
         raise RuntimeError(f"refusing to clear unexpected cache directory {path}")
     import shutil
 
@@ -339,9 +343,9 @@ def _is_system_one_request(url: str, method: str) -> bool:
         from urllib.parse import urlparse
 
         parsed = urlparse(url)
-        return parsed.path.endswith(SYSTEMONE_PATH)
+        return parsed.path.endswith((SYSTEMONE_PATH, "/decisions"))
     except ValueError:
-        return SYSTEMONE_PATH in url
+        return SYSTEMONE_PATH in url or "/decisions" in url
 
 
 def _json_response(

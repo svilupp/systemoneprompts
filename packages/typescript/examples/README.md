@@ -1,6 +1,10 @@
 # Examples
 
-Each folder has a definition, its committed `*.generated.ts` (kept current by `bun run examples:generate`; CI runs `generate --check`), a `run.ts` that calls `TypeSafeClient` directly, and sample state. Set `TYPESAFE_API_KEY` (a local `.env` is loaded by Bun) and run with Bun; no build step is needed. `--cache` on the CLI, or `createCachingFetch()` in code (see 09), is the cheap edit loop.
+Each folder contains a definition, committed generated module, and sample state.
+Examples 01–10 have direct TypeSafe runners; example 11 uses OpenAI Decisions,
+and example 12 uses the CLI with Cloudflare Clef or Clef Flash. The CLI reads
+`.env` from the current working directory. Provider examples explain their
+credentials and commands. `--cache` is available for all three providers.
 
 | # | Example | Proves |
 | --- | --- | --- |
@@ -14,8 +18,14 @@ Each folder has a definition, its committed `*.generated.ts` (kept current by `b
 | 08 | `taxonomy-walk` | `walkTaxonomy` |
 | 09 | `map-reduce` | `runMany` + `eval --sweep` |
 | 10 | `field-extraction` | Structured `field` instructions |
+| 11 | `openai-decisions` | Same native questions and results with OpenAI |
+| 12 | `cloudflare-decisions` | Clef and Clef Flash, provider selection, isolated caches |
 
 ```bash
 bun run examples/07-ticket-triage/run.ts
 bun src/cli/index.ts run examples/07-ticket-triage/triage.toml --state examples/07-ticket-triage/states/ticket.json --cache
 ```
+
+Example 11 uses `OpenAIDecisionsClient` and `OPENAI_API_KEY`; CLI `--cache` uses the same local cache through the Decisions adapter.
+
+See [example 12](12-cloudflare-decisions/README.md) for repository-root `.env` setup.

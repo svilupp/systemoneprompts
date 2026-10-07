@@ -7,7 +7,7 @@ operable directory per language.
 conformance/v1/              shared TOML/JSON behavior cases
 docs/                        architecture, compatibility, release notes
 packages/typescript/         primary npm package and reference implementation
-packages/python/             stdlib-first Python port and wheel package
+packages/python/             Python port and wheel package
 tools/                       repository-only synchronization checks
 ```
 

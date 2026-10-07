@@ -9,6 +9,8 @@ export const KNOWN_TOP_LEVEL = [
   "version",
   "description",
   "model",
+  "provider",
+  "base_url",
   "requires",
   "questions",
   "factors",
@@ -38,6 +40,8 @@ export interface Definition {
   meta: DefinitionMeta;
   /** TOML `model` pin; `undefined` lets the JEV default (or `TYPESAFE_DEFAULT_MODEL`) apply. */
   model?: string;
+  baseURL?: string;
+  provider?: "typesafe" | "openai" | "cloudflare" | "openrouter";
   requires: Requirements;
   /** Native TypeSafe/JEV question objects. */
   questions: Questions;

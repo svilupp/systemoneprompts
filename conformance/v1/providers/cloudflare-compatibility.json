@@ -1,0 +1,311 @@
+[
+  {
+    "name": "empty-question",
+    "questions": {
+      "n": {
+        "type": "noul"
+      }
+    },
+    "code": "cloudflare-question-empty"
+  },
+  {
+    "name": "choice-single-option",
+    "questions": {
+      "c": {
+        "type": "choice",
+        "criteria": {
+          "only": null
+        }
+      }
+    },
+    "code": "cloudflare-choice-min-options"
+  },
+  {
+    "name": "score-eleven-levels",
+    "questions": {
+      "s": {
+        "type": "score",
+        "criteria": [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10"
+        ]
+      }
+    },
+    "code": "cloudflare-score-max-levels"
+  },
+  {
+    "name": "sixty-five-questions",
+    "questions": {
+      "0": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "1": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "2": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "3": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "4": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "5": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "6": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "7": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "8": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "9": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "10": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "11": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "12": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "13": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "14": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "15": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "16": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "17": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "18": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "19": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "20": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "21": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "22": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "23": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "24": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "25": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "26": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "27": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "28": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "29": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "30": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "31": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "32": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "33": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "34": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "35": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "36": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "37": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "38": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "39": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "40": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "41": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "42": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "43": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "44": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "45": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "46": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "47": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "48": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "49": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "50": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "51": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "52": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "53": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "54": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "55": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "56": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "57": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "58": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "59": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "60": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "61": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "62": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "63": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      },
+      "64": {
+        "type": "noul",
+        "instructions": "Is it true?"
+      }
+    },
+    "code": "cloudflare-question-limit"
+  }
+]

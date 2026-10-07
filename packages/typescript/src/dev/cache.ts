@@ -12,6 +12,8 @@ export interface CachingFetchOptions {
   dir?: string;
   mode?: CacheMode;
   fetch?: Fetch;
+  /** Provider-specific validation; invalid entries become misses. */
+  validateEntry?: (question: unknown, answer: unknown) => boolean;
 }
 
 /** Cumulative counts since the fetch was created; `keys` are the question ids of the last request. */
@@ -96,7 +98,7 @@ export function createCachingFetch(opts: CachingFetchOptions = {}): CachingFetch
         continue;
       }
       const cached = await readEntry(dir, hash, question);
-      if (cached) {
+      if (cached && (!opts.validateEntry || opts.validateEntry(question, cached.answer))) {
         hits[id] = cached;
       } else {
         misses[id] = question;
@@ -144,7 +146,11 @@ export function createCachingFetch(opts: CachingFetchOptions = {}): CachingFetch
     const validLiveAnswers = dictionary<unknown>();
     if (answers) {
       for (const id of missIds) {
-        if (Object.hasOwn(answers, id) && isAnswerForQuestion(misses[id], answers[id])) {
+        if (
+          Object.hasOwn(answers, id) &&
+          isAnswerForQuestion(misses[id], answers[id]) &&
+          (!opts.validateEntry || opts.validateEntry(misses[id], answers[id]))
+        ) {
           validLiveAnswers[id] = answers[id];
         }
       }
@@ -289,9 +295,10 @@ async function listEntries(dir: string): Promise<string[]> {
 function isSystemOneRequest(input: string, init?: RequestInit): boolean {
   try {
     const url = new URL(input);
-    if (!url.pathname.endsWith(SYSTEMONE_PATH)) return false;
+    if (!(url.pathname.endsWith(SYSTEMONE_PATH) || url.pathname.endsWith("/decisions")))
+      return false;
   } catch {
-    if (!input.includes(SYSTEMONE_PATH)) return false;
+    if (!(input.includes(SYSTEMONE_PATH) || input.includes("/decisions"))) return false;
   }
   return (init?.method ?? "GET").toUpperCase() === "POST";
 }

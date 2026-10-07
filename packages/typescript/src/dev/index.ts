@@ -1,4 +1,6 @@
 // Development-only tooling. Nothing here is needed at runtime by generated code.
+
+export { openRouterCacheDir } from "../openrouter.js";
 export {
   type CachedEntry,
   CacheMissError,
@@ -12,3 +14,5 @@ export {
   defaultCacheDir,
   questionHash,
 } from "./cache.js";
+export { cloudflareCacheDir, createCachedCloudflareDecisionsClient } from "./cloudflare-cache.js";
+export { createCachedOpenAIDecisionsClient, openAICacheDir } from "./openai-cache.js";

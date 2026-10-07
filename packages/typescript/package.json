@@ -1,7 +1,7 @@
 {
   "name": "systemoneprompts",
-  "version": "0.1.0",
-  "description": "TOML decision definitions for System One; TypeSafe/JEV are providers",
+  "version": "0.2.0",
+  "description": "TOML decision definitions for TypeSafe, OpenAI Decisions, and Cloudflare Clef",
   "type": "module",
   "license": "MIT",
   "author": {
