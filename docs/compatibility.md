@@ -96,22 +96,6 @@ but does not establish upper question, option, or level counts. The adapter
 never truncates or splits requests at guessed limits; the server validates its
 remaining limits. Probabilities require application-specific calibration.
 
-Both release suites and live cache smoke tests pass. The committed
-[labeled sample](openai-decisions-sample.json) compares seven identical requests
-on OpenAI and TypeSafe, including missing facts, contradictory evidence, path
-references, and instruction-like content. The three unambiguous baseline cases
-produce the expected department and Noul decision on both providers. Differences
-are retained in the report: contradictory duplicate-charge evidence yields Noul
-0.0 on OpenAI and 0.31 on TypeSafe; instruction-like ticket content yields shipping
-probability 1.0 and 0.49 respectively. These are small-sample observations, not
-calibration guarantees. Unknown sample labels remain null. Reproduce with
-`uv run --locked python live/sample_openai.py --live --compare --report /tmp/decisions.json`
-from the Python package; comparison requires both provider keys.
-
-The [21-call-per-provider benchmark](provider-benchmark.md) records end-to-end
-latencies, token usage, and current list-price estimates with local caching and
-retries disabled. Its [raw report](provider-benchmark.json) retains all 42 calls.
-
 ## Cloudflare Clef and Clef Flash (2026-10-07)
 
 `provider = "cloudflare"` is an additive valid value, covered by the shared provider

@@ -20,8 +20,8 @@ and model. Check compatibility before switching providers.
 
 The same `TypeSafeClient` talks to native TypeSafe, OpenRouter, and Cloudflare
 Workers AI. `OpenAIDecisionsClient` calls OpenAI Decisions with the same native
-questions and normalized answers. Do not combine a custom TypeSafe base URL
-with Cloudflare mode.
+questions and normalized answers. `CloudflareDecisionsClient` selects Clef or
+Clef Flash. Do not combine a custom TypeSafe base URL with legacy Cloudflare mode.
 
 | Host | Auth | How to select | Model to send |
 | --- | --- | --- | --- |
@@ -95,8 +95,8 @@ state and Noul, Choice, and Score questions; multimodal input is outside this AP
 Other explicit model IDs pass through to the selected provider, which validates
 availability. The OpenAI integration is verified with `gpt-6-luna`.
 
-The [benchmark](docs/provider-benchmark.md) records 21 calls per provider, prices,
-latencies, and limitations. See the [changelog](CHANGELOG.md) for release notes.
+See the [changelog](CHANGELOG.md) for release notes and the dated
+[provider benchmark](docs/provider-benchmark.md) for the comparison across all providers.
 
 ## Development
 

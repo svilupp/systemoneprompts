@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 import httpx2
@@ -67,17 +68,19 @@ def main() -> int:
 
             async def run():
                 request = {"state": config["state"], "questions": config["questions"]}
+                started = time.perf_counter()
                 result = await client.system_one(**request)
+                latency_ms = (time.perf_counter() - started) * 1000
                 hit = await client.system_one(**request)
                 partition = partition_answers(config["questions"], result["answers"])
                 assert not partition["missing"] and not partition["malformed"], "Missing or malformed native answers"
                 assert hit["answers"] == result["answers"], "Cached answers changed"
                 assert hit["usage"] == {"input_tokens": 0, "output_tokens": 0}, "Nonzero all-hit usage"
                 assert transport.calls == 1, "Cache did not eliminate repeated network call"
-                return result
+                return result, latency_ms
 
-            result = asyncio.run(run())
-            print(json.dumps({"status": "pass", "model": result["model"], "usage": result["usage"], "answers": result["answers"], "networkCalls": transport.calls}))
+            result, latency_ms = asyncio.run(run())
+            print(json.dumps({"status": "pass", "model": result["model"], "usage": result["usage"], "answers": result["answers"], "networkCalls": transport.calls, "latencyMs": round(latency_ms, 3)}))
             return 0
         except Exception as error:
             print(json.dumps({"status": "fail", "error": type(error).__name__, "kind": getattr(error, "kind", None), "httpStatus": getattr(error, "status", None), "message": str(error)}))
