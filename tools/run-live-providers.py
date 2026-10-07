@@ -26,6 +26,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--live", action="store_true", required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument(
+        "--cloudflare-token-alias",
+        action="store_true",
+        help="Use local CLOUDFLARE_API_KEY as a bearer token when API_TOKEN is absent",
+    )
     parser.add_argument("--language", choices=("typescript", "python"))
     parser.add_argument(
         "--variation",
@@ -52,8 +57,11 @@ def main() -> int:
                 if "=" in line and not line.strip().startswith("#"):
                     key, value = line.split("=", 1)
                     env.setdefault(key.strip(), value.strip().strip("\"'"))
+    if args.cloudflare_token_alias and not env.get("CLOUDFLARE_API_TOKEN"):
+        env["CLOUDFLARE_API_TOKEN"] = env.get("CLOUDFLARE_API_KEY", "")
+    env["UV_NO_CONFIG"] = "1"
     fixture = json.loads(
-        (ROOT / "conformance/v1/providers/native-decisions.json").read_text()
+        (ROOT / "conformance/v1/providers/openrouter-decisions.json").read_text()
     )
     account = env.get("CLOUDFLARE_ACCOUNT_ID", "missing")
     models = [
@@ -104,7 +112,7 @@ def main() -> int:
         ),
         ("cloudflare-jev", "jev-latest", "CLOUDFLARE_API_TOKEN", None),
     ]
-    secrets = [env[k] for k in KEYS if env.get(k)]
+    secrets = [env[k] for k in (*KEYS, "CLOUDFLARE_API_KEY") if env.get(k)]
 
     def redact(text):
         for secret in secrets:

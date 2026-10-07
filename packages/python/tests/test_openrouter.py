@@ -13,7 +13,7 @@ from systemoneprompts.openai_decisions import OpenAIDecisionsClient
 from systemoneprompts.openrouter import openrouter_base_url, openrouter_cache_dir
 from systemoneprompts.provider import create_client
 
-FIXTURE = json.loads((Path(__file__).parents[1] / "conformance/v1/providers/native-decisions.json").read_text())
+FIXTURE = json.loads((Path(__file__).parents[1] / "conformance/v1/providers/openrouter-decisions.json").read_text())
 
 
 @pytest.mark.parametrize("model", FIXTURE["models"])

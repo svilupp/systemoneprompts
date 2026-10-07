@@ -7,7 +7,6 @@ from pathlib import Path
 import httpx2
 import pytest
 
-from provider_fixtures import provider_fixtures
 from systemoneprompts import (
     OpenAIDecisionsClient,
     OpenAIDecisionsError,
@@ -19,7 +18,7 @@ from systemoneprompts.client import TypeSafeClient
 from systemoneprompts.provider import LiveClientError, create_client
 
 CORPUS = Path(__file__).resolve().parents[1] / "conformance/v1/providers"
-FIXTURES = provider_fixtures("openai-decisions")
+FIXTURES = json.loads((CORPUS / "openai-decisions.json").read_text())
 
 
 @pytest.mark.parametrize("fixture", FIXTURES, ids=lambda f: f["name"])

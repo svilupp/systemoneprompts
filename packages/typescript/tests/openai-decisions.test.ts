@@ -10,9 +10,13 @@ import {
 } from "../src/index.js";
 import type { Questions } from "../src/native.js";
 import { runMany } from "../src/patterns/index.js";
-import { providerFixtures } from "./provider-fixtures.js";
 
-const fixtures = providerFixtures("openai-decisions");
+const fixtures = JSON.parse(
+  readFileSync(
+    new URL("../conformance/v1/providers/openai-decisions.json", import.meta.url),
+    "utf8",
+  ),
+);
 for (const fixture of fixtures) {
   test(`Decisions shared fixture: ${fixture.name}`, async () => {
     let calls = 0;

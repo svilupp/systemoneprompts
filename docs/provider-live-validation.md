@@ -16,8 +16,8 @@ the run. Repeat `--variation environment|explicit|text|cli|stdin` to select chec
 
 The matrix covers native TypeSafe, OpenAI, OpenRouter Jev/Luna, Clef/Clef Flash
 and their catalog aliases, and legacy Cloudflare Jev. All use one small native
-sample with Noul, Choice, and Score questions. Programmatic checks share the
-package smoke probes and verify native answers, one network request followed by
+sample with Noul, Choice, and Score questions. Programmatic matrix checks
+verify native answers, one network request followed by
 an identical cache hit, and zero all-hit usage. CLI checks cover file/stdin state,
 eval, scoped cache stats, and clear.
 
@@ -32,8 +32,8 @@ sh scripts/run-quiet.sh "Live smoke" -- bun run test:live
 sh scripts/run-quiet.sh "Live smoke" -- uv run --locked pytest live
 ```
 
-Package smoke checks cover each explicit provider and both Clef models.
-The full matrix adds endpoint overrides, catalog aliases, legacy routing, and CLI
+Package smoke checks cover native TypeSafe, direct OpenAI, and both Clef models.
+The full matrix adds OpenRouter, endpoint overrides, catalog aliases, legacy routing, and CLI
 management. These checks verify integration behavior, not model accuracy.
 
 ## Legacy Cloudflare Jev limitation
@@ -42,3 +42,7 @@ Legacy `typesafe/jev` rejects structured Score levels with an upstream HTTP 500.
 Use string-only Score criteria. Text and JSON state both work with those levels.
 The matrix retains a structured-Score diagnostic variation and reports its failure.
 Use `--variation text-simple` to check the supported form.
+
+```sh
+sh packages/typescript/scripts/run-quiet.sh "Legacy diagnostics" -- python3 tools/run-live-providers.py --live --provider cloudflare-jev --variation text-simple --variation json-structured --report /tmp/legacy-diagnostics.json
+```

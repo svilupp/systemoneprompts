@@ -106,64 +106,250 @@ for Choice tree searches.
 
 ## Providers
 
-All clients return native Noul, Choice, and Score answers. Select a provider with
-TOML `provider` or CLI `--provider`; omission keeps TypeSafe. Explicit model pins
-survive provider changes. CLI `--base-url` overrides TOML `base_url`.
+Provider interfaces are not 1:1; supported features and limits vary by provider
+and model. Check compatibility before switching providers.
 
-| Provider | Credentials | Default model |
-| --- | --- | --- |
-| `typesafe` | `TYPESAFE_API_KEY` | `jev-latest` |
-| `openai` | `OPENAI_API_KEY` | `gpt-6-luna` |
-| `openrouter` | `OPENROUTER_API_KEY` | `~typesafe/jev-latest` |
-| `cloudflare` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | `clef` |
+`TypeSafeClient` sends native System One questions to TypeSafe or OpenRouter.
+`OpenAIDecisionsClient` translates those questions for direct OpenAI Decisions.
+`CloudflareDecisionsClient` handles Clef and Clef Flash. All return the same native
+Noul, Choice, and Score answer shapes for factor evaluation.
 
-The [specification](docs/SPEC.html#providers-in-020) defines endpoints,
-compatibility limits, and cache scopes. Provider features differ; check those
-limits before switching. Legacy TypeSafe Cloudflare/Jev mode remains available
-and requires string-only Score levels.
+### Selection and endpoint configuration
+
+| Setting | Precedence / default |
+| --- | --- |
+| Provider | CLI `--provider` > TOML `provider` > `typesafe` |
+| Model | CLI `--model` > TOML `model` > selected provider default |
+| Base URL | CLI `--base-url` > TOML `base_url` > selected provider environment > default |
+| Key | Constructor key > selected provider environment variable |
+
+Native TypeSafe also reads `TYPESAFE_MODEL`, then `TYPESAFE_DEFAULT_MODEL`, before
+its default model. Changing provider preserves an explicit model pin; override
+the model too when switching between native and gateway model names.
+
+| Provider | Key | Default model | Base URL / environment override |
+| --- | --- | --- | --- |
+| `typesafe` | `TYPESAFE_API_KEY` | `jev-latest` | `https://api.typesafe.ai` / `TYPESAFE_BASE_URL` |
+| `openai` | `OPENAI_API_KEY` | `gpt-6-luna` | `https://api.openai.com/v1` / `OPENAI_BASE_URL` |
+| `openrouter` | `OPENROUTER_API_KEY` | `~typesafe/jev-latest` | `https://openrouter.ai/api/alpha` / `OPENROUTER_BASE_URL` |
+| `cloudflare` | `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` | `clef` | `https://api.cloudflare.com/client/v4/accounts/<account>/ai/run` |
+
+OpenAI and OpenRouter append `/decisions`; Cloudflare appends its catalog model
+path; TypeSafe appends `/v1/systemone`. OpenRouter also accepts the full
+`/api/alpha/decisions` URL and removes the final suffix before appending it.
+Use an HTTP(S) URL without credentials, query, or fragment. An endpoint override
+keeps the selected provider's request format. To run Luna through OpenRouter,
+select `openrouter` and `openai/gpt-6-luna-decisions`; direct OpenAI uses
+`openai` and `gpt-6-luna`.
+
+The CLI reads `.env` only in its current working directory. Programmatic clients
+read process environment variables; export credentials before running application
+code. Keep API keys outside TOML and generated modules. Generated metadata retains
+`provider` and `base_url`; application code must construct the corresponding client.
+
+### Native TypeSafe
+
+Default. `TYPESAFE_API_KEY` authenticates against `https://api.typesafe.ai`.
+Send TypeSafe model ids such as `jev-1.13.0` or `jev-latest`.
+
+```ts
+const client = new TypeSafeClient(); // TYPESAFE_API_KEY
+```
+
+### Legacy Cloudflare Jev
+
+In TypeSafe mode, `CLOUDFLARE_ACCOUNT_ID` selects this route even when
+`TYPESAFE_API_KEY` is also set. Unset the account ID to call native TypeSafe.
+Explicit OpenAI, OpenRouter, and Clef/Flash providers ignore this legacy switch.
+
+Set `cloudflareAccountId` (or `CLOUDFLARE_ACCOUNT_ID`). The client then treats
+`apiKey` as a Cloudflare token (`CLOUDFLARE_API_TOKEN` when `apiKey` is
+omitted), posts to
+`https://api.cloudflare.com/client/v4/accounts/{id}/ai/run` as
+`{ model: "typesafe/jev", input: { state, questions } }`, and unwraps the
+Workers AI envelope to `{ model, answers, usage }`. TOML `model` and CLI
+`--model` are not sent as the Cloudflare catalog id.
+
+```ts
+const client = new TypeSafeClient({
+  apiKey: process.env.CLOUDFLARE_API_TOKEN,
+  cloudflareAccountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+});
+```
+
+CLI: set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`. Do not also set
+`TYPESAFE_BASE_URL`. The token needs Account → Workers AI → Read. For
+`--cache`, the CLI wraps Cloudflare inside `createCachingFetch` so cache keys
+stay System One JSON. If you pass your own cache as `fetch`, wrap Cloudflare
+inside it first; otherwise the client rejects the combination.
+
+Legacy Cloudflare Jev requires string-only Score levels; see the
+[live validation record](../../docs/provider-live-validation.md).
+
+### OpenRouter Decisions
+
+Set `OPENROUTER_API_KEY`. Use `~typesafe/jev-latest` for Jev or
+`openai/gpt-6-luna-decisions` for Luna. Both use the native question format at
+`https://openrouter.ai/api/alpha/decisions`. Do not point the direct
+`OpenAIDecisionsClient` codec at this endpoint.
+
+```toml
+provider = "openrouter"
+model = "~typesafe/jev-latest" # or "openai/gpt-6-luna-decisions"
+base_url = "https://openrouter.ai/api/alpha" # optional
+
+[questions.is_urgent]
+type = "noul"
+instructions = "Does this message convey urgency?"
+```
+
+Save this as `decisions.toml` and create `state.json` containing
+`{"message":"Help! My payouts have been failing for 3 days."}`:
+
+```sh
+systemoneprompts run decisions.toml --state state.json --cache --json
+systemoneprompts run decisions.toml --state state.json --model openai/gpt-6-luna-decisions --cache --json
+systemoneprompts cache stats --provider openrouter
+```
+
+```ts
+import { TypeSafeClient } from "systemoneprompts";
+import { createCachingFetch, openRouterCacheDir } from "systemoneprompts/dev";
+
+const cache = createCachingFetch({ dir: openRouterCacheDir() });
+const client = new TypeSafeClient({
+  provider: "openrouter",
+  defaultModel: "openai/gpt-6-luna-decisions", // omit for Jev Latest
+  // apiKey: process.env.OPENROUTER_API_KEY,
+  // baseURL: "https://openrouter.ai/api/alpha",
+  fetch: cache,
+});
+const result = await client.systemOne({
+  state: { message: "Help! My payouts have been failing for 3 days." },
+  questions: { urgent: { type: "noul", instructions: "Is this urgent?" } },
+});
+console.log(result.answers.urgent.noul);
+```
+
+The older TypeSafe base-URL swap (`TYPESAFE_BASE_URL=https://openrouter.ai/api`
+with the OpenRouter key in `TYPESAFE_API_KEY`) still calls `/v1/systemone`.
+New integrations should select `openrouter` explicitly.
+See the [OpenRouter Decisions reference](https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-request).
+
+### Direct OpenAI Decisions
+
+Select `provider = "openai"` in TOML or pass `--provider openai` to `run` / `eval`.
+CLI selection overrides TOML; omission keeps TypeSafe. Set `OPENAI_API_KEY`.
+The default OpenAI model is `gpt-6-luna`; TOML `model` and `--model` override it.
+Changing provider preserves a pinned model, so a `jev-latest` definition needs
+`--model gpt-6-luna` when run on OpenAI. `check` and `generate` require no key.
+
+```toml
+provider = "openai"
+[questions.duplicate]
+type = "noul"
+instructions = "Does the customer report two charges for one order?"
+```
 
 ```ts
 import { OpenAIDecisionsClient } from "systemoneprompts";
-
-const openai = new OpenAIDecisionsClient();
-
-const result = await openai.systemOne({
+const client = new OpenAIDecisionsClient();
+const result = await client.systemOne({
   state: "I was charged twice.",
   questions: { duplicate: { type: "noul", instructions: "Was the customer charged twice?" } },
 });
 console.log(result.answers.duplicate.noul);
 ```
 
-Use `new TypeSafeClient()` for native TypeSafe,
-`new TypeSafeClient({ provider: "openrouter" })` for OpenRouter, or
-`new CloudflareDecisionsClient({ defaultModel: "clef-flash" })` for Clef Flash.
-For OpenRouter Luna, set `defaultModel: "openai/gpt-6-luna-decisions"`.
-Constructor `apiKey` and `baseURL` override environment configuration.
+The client accepts the existing Noul, Choice, and Score questions and works with
+batch and taxonomy patterns. Choice needs at least two options. Structured
+instructions, criteria, and state become canonical JSON text; Python integers
+follow JavaScript precision. Score values stay fractional and retain the original
+legend. Refusal and malformed output raise `OpenAIDecisionsError`, whose `kind`,
+raw `body`, and request ID support inspection. New clients use ten-second attempt
+timeouts and two retries. Constructor transport injection is raw network I/O.
+OpenAI `--cache` uses the same canonical per-question cache as TypeSafe. The
+adapter translates only misses, and malformed or refused live responses write
+no new entries. Invalid hits become misses. All-hit usage is zero.
 
-### Programmatic caching
-
-Native TypeSafe and OpenRouter use `createCachingFetch`. Use `openRouterCacheDir()`
-for the gateway scope. Direct OpenAI and Cloudflare use their dev factories so
-wire translation happens inside the per-question cache:
-
-```ts
-import { createCachedOpenAIDecisionsClient } from "systemoneprompts/dev";
-
-const { client, cache } = createCachedOpenAIDecisionsClient({ client: openai });
-const result = await client.systemOne({
-  state: "I was charged twice.",
-  questions: { duplicate: { type: "noul", instructions: "Was the customer charged twice?" } },
-});
-console.log(result.answers.duplicate.noul, cache.stats());
+```sh
+systemoneprompts run ticket.toml --state ticket.json --provider openai --cache
+systemoneprompts cache stats --provider openai
+systemoneprompts cache clear --provider openai
 ```
 
-Use `createCachedCloudflareDecisionsClient` for Clef. Pass `dir` for a custom
-cache root and `mode` for `read-only` or `refresh`. Bare caching fetch injection
-into the OpenAI or Clef client is rejected.
+`--cache-root /path/to/root` selects a custom root for run/eval and cache
+management. OpenAI appends `providers/openai-decisions/v1/<base-url-hash>/cache`;
+TypeSafe appends `cache`. Defaults remain under `.systemoneprompts`. Cache stats
+and clearing default to TypeSafe; pass `--provider openai`, `--provider openrouter`,
+or `--provider cloudflare` to select a Decisions scope.
+For a custom OpenAI constructor endpoint, use `cache --provider openai --base-url URL`
+to manage that scope. Provider, adapter version, and endpoint scopes stay isolated.
 
-See [example 11](examples/11-openai-decisions/README.md) and
-[example 12](examples/12-cloudflare-decisions/README.md) for complete definitions
-with all three question types and eval cases.
+See [example 11](examples/11-openai-decisions/README.md) for all three answer types
+and labeled cases. Provider probabilities need separate threshold calibration.
+
+```ts
+import { OpenAIDecisionsClient } from "systemoneprompts";
+import { createCachedOpenAIDecisionsClient } from "systemoneprompts/dev";
+
+const network = new OpenAIDecisionsClient();
+const { client, cache } = createCachedOpenAIDecisionsClient({
+  client: network, mode: "read-write", // also read-only or refresh
+});
+// Use client.systemOne({state, questions}) as usual.
+console.log(cache.dir, cache.stats());
+```
+
+Use the dev factory for caching; passing a bare cache as raw network injection
+is rejected because it would bypass canonical request interception.
+
+### Cloudflare Clef and Clef Flash
+
+Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`. The CLI reads `.env` in
+the current working directory; programmatic clients read the process environment.
+See [example 12](examples/12-cloudflare-decisions/README.md) for repository-root setup. Select `provider = "cloudflare"`
+and `model = "clef"` or `"clef-flash"` in TOML, or pass `--provider cloudflare --model clef-flash`.
+Full `@cf/cloudflare/` catalog IDs are accepted and canonicalized.
+
+```ts
+import { CloudflareDecisionsClient } from "systemoneprompts";
+import { createCachedCloudflareDecisionsClient } from "systemoneprompts/dev";
+
+const network = new CloudflareDecisionsClient({ defaultModel: "clef-flash" });
+const { client } = createCachedCloudflareDecisionsClient({ client: network });
+const result = await client.systemOne({
+  state: { message: "The service is down for all customers." },
+  questions: { urgent: { type: "noul", instructions: "Is this an outage?" } },
+});
+console.log(result.answers.urgent.noul);
+```
+
+The clients accept text/JSON state and native Noul, Choice, and Score questions,
+including structured instructions and criteria. Clef's image/video extensions are
+outside this integration. Calls support 1–64 questions; application IDs are mapped
+to transport IDs and restored. Oversized calls fail locally without splitting.
+
+`CloudflareDecisionsError` exposes compatibility, HTTP, transport, timeout, and
+response errors, retaining raw response bodies and Cloudflare request IDs. Calls
+default to ten-second attempt timeouts and two retries for transient failures.
+Malformed successful responses are terminal and write no cache entries.
+
+The cache factory is required for programmatic caching; a bare caching transport
+as raw client I/O fails locally. The supplied network resources remain caller-owned.
+Default records live under
+`.systemoneprompts/providers/cloudflare-decisions/v1/<sha256-run-base-url>/cache/`.
+A factory `dir` or CLI `--cache-root` selects the root. Cache management uses
+`--provider cloudflare`; `--base-url` selects a custom run-base URL scope.
+Model aliases share records, while Clef and Clef Flash have separate model keys.
+
+See [example 12](examples/12-cloudflare-decisions/README.md). Existing
+`TypeSafeClient` Cloudflare mode continues to select `typesafe/jev`.
+
+Clef requires at least two Choice alternatives and allows at most ten Score levels.
+These provider-specific limits fail locally. Missing or empty instructions use
+`Evaluate the supplied evidence against the criteria.`. A Noul question without
+instructions must have nonempty outcome criteria; otherwise it fails locally.
 
 ## CLI
 

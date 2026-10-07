@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate shared corpus links or refresh materialized standalone copies."""
+"""Validate that checked-in shared corpus copies have not drifted."""
 
 from __future__ import annotations
 
@@ -28,11 +28,6 @@ def main() -> int:
     files = [path.relative_to(SOURCE) for path in SOURCE.rglob("*") if path.is_file()]
     drift = False
     for target in TARGETS:
-        if target.is_symlink():
-            if target.resolve() != SOURCE:
-                print(f"invalid shared corpus link: {target}")
-                drift = True
-            continue
         for relative in files:
             source = SOURCE / relative
             destination = target / relative

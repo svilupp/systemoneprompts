@@ -24,7 +24,8 @@ repository-root `.env`, run these commands from the repository root:
 set -a
 . ./.env
 set +a
-export CLOUDFLARE_API_TOKEN="your-workers-ai-token"
+# Only when CLOUDFLARE_API_KEY already holds a Workers AI bearer token:
+export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-$CLOUDFLARE_API_KEY}"
 
 # TypeScript source CLI
 bun packages/typescript/src/cli/index.ts run packages/typescript/examples/12-cloudflare-decisions/ticket.toml --state packages/typescript/examples/12-cloudflare-decisions/state.json --model clef-flash --cache --json
@@ -32,3 +33,7 @@ bun packages/typescript/src/cli/index.ts run packages/typescript/examples/12-clo
 # Python source CLI
 uv run --locked --project packages/python systemoneprompts run packages/python/examples/12-cloudflare-decisions/ticket.toml --state packages/python/examples/12-cloudflare-decisions/state.json --model clef-flash --cache --json
 ```
+
+`CLOUDFLARE_API_KEY` is a local name in this checkout, not an automatically read
+setting. Global Cloudflare API keys are not supported; the client uses bearer-token
+authentication. Programmatic clients require credentials in the process environment.
