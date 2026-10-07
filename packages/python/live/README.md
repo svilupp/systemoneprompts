@@ -29,7 +29,7 @@ Five variations run for every provider/model in each language:
 
 1. Environment credentials and base URL, JSON state.
 2. Explicit constructor credentials and URL, including full Decisions URL suffixes.
-3. Text state with structured Score criteria.
+3. Text state with structured Score criteria (string-only criteria for legacy Cloudflare Jev).
 4. CLI `run --state`, repeated cached run, `eval`, `cache stats`, and `cache clear`.
 5. CLI state through stdin, followed by the same cache and eval checks.
 

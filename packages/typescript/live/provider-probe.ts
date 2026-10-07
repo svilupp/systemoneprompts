@@ -64,7 +64,9 @@ try {
   }
   const questions = config.questions as Questions;
   const request = { state: config.state, questions };
+  const started = performance.now();
   const result = await client.systemOne(request);
+  const latencyMs = performance.now() - started;
   const hit = await client.systemOne(request);
   const partition = partitionAnswers(questions, result.answers);
   if (partition.missing.length || partition.malformed.length)
@@ -80,6 +82,7 @@ try {
       usage: result.usage,
       answers: result.answers,
       networkCalls: calls,
+      latencyMs: Math.round(latencyMs * 1000) / 1000,
     }),
   );
 } catch (error) {

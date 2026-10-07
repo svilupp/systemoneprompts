@@ -27,6 +27,10 @@ def main() -> int:
     parser.add_argument("--live", action="store_true", required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument(
+        "--require-credentials", action="store_true",
+        help="Fail when any selected provider lacks credentials",
+    )
+    parser.add_argument(
         "--cloudflare-token-alias",
         action="store_true",
         help="Use local CLOUDFLARE_API_KEY as a bearer token when API_TOKEN is absent",
@@ -47,7 +51,8 @@ def main() -> int:
         help="Run only selected variations; repeat to select more than one",
     )
     parser.add_argument(
-        "--provider", help="Run only one provider, including cloudflare-jev"
+        "--provider", choices=("typesafe", "openai", "openrouter", "cloudflare", "cloudflare-jev"),
+        help="Run only one provider"
     )
     args = parser.parse_args()
     env = dict(os.environ)
@@ -150,7 +155,7 @@ def main() -> int:
             for mode in args.variation or (
                 "environment",
                 "explicit",
-                "text",
+                "text-simple" if provider == "cloudflare-jev" else "text",
                 "cli",
                 "stdin",
             ):
@@ -424,7 +429,7 @@ def main() -> int:
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report["summary"]), flush=True)
-    return int(report["summary"]["fail"] > 0)
+    return int(report["summary"]["fail"] > 0 or (args.require_credentials and report["summary"]["skip"] > 0))
 
 
 if __name__ == "__main__":
