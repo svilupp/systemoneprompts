@@ -20,6 +20,7 @@ from .cloudflare import (
 )
 from .diagnostics import SystemOnePromptsError, diagnostic
 from .model import DEFAULT_MODEL
+from .openrouter import openrouter_base_url
 
 DEFAULT_BASE_URL = "https://api.typesafe.ai"
 DEFAULT_TIMEOUT = 10.0
@@ -122,6 +123,7 @@ class TypeSafeClient:
     def __init__(
         self,
         *,
+        provider: Literal["typesafe", "openrouter"] = "typesafe",
         api_key: str | None = None,
         base_url: str | None = None,
         cloudflare_account_id: str | None = None,
@@ -136,13 +138,17 @@ class TypeSafeClient:
         import os
 
         source: Mapping[str, str | None] = os.environ if environ is None else environ
-        account = (
+        self.provider = provider
+        router = provider == "openrouter"
+        if router and cloudflare_account_id:
+            raise TypeSafeClientError(diagnostic("error", "provider-client", "OpenRouter cannot be combined with cloudflare_account_id"))
+        account = None if router else (
             cloudflare_account_id.strip()
             if isinstance(cloudflare_account_id, str) and cloudflare_account_id.strip()
             else (source.get("CLOUDFLARE_ACCOUNT_ID") or "").strip() or None
         )
         explicit_base = base_url.strip() if isinstance(base_url, str) and base_url.strip() else None
-        env_base = (source.get("TYPESAFE_BASE_URL") or "").strip() or None
+        env_base = (source.get("OPENROUTER_BASE_URL" if router else "TYPESAFE_BASE_URL") or "").strip() or None
         if account and (explicit_base or env_base):
             raise TypeSafeClientError(
                 diagnostic(
@@ -157,24 +163,25 @@ class TypeSafeClient:
             if account:
                 key = _trim_env(source.get("CLOUDFLARE_API_TOKEN")) or ""
             else:
-                key = _trim_env(source.get("TYPESAFE_API_KEY")) or ""
+                key = _trim_env(source.get("OPENROUTER_API_KEY" if router else "TYPESAFE_API_KEY")) or ""
         if not key and http_client is None and transport is None:
             raise TypeSafeClientError(
                 diagnostic(
                     "error",
                     "missing-credentials",
-                    "CLOUDFLARE_API_TOKEN is not set" if account else "TYPESAFE_API_KEY is not set",
+                    "CLOUDFLARE_API_TOKEN is not set" if account else "OPENROUTER_API_KEY is not set" if router else "TYPESAFE_API_KEY is not set",
                     hint=(
                         "export CLOUDFLARE_API_TOKEN or pass api_key"
                         if account
+                        else "export OPENROUTER_API_KEY or pass api_key" if router
                         else "export TYPESAFE_API_KEY or place it in a local .env for live commands only"
                     ),
                 )
             )
         self.api_key = key
-        self.base_url = (explicit_base or env_base or DEFAULT_BASE_URL).rstrip("/")
+        self.base_url = openrouter_base_url(base_url if base_url is not None else env_base or "https://openrouter.ai/api/alpha") if router else (explicit_base or env_base or DEFAULT_BASE_URL).rstrip("/")
         self.default_model = (
-            model or source.get("TYPESAFE_DEFAULT_MODEL") or DEFAULT_MODEL
+            model or ("~typesafe/jev-latest" if router else source.get("TYPESAFE_DEFAULT_MODEL") or DEFAULT_MODEL)
         ).strip() or DEFAULT_MODEL
         self.timeout = DEFAULT_TIMEOUT if timeout is None else timeout
         if type(max_retries) is not int or max_retries < 0:
@@ -327,7 +334,7 @@ class TypeSafeClient:
             try:
                 response = self._http.request(
                     "POST",
-                    self.base_url + SYSTEM_ONE_PATH,
+                    self.base_url + ("/decisions" if self.provider == "openrouter" else SYSTEM_ONE_PATH),
                     **self._request_kwargs(payload, timeout, headers),
                 )
                 return self._parse_response(response)
@@ -357,7 +364,7 @@ class TypeSafeClient:
             try:
                 response = await self._http.request(
                     "POST",
-                    self.base_url + SYSTEM_ONE_PATH,
+                    self.base_url + ("/decisions" if self.provider == "openrouter" else SYSTEM_ONE_PATH),
                     **self._request_kwargs(payload, timeout, headers),
                 )
                 return self._parse_response(response)

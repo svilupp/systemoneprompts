@@ -1,0 +1,32 @@
+[
+  {
+    "source": "base_url = \"\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "base_url = 17\n[questions.ok]\ntype = \"noul\"\ninstructions = \"OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "base_url = \"ftp://host\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "base_url = \"https://key@host\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "base_url = \"https://host?key=secret\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "base_url = \"https://host#part\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"OK?\"\n",
+    "valid": false,
+    "provider": null
+  }
+]

@@ -27,6 +27,7 @@ KNOWN_TOP_LEVEL = (
     "description",
     "model",
     "provider",
+    "base_url",
     "requires",
     "questions",
     "factors",
@@ -55,6 +56,7 @@ class Definition:
     # Append optional fields so existing positional constructors remain valid.
     data: dict[str, Any] = field(default_factory=dict)
     provider: str | None = None
+    base_url: str | None = None
 
 
 def parse_definition(source: str, *, filename: str | None = None) -> Definition:
@@ -88,13 +90,24 @@ def parse_definition(source: str, *, filename: str | None = None) -> Definition:
                 )
             )
 
+    base_url = None
+    if "base_url" in raw:
+        from .openrouter import openrouter_base_url
+        try:
+            if not isinstance(raw["base_url"], str):
+                raise ValueError("base_url must be a string")
+            openrouter_base_url(raw["base_url"])
+            base_url = raw["base_url"].strip()
+            meta["base_url"] = base_url
+        except (ValueError, SystemOnePromptsError):
+            diagnostics.append(diagnostic("error", "base-url", "base_url must be an HTTP(S) URL without credentials, query, or fragment", locate(index, key="base_url")))
     provider = None
     if "provider" in raw:
-        if raw["provider"] in ("typesafe", "openai"):
+        if raw["provider"] in ("typesafe", "openai", "cloudflare", "openrouter"):
             provider = raw["provider"]
             meta["provider"] = provider
         else:
-            diagnostics.append(diagnostic("error", "provider-value", '`provider` must be "typesafe" or "openai"', locate(index, key="provider")))
+            diagnostics.append(diagnostic("error", "provider-value", '`provider` must be "typesafe", "openai", "cloudflare", or "openrouter"', locate(index, key="provider")))
     model: str | None = None
     if "model" in raw:
         if isinstance(raw["model"], str) and raw["model"].strip():
@@ -167,6 +180,7 @@ def parse_definition(source: str, *, filename: str | None = None) -> Definition:
         meta=meta,
         model=model,
         provider=provider,
+        base_url=base_url,
         requires=requires,
         questions=questions,
         factors=factors,

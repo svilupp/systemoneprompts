@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added OpenRouter Decisions for Jev and OpenAI models, gateway credentials,
+  configurable base URLs, and isolated caches.
+
+- Added Cloudflare Clef and Clef Flash with provider selection, JEV-compatible
+  questions, scoped caching, and example 12 in both packages.
+- Fixed retry payload snapshots and sample eval labels; clarified provider setup
+  and cache documentation.
+
 ## 0.2.0 - 2026-10-07
 
 - Added OpenAI Decisions clients for TypeScript and Python, with `gpt-6-luna`,

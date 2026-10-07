@@ -82,11 +82,11 @@ def summarize(rows: list[dict[str, Any]], provider: str) -> dict[str, Any]:
     noul, choice, score = [], [], []
     for row in ok:
         answers, labels = row["result"]["answers"], row["labels"]
-        if labels["duplicate"] is not None:
+        if labels.get("duplicate") is not None:
             noul.append((answers["duplicate"]["noul"] >= 0.5) == labels["duplicate"])
-        if labels["department"] is not None:
+        if labels.get("department") is not None:
             choice.append(answers["department"]["choice"] == labels["department"])
-        if labels["severity"] is not None:
+        if labels.get("severity") is not None:
             score.append(abs(answers["severity"]["score"] - labels["severity"]))
     return {
         "attempts": len(attempts), "successes": len(ok), "failures": len(attempts) - len(ok),

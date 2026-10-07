@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROVIDER_SMOKE = """
 import asyncio
 import httpx2
-from systemoneprompts import OpenAIDecisionsClient, create_factor_evaluator
+from systemoneprompts import OpenAIDecisionsClient, CloudflareDecisionsClient, create_factor_evaluator
 from systemoneprompts.client import TypeSafeClient
 for cls in (TypeSafeClient, OpenAIDecisionsClient):
     def handle(request):
@@ -31,7 +31,7 @@ for cls in (TypeSafeClient, OpenAIDecisionsClient):
     finally:
         client.close()
 import tempfile
-from systemoneprompts.dev import create_cached_openai_decisions_client
+from systemoneprompts.dev import create_cached_openai_decisions_client, create_cached_cloudflare_decisions_client
 with tempfile.TemporaryDirectory() as directory:
     calls = []
     def cached_handle(request):
@@ -39,6 +39,25 @@ with tempfile.TemporaryDirectory() as directory:
         return httpx2.Response(200, json={"model": "mock", "usage": {"input_tokens": 1, "output_tokens": 0}, "answers": [{"name": "q0", "type": "predicate", "probability": 0.9}]})
     raw = OpenAIDecisionsClient(api_key="consumer-test", transport=httpx2.MockTransport(cached_handle))
     cached = create_cached_openai_decisions_client(client=raw, dir=directory)
+    async def check():
+        request = {"state": "ok", "questions": {"ok": {"type": "noul", "instructions": "OK?"}}}
+        await cached["client"].system_one(**request)
+        hit = await cached["client"].system_one(**request)
+        assert hit["usage"] == {"input_tokens": 0, "output_tokens": 0}
+        assert len(calls) == 1
+    try:
+        asyncio.run(check())
+    finally:
+        cached["client"].close()
+        raw.close()
+
+with tempfile.TemporaryDirectory() as directory:
+    calls = []
+    def cached_handle(request):
+        calls.append(request)
+        return httpx2.Response(200, json={"model": "mock", "usage": {"input_tokens": 1, "output_tokens": 0}, "answers": {"q0": {"type": "noul", "noul": 0.9}}})
+    raw = CloudflareDecisionsClient(api_key="consumer-test", account_id="consumer-account", transport=httpx2.MockTransport(cached_handle))
+    cached = create_cached_cloudflare_decisions_client(client=raw, dir=directory)
     async def check():
         request = {"state": "ok", "questions": {"ok": {"type": "noul", "instructions": "OK?"}}}
         await cached["client"].system_one(**request)

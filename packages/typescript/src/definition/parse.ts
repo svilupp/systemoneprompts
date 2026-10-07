@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { parse as parseToml, TomlError } from "smol-toml";
 import { parseFactors } from "../factors/schema.js";
 import { isJsonValue, isPlainObject } from "../json.js";
+import { openRouterBaseURL } from "../openrouter.js";
 import { validateQuestions } from "../questions/schema.js";
 import { parseRequirements } from "../state/requirements.js";
 import { type Diagnostic, diagnostic, nearestMatch, SystemOnePromptsError } from "./diagnostics.js";
@@ -60,9 +61,30 @@ export function parseDefinition(source: string, opts: ParseOptions = {}): Defini
     }
   }
 
+  let baseURL: string | undefined;
+  if (raw.base_url !== undefined) {
+    try {
+      if (typeof raw.base_url !== "string") throw new Error("base_url must be a string");
+      openRouterBaseURL(raw.base_url);
+      baseURL = raw.base_url.trim();
+      meta.base_url = baseURL;
+    } catch {
+      diagnostics.push({
+        severity: "error",
+        code: "base-url",
+        message: "base_url must be an HTTP(S) URL without credentials, query, or fragment",
+        ...locate(index, { key: "base_url" }),
+      });
+    }
+  }
   let provider: Definition["provider"];
   if (raw.provider !== undefined) {
-    if (raw.provider === "typesafe" || raw.provider === "openai") {
+    if (
+      raw.provider === "typesafe" ||
+      raw.provider === "openai" ||
+      raw.provider === "cloudflare" ||
+      raw.provider === "openrouter"
+    ) {
       provider = raw.provider;
       meta.provider = provider;
     } else
@@ -70,7 +92,7 @@ export function parseDefinition(source: string, opts: ParseOptions = {}): Defini
         diagnostic(
           "error",
           "provider-value",
-          '`provider` must be "typesafe" or "openai"',
+          '`provider` must be "typesafe", "openai", "cloudflare", or "openrouter"',
           locate(index, { key: "provider" }),
         ),
       );
@@ -123,6 +145,7 @@ export function parseDefinition(source: string, opts: ParseOptions = {}): Defini
     meta,
     model,
     provider,
+    baseURL,
     requires: requires.requires,
     questions: questions.questions,
     factors: factors.factors,

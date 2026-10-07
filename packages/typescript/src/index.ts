@@ -25,6 +25,11 @@ export {
   cloudflareRunUrl,
   createCloudflareFetch,
 } from "./cloudflare.js";
+export {
+  CloudflareDecisionsClient,
+  type CloudflareDecisionsClientOptions,
+  CloudflareDecisionsError,
+} from "./cloudflare-decisions.js";
 export { checkDefinition } from "./definition/check.js";
 export {
   type Diagnostic,

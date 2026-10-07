@@ -16,8 +16,8 @@ import { realpathSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, sep, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseDefinition, createFactorEvaluator, TypeSafeClient, OpenAIDecisionsClient } from "systemoneprompts";
-import { createCachingFetch, createCachedOpenAIDecisionsClient } from "systemoneprompts/dev";
+import { parseDefinition, createFactorEvaluator, TypeSafeClient, OpenAIDecisionsClient, CloudflareDecisionsClient } from "systemoneprompts";
+import { createCachingFetch, createCachedOpenAIDecisionsClient, createCachedCloudflareDecisionsClient } from "systemoneprompts/dev";
 import { runMany } from "systemoneprompts/patterns";
 const def = parseDefinition('[questions.ok]\\ntype = "noul"\\ninstructions = "ok?"\\n[factors]\\nyes = { all = ["ok"] }');
 if (def.questions.ok.type !== "noul") throw new Error("root export failed");
@@ -55,6 +55,19 @@ try {
   const hit = await cached.client.systemOne(request);
   if (calls !== 1 || hit.usage.input_tokens !== 0) throw new Error("packed cache factory failed");
 } finally { rmSync(cacheRoot, { recursive: true, force: true }); }
+const clefCacheRoot = mkdtempSync(join(tmpdir(), "cloudflare-consumer-cache-"));
+try {
+  let calls = 0;
+  const raw = new CloudflareDecisionsClient({ apiKey: "consumer-test", accountId: "consumer-account", fetch: async () => {
+    calls++;
+    return Response.json({ model: "mock", usage: { input_tokens: 1, output_tokens: 0 }, answers: { q0: { type: "noul", noul: 0.9 } } });
+  } });
+  const cached = createCachedCloudflareDecisionsClient({ client: raw, dir: clefCacheRoot });
+  const request = { state: "ok", questions: def.questions };
+  await cached.client.systemOne(request);
+  const hit = await cached.client.systemOne(request);
+  if (calls !== 1 || hit.usage.input_tokens !== 0) throw new Error("packed cache factory failed");
+} finally { rmSync(clefCacheRoot, { recursive: true, force: true }); }
 console.log("installed consumer: ok");
 `;
 

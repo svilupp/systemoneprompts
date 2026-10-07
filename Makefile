@@ -32,6 +32,7 @@ check-docs:
 	python3 tools/check-docs.py
 
 check-cache-parity:
+	cd packages/typescript && sh scripts/run-quiet.sh "Cloudflare cache parity" -- python3 ../../tools/check-cloudflare-cache-parity.py
 	cd packages/typescript && sh scripts/run-quiet.sh "OpenAI cache parity" -- python3 ../../tools/check-openai-cache-parity.py
 
 check: check-typescript check-python check-conformance check-docs check-cache-parity

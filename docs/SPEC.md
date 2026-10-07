@@ -9,11 +9,11 @@ must preserve the same behavior.
 ## Definition shape
 
 A definition is a TOML document with optional scalar metadata (`title`,
-`version`, `description`, `model`, `provider`, plus other scalar keys) and four recognized
+`version`, `description`, `model`, `provider`, `base_url`, plus other scalar keys) and four recognized
 tables: `[requires]`, `[questions]`, `[factors]`, and optional `[data]`. Unknown top-level tables
 produce warnings and are not silently interpreted. `model` is an optional
 non-empty string; a blank model is an error. `provider` is optional and must be
-exactly `"typesafe"` or `"openai"`; invalid values produce a positioned
+exactly `"typesafe"`, `"openai"`, `"cloudflare"`, or `"openrouter"`; invalid values produce a positioned
 `provider-value` error. The parser exposes `Definition.provider` and preserves
 valid selection in `meta.provider`. Omitting it preserves existing behavior.
 
@@ -164,7 +164,7 @@ Backticks remain literal and `[data]` is never sent automatically. Noul outcome
 criteria append `\nOutcome criteria (JSON): <canonical criteria>` to instructions.
 Empty instructions use `Evaluate the supplied evidence against the criteria.`;
 a Noul without instructions or nonempty outcome criteria fails locally.
-Choice requires at least two alternatives for OpenAI only.
+Choice requires at least two alternatives for OpenAI; native TypeSafe permits one.
 
 Transport names are opaque and mapped back to literal application IDs. Normalized
 answers preserve reported probabilities, confidence, fractional Score values,
@@ -208,3 +208,106 @@ management. Other providers, adapter versions, and endpoints are untouched.
 Read-only misses are terminal `CacheMissError`s. Passing a bare caching transport
 as the client's raw network injection fails locally with `openai-cache-transport`;
 use the dev factory to preserve adapter ordering.
+
+## Cloudflare Decisions
+
+`CloudflareDecisionsClient` implements the System One contract for Clef and Clef
+Flash. CLI selection is `--provider` > TOML `provider` > TypeSafe. The explicit
+`cloudflare` provider defaults to `clef`; TOML model and `--model` override it.
+`clef`, `clef-flash`, `@cf/cloudflare/clef`, and `@cf/cloudflare/clef-flash` are
+accepted; catalog aliases normalize to short model names. Other models fail
+locally. Native TypeSafe, OpenRouter, and OpenAI environment settings have no effect.
+Existing `TypeSafeClient` Cloudflare/Jev mode is unchanged.
+
+Authentication uses `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, or explicit
+constructor credentials and account ID. The run base URL defaults to
+`https://api.cloudflare.com/client/v4/accounts/<account>/ai/run`; a custom
+constructor base URL must be HTTP(S), without credentials, query, or fragment.
+Requests append `/@cf/cloudflare/<model>` and send `{model, state, questions}`.
+Cloudflare's `result` envelope is unwrapped; native success bodies are also accepted.
+HTTP errors preserve their status; HTTP 200 envelopes with `success: false` fail
+as HTTP errors. `cf-ray` is retained as the request ID, falling back to `x-request-id`.
+
+State and questions must satisfy native JSON/question validation. Text/JSON state,
+structured instructions and criteria, and all three native question types pass
+through without OpenAI text conversion. Calls require 1–64 questions, with no
+implicit splitting. Literal application IDs are mapped to opaque `q0`, `q1`, etc.
+transport IDs and restored in answers. `[data]` is never sent automatically.
+Clef-specific images, video, fine-tuning, and Workers bindings are outside this API.
+
+Successful responses require a nonblank model, exact answer IDs and types, finite
+probabilities/confidence in [0, 1], full criteria distributions, valid Choice labels,
+fractional Score values within the rubric, original Score legends, and nonnegative
+integer token usage. Probabilities and confidence pass through without sum checks
+or recalibration. Missing, unexpected, or malformed answers fail the whole call
+with `CloudflareDecisionsError`. Error `kind` distinguishes compatibility, HTTP,
+transport, timeout, and response errors. Raw bodies and request IDs are preserved.
+The validated wire payload is serialized once before the first request; every retry
+uses identical state and criteria even if callers mutate their inputs.
+Per-attempt timeouts default to ten seconds with two retries; only transient
+transport failures and HTTP 408, 429, and 5xx are retried. Response errors are terminal.
+Injected HTTP resources retain caller ownership.
+
+The `/dev` factory `createCachedCloudflareDecisionsClient`, or Python
+`create_cached_cloudflare_decisions_client`, wraps a supplied raw client. Cache
+validation occurs before lookup and after merging; the complete live response is
+validated before any entry is written. Bare caching network injections fail locally.
+Default records use
+`.systemoneprompts/providers/cloudflare-decisions/v1/<sha256-run-base-url>/cache/`.
+A factory `dir` or CLI `--cache-root` replaces the root. Trailing base-URL slashes
+normalize away; credentials never enter scope hashes. Account endpoints are isolated.
+Canonical model aliases share cache keys; Clef and Clef Flash do not. Native Jev,
+legacy Cloudflare/Jev, and OpenAI scopes are unchanged. Both languages share record
+bytes and read each other's records. All-hit usage is zero; partial usage is live-only.
+`cache stats --provider cloudflare` and `cache clear --provider cloudflare` use the same scope resolver,
+with optional `--base-url` for custom run-base URLs. Python cached clients own their
+worker pools; close them separately from the supplied network client.
+
+Clef requires at least two Choice alternatives and allows at most ten Score levels.
+These provider-specific limits fail locally. Missing or empty instructions use
+`Evaluate the supplied evidence against the criteria.`. A Noul question without
+instructions must have nonempty outcome criteria; otherwise it fails locally.
+
+
+## OpenRouter Decisions and endpoint selection
+
+`provider = "openrouter"` selects the native Decisions wire contract for both
+Jev (`~typesafe/jev-latest`, the default) and OpenAI
+(`openai/gpt-6-luna-decisions`). Explicit model IDs pass through unchanged;
+availability is validated by OpenRouter. Provider precedence remains CLI > TOML >
+TypeSafe. OpenRouter ignores native TypeSafe, OpenAI, and Cloudflare credentials,
+models, and endpoint environment variables.
+
+`TypeSafeClient({provider: "openrouter"})`, or Python
+`TypeSafeClient(provider="openrouter")`, uses `OPENROUTER_API_KEY` unless an
+explicit constructor key is supplied. The base URL defaults to
+`https://openrouter.ai/api/alpha`; requests append `/decisions`. State, question
+IDs, structured instructions, and criteria retain the native System One shape.
+OpenRouter returns native answers and usage; existing TypeSafe transport,
+retry, timeout, and error behavior applies. Use this mode for OpenAI models
+served by OpenRouter; `OpenAIDecisionsClient` encodes the direct OpenAI API.
+Explicit Cloudflare account options cannot be combined with OpenRouter mode.
+
+Provider interfaces are not 1:1; supported features and limits vary by provider
+and model. Check compatibility before switching providers.
+Legacy Cloudflare/Jev requires string-only Score levels; details are recorded in
+`docs/provider-live-validation.md`.
+
+All live providers accept TOML `base_url` and CLI `--base-url`. Selection is
+CLI URL > TOML URL > provider environment URL > provider default. Credentials
+stay outside TOML. `base_url` must be a nonblank HTTP(S) URL without credentials,
+query, or fragment; invalid values produce positioned `base-url` diagnostics.
+The parsed fields are `Definition.baseURL` / `Definition.base_url`.
+OpenRouter uses `OPENROUTER_BASE_URL`; direct OpenAI uses `OPENAI_BASE_URL`;
+native TypeSafe keeps `TYPESAFE_BASE_URL`. Cloudflare uses constructor/TOML/CLI
+URLs. Endpoint overrides do not select a provider or change its wire format.
+OpenRouter accepts a base ending in `/decisions`, strips that suffix once, and
+trims whitespace and trailing slashes. Supply `/api/alpha`, not `/api/v1`.
+
+OpenRouter `--cache` uses native per-question caching, with records under
+`.systemoneprompts/providers/openrouter-decisions/v1/<sha256-base-url>/cache/`.
+`--cache-root` replaces the root. Credentials never enter hashes; models remain
+part of record keys. `cache stats|clear --provider openrouter [--base-url URL]`
+resolves the same scope. Programmatic native caching can use the exported dev
+helper `openRouterCacheDir` / `openrouter_cache_dir` to choose this directory.
+Direct OpenAI cache scope resolves `OPENAI_BASE_URL` when no explicit URL is given.

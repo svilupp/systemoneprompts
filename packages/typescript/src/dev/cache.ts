@@ -295,9 +295,10 @@ async function listEntries(dir: string): Promise<string[]> {
 function isSystemOneRequest(input: string, init?: RequestInit): boolean {
   try {
     const url = new URL(input);
-    if (!url.pathname.endsWith(SYSTEMONE_PATH)) return false;
+    if (!(url.pathname.endsWith(SYSTEMONE_PATH) || url.pathname.endsWith("/decisions")))
+      return false;
   } catch {
-    if (!input.includes(SYSTEMONE_PATH)) return false;
+    if (!(input.includes(SYSTEMONE_PATH) || input.includes("/decisions"))) return false;
   }
   return (init?.method ?? "GET").toUpperCase() === "POST";
 }

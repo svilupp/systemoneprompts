@@ -284,7 +284,9 @@ export function isValidDecisionsAnswer(question: unknown, answer: unknown): bool
   }
 }
 
-export function normalizeDecisionsBaseURL(value = "https://api.openai.com/v1"): string {
+export function normalizeDecisionsBaseURL(
+  value = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
+): string {
   const normalized = value
     .trim()
     .replace(/\/+$/, "")

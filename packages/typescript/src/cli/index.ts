@@ -12,9 +12,9 @@ const USAGE = `systemoneprompts <command> [options]
 Commands:
   check     <files...> [--strict]
   generate  <files...> [--out dir] [--check]
-  run       <file> --state s.json | <stdin> [--cache] [--json] [--cache-root dir] [--model name] [--provider typesafe|openai]
-  eval      <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--model name] [--provider typesafe|openai]
-  cache     stats | clear [--provider typesafe|openai] [--cache-root dir] [--base-url url]
+  run       <file> --state s.json | <stdin> [--cache] [--json] [--cache-root dir] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]
+  eval      <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]
+  cache     stats | clear [--provider typesafe|openai|cloudflare|openrouter] [--cache-root dir] [--base-url url]
 `;
 
 async function main(): Promise<void> {
@@ -57,6 +57,7 @@ async function main(): Promise<void> {
         state: values.state,
         cache: Boolean(values.cache),
         json: Boolean(values.json),
+        baseURL: values["base-url"],
         model: values.model,
         provider: values.provider,
         cacheRoot: values["cache-root"],
@@ -68,6 +69,7 @@ async function main(): Promise<void> {
         cache: Boolean(values.cache),
         sweep: values.sweep,
         report: values.report,
+        baseURL: values["base-url"],
         model: values.model,
         provider: values.provider,
         cacheRoot: values["cache-root"],

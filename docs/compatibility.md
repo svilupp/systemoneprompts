@@ -20,10 +20,10 @@ Python depends on `pydantic` and `httpx2`.
 
 | Item | Evidence |
 | --- | --- |
-| Auth | `TYPESAFE_API_KEY` as `Authorization: Bearer …`. Cloudflare mode uses `CLOUDFLARE_API_TOKEN` when `apiKey` / `api_key` is omitted. There is no `OPENROUTER_API_KEY` integration: pass the OpenRouter key as `apiKey` / `api_key`, or put it in `TYPESAFE_API_KEY` for CLI. |
-| Base URL | `TYPESAFE_BASE_URL`, default `https://api.typesafe.ai`. OpenRouter: `https://openrouter.ai/api`. |
+| Auth | `TYPESAFE_API_KEY` as `Authorization: Bearer …`. Cloudflare mode uses `CLOUDFLARE_API_TOKEN` when `apiKey` / `api_key` is omitted. Explicit OpenRouter mode reads `OPENROUTER_API_KEY`. The legacy base-URL swap accepts that key as `apiKey` / `api_key` or `TYPESAFE_API_KEY`. |
+| Base URL | `TYPESAFE_BASE_URL`, default `https://api.typesafe.ai`. OpenRouter Decisions: `https://openrouter.ai/api/alpha` with `OPENROUTER_BASE_URL`; legacy swap: `https://openrouter.ai/api`. |
 | Routing options | TypeScript `apiKey`, `baseURL`, `cloudflareAccountId`; Python `api_key`, `base_url`, `cloudflare_account_id`. |
-| OpenRouter models | `jev-1.13` or `typesafe/jev-1.13` (not native `jev-latest` / `jev-1.13.0`). |
+| OpenRouter models | `~typesafe/jev-latest`, `typesafe/jev-1.13`, or `openai/gpt-6-luna-decisions`; native model IDs do not translate automatically. |
 | Cloudflare | `CLOUDFLARE_ACCOUNT_ID` routes to `https://api.cloudflare.com/client/v4/accounts/{id}/ai/run` with `{ model: "typesafe/jev", input: { state, questions } }`. Unwraps a Workers AI envelope to `{ model, answers, usage }` whether `answers` is nested once or twice. Mutually exclusive with `TYPESAFE_BASE_URL`. TOML `model` and CLI `--model` do not change the catalog id. Token permission: Account → Workers AI → Read. |
 | Native call | TypeScript `TypeSafeClient.systemOne({ state, questions, model })`; Python `await TypeSafeClient.system_one(state=..., questions=..., model=...)` |
 | Response | Contract shape is `{ model, answers, usage }` with noul/choice/score objects. TypeScript leaves unknown JSON fields on the object; Python validation strips them (including `usage.cost`). |
@@ -64,7 +64,7 @@ Known behavioural divergences from the TypeScript CLI:
 
 ## OpenAI Decisions and reserved provider scalar (2026-10-07)
 
-`provider` is now reserved for `"typesafe"` and `"openai"`. Definitions that used
+`provider` is reserved for `"typesafe"`, `"openai"`, `"cloudflare"`, and `"openrouter"`. Definitions that used
 this scalar for other application metadata must move that value into `[data]`.
 Definitions without `provider` retain identical generated output. Selected
 providers appear only in generated `meta.provider`; questions, assertions, and
@@ -111,3 +111,35 @@ from the Python package; comparison requires both provider keys.
 The [21-call-per-provider benchmark](provider-benchmark.md) records end-to-end
 latencies, token usage, and current list-price estimates with local caching and
 retries disabled. Its [raw report](provider-benchmark.json) retains all 42 calls.
+
+## Cloudflare Clef and Clef Flash (2026-10-07)
+
+`provider = "cloudflare"` is an additive valid value, covered by the shared provider
+selection corpus. Definitions without this provider retain their generated output.
+The new clients use native System One state, questions, and answers through Cloudflare's
+Clef REST routes. Existing `TypeSafeClient` Cloudflare mode continues to use Jev.
+
+Provider-specific preflight rejects more than 64 questions, fewer than two Choice
+options, more than ten Score levels, and Noul tasks without instructions or outcome
+criteria. Missing instructions otherwise receive the same default used by OpenAI.
+Arbitrary literal IDs map to valid transport IDs and return under their original keys.
+Multimodal extensions are outside this integration.
+
+The shared Cloudflare fixtures cover wire requests, structured rubrics, ID mapping,
+answer validation, and compatibility errors. Cache records retain their format;
+`cloudflare-decisions/v1` scopes isolate endpoints and canonical model keys isolate
+Clef from Clef Flash. `make check-cache-parity` verifies both provider namespaces in
+both languages. Both package release suites and both-model live cache tests passed.
+
+Cloudflare's [Clef](https://developers.cloudflare.com/workers-ai/models/clef/) and
+[Clef Flash](https://developers.cloudflare.com/workers-ai/models/clef-flash/) documentation
+and authenticated Workers AI model schema were checked on 2026-10-07.
+
+## OpenRouter endpoint configuration
+
+`openrouter` is an additive provider value. The newly reserved `base_url` scalar
+is validated as an HTTP(S) endpoint and retained in generated metadata. Definitions
+that previously used invalid `base_url` metadata now receive a `base-url` error.
+Omitted provider and endpoint fields preserve native defaults. Jev and Luna use
+OpenRouter native questions; direct OpenAI retains its separate Decisions codec.
+Gateway cache scopes isolate endpoints and models from direct providers.

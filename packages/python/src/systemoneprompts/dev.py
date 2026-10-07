@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, TypedDict
 
 from .cache import CacheMode, CachingFetch, FetchResponse, create_caching_fetch
+from .cloudflare_dev import cloudflare_cache_dir, create_cached_cloudflare_decisions_client
 from .json_values import js_json_dumps, parse_json
 from .openai_decisions import (
     OpenAIDecisionsClient,
@@ -22,6 +23,7 @@ from .openai_decisions import (
     _normalize_base_url,
     _validate_normalized_result,
 )
+from .openrouter import openrouter_cache_dir
 
 
 def openai_cache_dir(
@@ -116,3 +118,9 @@ def create_cached_openai_decisions_client(
 
 
 __all__ = ["create_cached_openai_decisions_client", "openai_cache_dir"]
+
+
+__all__ += ["create_cached_cloudflare_decisions_client", "cloudflare_cache_dir"]
+
+
+__all__ += ["openrouter_cache_dir"]

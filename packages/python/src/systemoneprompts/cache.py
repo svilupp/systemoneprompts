@@ -279,7 +279,7 @@ def cache_stats(directory: str | None = None) -> dict[str, Any]:
 
 def clear_cache(directory: str | None = None, *, root: str | None = None) -> None:
     path = Path(directory or default_cache_dir()).resolve()
-    provider_scope = (len(path.parts) >= 6 and path.parts[-5:-2] == ("providers", "openai-decisions", "v1")
+    provider_scope = (len(path.parts) >= 6 and path.parts[-5:-2] in (("providers", "openrouter-decisions", "v1"), ("providers", "openai-decisions", "v1"), ("providers", "cloudflare-decisions", "v1"))
                       and len(path.parts[-2]) == 64 and all(c in "0123456789abcdef" for c in path.parts[-2]))
     if path.name != "cache" or not (".systemoneprompts" in path.parts or provider_scope or (root is not None and path == (Path(root) / "cache").resolve())):
         raise RuntimeError(f"refusing to clear unexpected cache directory {path}")
@@ -343,9 +343,9 @@ def _is_system_one_request(url: str, method: str) -> bool:
         from urllib.parse import urlparse
 
         parsed = urlparse(url)
-        return parsed.path.endswith(SYSTEMONE_PATH)
+        return parsed.path.endswith((SYSTEMONE_PATH, "/decisions"))
     except ValueError:
-        return SYSTEMONE_PATH in url
+        return SYSTEMONE_PATH in url or "/decisions" in url
 
 
 def _json_response(

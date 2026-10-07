@@ -6,6 +6,7 @@ import {
 } from "./cloudflare.js";
 import { DEFAULT_MODEL } from "./model.js";
 import type { Fetch, Questions, SystemOneRequest, SystemOneResult } from "./native.js";
+import { openRouterBaseURL } from "./openrouter.js";
 
 export const DEFAULT_BASE_URL = "https://api.typesafe.ai";
 export const DEFAULT_TIMEOUT_MS = 10_000;
@@ -69,6 +70,8 @@ export class TypeSafeTimeoutError extends TypeSafeClientError {
 }
 
 export interface TypeSafeClientOptions {
+  /** OpenRouter uses native questions at /alpha/decisions, including OpenAI decision models. */
+  provider?: "typesafe" | "openrouter";
   /** Falls back to `CLOUDFLARE_API_TOKEN` in Cloudflare mode, otherwise `TYPESAFE_API_KEY`. */
   apiKey?: string;
   /** Falls back to `TYPESAFE_BASE_URL`, then `https://api.typesafe.ai`. Incompatible with Cloudflare mode. */
@@ -110,12 +113,20 @@ export class TypeSafeClient {
   readonly maxRetries: number;
   readonly defaultHeaders: Readonly<Record<string, string>>;
   readonly cloudflareAccountId: string | undefined;
+  readonly provider: "typesafe" | "openrouter";
   readonly #apiKey: string;
 
   constructor(options: TypeSafeClientOptions = {}) {
-    const cloudflareAccountId =
-      trimEnv(options.cloudflareAccountId) ?? trimEnv(process.env.CLOUDFLARE_ACCOUNT_ID);
-    const envBaseURL = trimEnv(process.env.TYPESAFE_BASE_URL);
+    this.provider = options.provider ?? "typesafe";
+    const router = this.provider === "openrouter";
+    if (router && options.cloudflareAccountId)
+      throw new TypeSafeClientError("OpenRouter cannot be combined with cloudflareAccountId");
+    const cloudflareAccountId = router
+      ? undefined
+      : (trimEnv(options.cloudflareAccountId) ?? trimEnv(process.env.CLOUDFLARE_ACCOUNT_ID));
+    const envBaseURL = trimEnv(
+      router ? process.env.OPENROUTER_BASE_URL : process.env.TYPESAFE_BASE_URL,
+    );
     const optionBaseURL = trimEnv(options.baseURL);
     if (cloudflareAccountId && (optionBaseURL !== undefined || envBaseURL !== undefined)) {
       throw new TypeSafeClientError(
@@ -127,18 +138,25 @@ export class TypeSafeClient {
       trimEnv(options.apiKey) ??
       (cloudflareAccountId
         ? trimEnv(process.env.CLOUDFLARE_API_TOKEN)
-        : trimEnv(process.env.TYPESAFE_API_KEY)) ??
+        : trimEnv(router ? process.env.OPENROUTER_API_KEY : process.env.TYPESAFE_API_KEY)) ??
       "";
     if (!this.#apiKey) {
       throw new TypeSafeClientError(
         cloudflareAccountId
           ? "CLOUDFLARE_API_TOKEN is not set. Pass apiKey or export CLOUDFLARE_API_TOKEN."
-          : "TYPESAFE_API_KEY is not set. Pass apiKey or export TYPESAFE_API_KEY.",
+          : router
+            ? "OPENROUTER_API_KEY is not set. Pass apiKey or export OPENROUTER_API_KEY."
+            : "TYPESAFE_API_KEY is not set. Pass apiKey or export TYPESAFE_API_KEY.",
       );
     }
-    this.baseURL = stripSlash(optionBaseURL ?? envBaseURL ?? DEFAULT_BASE_URL);
+    this.baseURL = router
+      ? openRouterBaseURL(options.baseURL ?? envBaseURL)
+      : stripSlash(optionBaseURL ?? envBaseURL ?? DEFAULT_BASE_URL);
     this.defaultModel =
-      trimEnv(options.defaultModel) ?? trimEnv(process.env.TYPESAFE_DEFAULT_MODEL) ?? DEFAULT_MODEL;
+      trimEnv(options.defaultModel) ??
+      (router
+        ? "~typesafe/jev-latest"
+        : (trimEnv(process.env.TYPESAFE_DEFAULT_MODEL) ?? DEFAULT_MODEL));
     this.timeout = positiveMs("timeout", options.timeout ?? DEFAULT_TIMEOUT_MS);
     this.maxRetries = nonNegativeInt("maxRetries", options.maxRetries ?? DEFAULT_MAX_RETRIES);
     const inner = options.fetch ?? globalThis.fetch.bind(globalThis);
@@ -170,7 +188,11 @@ export class TypeSafeClient {
       questions,
       model: request.model ?? this.defaultModel,
     };
-    const parsed = await this.#postJson(SYSTEM_ONE_PATH, body, options);
+    const parsed = await this.#postJson(
+      this.provider === "openrouter" ? "/decisions" : SYSTEM_ONE_PATH,
+      body,
+      options,
+    );
     return parsed as SystemOneResult<Q>;
   }
 

@@ -1,0 +1,3825 @@
+{
+  "date": "2026-10-07T14:08:18.295633+00:00",
+  "summary": {
+    "pass": 110,
+    "fail": 4,
+    "skip": 0
+  },
+  "rows": [
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.97,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.03,
+          "confidence": 0.95,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.97,
+            "2": 0.03
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.598
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.94,
+          "probabilities": {
+            "billing": 0.97,
+            "technical": 0.03
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "confidence": 0.94,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.96,
+            "2": 0.04
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.36
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-latest",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.45
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.03,
+          "confidence": 0.94,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.96,
+            "2": 0.04
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.325
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "confidence": 0.94,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.96,
+            "2": 0.04
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.312
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.467
+    },
+    {
+      "language": "typescript",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 413,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.97
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 0.99,
+          "confidence": 0.99,
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.99,
+            "2": 0
+          },
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 1.292
+    },
+    {
+      "language": "typescript",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 413,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.97
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 0.99,
+          "confidence": 0.99,
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.99,
+            "2": 0
+          },
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.896
+    },
+    {
+      "language": "typescript",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 416,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.412
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66,
+        "cost": 1.6926e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          },
+          "confidence": 0.96
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.96,
+            "2": 0.04
+          },
+          "confidence": 0.94
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.634
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66,
+        "cost": 1.6926e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          },
+          "confidence": 0.96
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.96,
+            "2": 0.04
+          },
+          "confidence": 0.94
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.406
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "~typesafe/jev-latest",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66,
+        "cost": 1.7052e-05
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.598
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66,
+        "cost": 1.6926e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          },
+          "confidence": 0.96
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.05,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.95,
+            "2": 0.05
+          },
+          "confidence": 0.93
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.74
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66,
+        "cost": 1.6926e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          },
+          "confidence": 0.96
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.05,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.95,
+            "2": 0.05
+          },
+          "confidence": 0.93
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.428
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66,
+        "cost": 1.7052e-05
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.593
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions-20261006",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 398,
+        "output_tokens": 0,
+        "cost": 3.98e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.98
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          },
+          "confidence": 1
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 1,
+            "2": 0
+          },
+          "confidence": 1
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.505
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions-20261006",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 398,
+        "output_tokens": 0,
+        "cost": 3.98e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.98
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          },
+          "confidence": 1
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 1,
+            "2": 0
+          },
+          "confidence": 1
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.796
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "openai/gpt-6-luna-decisions-20261006",
+      "usage": {
+        "input_tokens": 401,
+        "output_tokens": 0,
+        "cost": 4.01e-05
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.556
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9208
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9524,
+            "technical": 0.0476
+          },
+          "confidence": 0.8186
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.2628,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0422,
+            "1": 0.6527,
+            "2": 0.3051
+          },
+          "confidence": 0.2812
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.794
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9208
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9524,
+            "technical": 0.0476
+          },
+          "confidence": 0.8186
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.2628,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0422,
+            "1": 0.6527,
+            "2": 0.3051
+          },
+          "confidence": 0.2812
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.508
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "clef",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.764
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7655
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8758,
+            "technical": 0.1242
+          },
+          "confidence": 0.5649
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1468,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0394,
+            "1": 0.7744,
+            "2": 0.1862
+          },
+          "confidence": 0.4539
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.412
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7655
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8758,
+            "technical": 0.1242
+          },
+          "confidence": 0.5649
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1468,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0394,
+            "1": 0.7744,
+            "2": 0.1862
+          },
+          "confidence": 0.4539
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.344
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "clef-flash",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.119
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9208
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9524,
+            "technical": 0.0476
+          },
+          "confidence": 0.8186
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.2628,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0422,
+            "1": 0.6527,
+            "2": 0.3051
+          },
+          "confidence": 0.2812
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.375
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9208
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9524,
+            "technical": 0.0476
+          },
+          "confidence": 0.8186
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.2628,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0422,
+            "1": 0.6527,
+            "2": 0.3051
+          },
+          "confidence": 0.2812
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.437
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "@cf/cloudflare/clef",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "clef",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.766
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7655
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8758,
+            "technical": 0.1242
+          },
+          "confidence": 0.5649
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1468,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0394,
+            "1": 0.7744,
+            "2": 0.1862
+          },
+          "confidence": 0.4539
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.364
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7655
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8758,
+            "technical": 0.1242
+          },
+          "confidence": 0.5649
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1468,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0394,
+            "1": 0.7744,
+            "2": 0.1862
+          },
+          "confidence": 0.4539
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 1.144
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "@cf/cloudflare/clef-flash",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "clef-flash",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.865
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare-jev",
+      "model": "jev-1.13.0",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          },
+          "confidence": 0.96
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.06,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.94,
+            "2": 0.06
+          },
+          "confidence": 0.91
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 1.612
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare-jev",
+      "model": "jev-1.13.0",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.99,
+            "technical": 0.01
+          },
+          "confidence": 0.98
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.05,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.95,
+            "2": 0.05
+          },
+          "confidence": 0.93
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.389
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare-jev",
+      "model": "jev-latest",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.026
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "confidence": 0.94,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.96,
+            "2": 0.04
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.843
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.98,
+          "probabilities": {
+            "technical": 0.01,
+            "billing": 0.99
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.05,
+          "confidence": 0.93,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.95,
+            "2": 0.05
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.467
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-latest",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.922
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "confidence": 0.94,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.96,
+            "2": 0.04
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.48
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.05,
+          "confidence": 0.93,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.95,
+            "2": 0.05
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.422
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.983
+    },
+    {
+      "language": "python",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 413,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.97
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 0.99,
+          "confidence": 0.99,
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.99,
+            "2": 0
+          },
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.483
+    },
+    {
+      "language": "python",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 413,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.97
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 0.99,
+          "confidence": 0.99,
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.99,
+            "2": 0
+          },
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.649
+    },
+    {
+      "language": "python",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 416,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.96
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "confidence": 0.94,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.96,
+            "2": 0.04
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.488
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.05,
+          "confidence": 0.93,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.95,
+            "2": 0.05
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.562
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "~typesafe/jev-latest",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.946
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.98,
+          "probabilities": {
+            "technical": 0.01,
+            "billing": 0.99
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.03,
+          "confidence": 0.94,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.96,
+            "2": 0.04
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.459
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "confidence": 0.94,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.96,
+            "2": 0.04
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.524
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.99
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions-20261006",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 398,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.98
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "technical": 0.0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.0,
+          "confidence": 1.0,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.493
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions-20261006",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 398,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.98
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "technical": 0.0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.0,
+          "confidence": 1.0,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 1.0,
+            "2": 0.0
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.477
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "openai/gpt-6-luna-decisions-20261006",
+      "usage": {
+        "input_tokens": 401,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.073
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9208
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9524,
+            "technical": 0.0476
+          },
+          "confidence": 0.8186
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.2628,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0422,
+            "1": 0.6527,
+            "2": 0.3051
+          },
+          "confidence": 0.2812
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.683
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9208
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9524,
+            "technical": 0.0476
+          },
+          "confidence": 0.8186
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.2628,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0422,
+            "1": 0.6527,
+            "2": 0.3051
+          },
+          "confidence": 0.2812
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.761
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "clef",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.948
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7655
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8758,
+            "technical": 0.1242
+          },
+          "confidence": 0.5649
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1468,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0394,
+            "1": 0.7744,
+            "2": 0.1862
+          },
+          "confidence": 0.4539
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.513
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7655
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8758,
+            "technical": 0.1242
+          },
+          "confidence": 0.5649
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1468,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0394,
+            "1": 0.7744,
+            "2": 0.1862
+          },
+          "confidence": 0.4539
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.587
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "clef-flash",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.087
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9208
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9524,
+            "technical": 0.0476
+          },
+          "confidence": 0.8186
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.2628,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0422,
+            "1": 0.6527,
+            "2": 0.3051
+          },
+          "confidence": 0.2812
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.619
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9208
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9524,
+            "technical": 0.0476
+          },
+          "confidence": 0.8186
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.2628,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0422,
+            "1": 0.6527,
+            "2": 0.3051
+          },
+          "confidence": 0.2812
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.55
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "@cf/cloudflare/clef",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "clef",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.145
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7655
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8758,
+            "technical": 0.1242
+          },
+          "confidence": 0.5649
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1468,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0394,
+            "1": 0.7744,
+            "2": 0.1862
+          },
+          "confidence": 0.4539
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.559
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7655
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8758,
+            "technical": 0.1242
+          },
+          "confidence": 0.5649
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1468,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0394,
+            "1": 0.7744,
+            "2": 0.1862
+          },
+          "confidence": 0.4539
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.469
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "@cf/cloudflare/clef-flash",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "clef-flash",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.953
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare-jev",
+      "model": "jev-1.13.0",
+      "variation": "environment",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.03,
+          "confidence": 0.95,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.97,
+            "2": 0.03
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.611
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare-jev",
+      "model": "jev-1.13.0",
+      "variation": "explicit",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.98,
+          "probabilities": {
+            "billing": 0.99,
+            "technical": 0.01
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.04,
+          "confidence": 0.93,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.95,
+            "2": 0.05
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.601
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare-jev",
+      "model": "jev-latest",
+      "variation": "cli",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.317
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 408,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.07,
+          "confidence": 0.88,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.92,
+            "2": 0.08
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.671
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-latest",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.484
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 408,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.07,
+          "confidence": 0.88,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.92,
+            "2": 0.08
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.31
+    },
+    {
+      "language": "typescript",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.481
+    },
+    {
+      "language": "typescript",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 417,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 0.99,
+          "confidence": 0.99,
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.99,
+            "2": 0
+          },
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.373
+    },
+    {
+      "language": "typescript",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 416,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.421
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 408,
+        "output_tokens": 66,
+        "cost": 1.7136e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          },
+          "confidence": 0.96
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.08,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.92,
+            "2": 0.08
+          },
+          "confidence": 0.88
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.572
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "~typesafe/jev-latest",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66,
+        "cost": 1.7052e-05
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.495
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 408,
+        "output_tokens": 66,
+        "cost": 1.7136e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          },
+          "confidence": 0.96
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.07,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.93,
+            "2": 0.07
+          },
+          "confidence": 0.9
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.464
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66,
+        "cost": 1.7052e-05
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.518
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions-20261006",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 402,
+        "output_tokens": 0,
+        "cost": 4.02e-05
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.98
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          },
+          "confidence": 1
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1,
+          "legend": {
+            "0": "Calm",
+            "1": "{\"description\":\"Frustrated\"}",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.98,
+            "2": 0.01
+          },
+          "confidence": 0.97
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.345
+    },
+    {
+      "language": "typescript",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "openai/gpt-6-luna-decisions-20261006",
+      "usage": {
+        "input_tokens": 401,
+        "output_tokens": 0,
+        "cost": 4.01e-05
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.535
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9331
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9502,
+            "technical": 0.0498
+          },
+          "confidence": 0.8108
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.4625,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0399,
+            "1": 0.4577,
+            "2": 0.5024
+          },
+          "confidence": 0.1952
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.713
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "clef",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.75
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7628
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8947,
+            "technical": 0.1053
+          },
+          "confidence": 0.6232
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1943,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0485,
+            "1": 0.7087,
+            "2": 0.2428
+          },
+          "confidence": 0.3454
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.526
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "clef-flash",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.993
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9331
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9502,
+            "technical": 0.0498
+          },
+          "confidence": 0.8108
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.4625,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0399,
+            "1": 0.4577,
+            "2": 0.5024
+          },
+          "confidence": 0.1952
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.455
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "@cf/cloudflare/clef",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "clef",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.562
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7628
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8947,
+            "technical": 0.1053
+          },
+          "confidence": 0.6232
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1943,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0485,
+            "1": 0.7087,
+            "2": 0.2428
+          },
+          "confidence": 0.3454
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.449
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare",
+      "model": "@cf/cloudflare/clef-flash",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "clef-flash",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.611
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare-jev",
+      "model": "jev-latest",
+      "variation": "text",
+      "status": "fail",
+      "error": "TypeSafeHttpError",
+      "httpStatus": 500,
+      "message": "TypeSafe API error 500: Model execution failed (Failed to parse model output)",
+      "seconds": 2.254
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare-jev",
+      "model": "jev-latest",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.635
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 408,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.07,
+          "confidence": 0.9,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.93,
+            "2": 0.07
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.752
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-latest",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.993
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 408,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "technical": 0.02,
+            "billing": 0.98
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.06,
+          "confidence": 0.91,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.94,
+            "2": 0.06
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.444
+    },
+    {
+      "language": "python",
+      "provider": "typesafe",
+      "model": "jev-1.13.0",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.946
+    },
+    {
+      "language": "python",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 417,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 1,
+            "technical": 0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 0.99,
+          "confidence": 0.99,
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.99,
+            "2": 0
+          },
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.369
+    },
+    {
+      "language": "python",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 416,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.838
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 408,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.95
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.06,
+          "confidence": 0.9,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.93,
+            "2": 0.07
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.519
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "~typesafe/jev-latest",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.109
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13-20260917",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 408,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.07,
+          "confidence": 0.9,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.93,
+            "2": 0.07
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.509
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "typesafe/jev-1.13",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.106
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions-20261006",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 402,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.98
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "technical": 0.0
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.0,
+          "confidence": 0.97,
+          "legend": {
+            "0": "Calm",
+            "1": "{\"description\":\"Frustrated\"}",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.98,
+            "2": 0.01
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 1.413
+    },
+    {
+      "language": "python",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna-decisions",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "openai/gpt-6-luna-decisions-20261006",
+      "usage": {
+        "input_tokens": 401,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.992
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9331
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9502,
+            "technical": 0.0498
+          },
+          "confidence": 0.8108
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.4625,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0399,
+            "1": 0.4577,
+            "2": 0.5024
+          },
+          "confidence": 0.1952
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.835
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "clef",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 0.965
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7628
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8947,
+            "technical": 0.1053
+          },
+          "confidence": 0.6232
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1943,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0485,
+            "1": 0.7087,
+            "2": 0.2428
+          },
+          "confidence": 0.3454
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.559
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "clef-flash",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.205
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.9331
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9502,
+            "technical": 0.0498
+          },
+          "confidence": 0.8108
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.4625,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0399,
+            "1": 0.4577,
+            "2": 0.5024
+          },
+          "confidence": 0.1952
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 1.195
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "@cf/cloudflare/clef",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "clef",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.181
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "clef-flash",
+      "variation": "text",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.7628
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.8947,
+            "technical": 0.1053
+          },
+          "confidence": 0.6232
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.1943,
+          "legend": {
+            "0": "Calm",
+            "1": {
+              "description": "Frustrated"
+            },
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0485,
+            "1": 0.7087,
+            "2": 0.2428
+          },
+          "confidence": 0.3454
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.864
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare",
+      "model": "@cf/cloudflare/clef-flash",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "clef-flash",
+      "usage": {
+        "input_tokens": 301,
+        "output_tokens": 0
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.039
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare-jev",
+      "model": "jev-latest",
+      "variation": "text",
+      "status": "fail",
+      "error": "TypeSafeHttpError",
+      "kind": null,
+      "httpStatus": 500,
+      "message": "TypeSafe API error 500: Model execution failed (Failed to parse model output)",
+      "seconds": 3.815
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare-jev",
+      "model": "jev-latest",
+      "variation": "stdin",
+      "status": "pass",
+      "modelReported": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 66
+      },
+      "checks": [
+        "run",
+        "all-hit run",
+        "eval",
+        "cache stats",
+        "cache clear"
+      ],
+      "seconds": 1.073
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare-jev",
+      "model": "jev-1.13.0",
+      "variation": "text-simple",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 402,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          },
+          "confidence": 0.96
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.07,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.93,
+            "2": 0.07
+          },
+          "confidence": 0.9
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.489
+    },
+    {
+      "language": "typescript",
+      "provider": "cloudflare-jev",
+      "model": "jev-latest",
+      "variation": "json-structured",
+      "status": "fail",
+      "error": "TypeSafeHttpError",
+      "httpStatus": 500,
+      "message": "TypeSafe API error 500: Model execution failed (Failed to parse model output)",
+      "seconds": 2.104
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare-jev",
+      "model": "jev-1.13.0",
+      "variation": "text-simple",
+      "status": "pass",
+      "usage": {
+        "input_tokens": 402,
+        "output_tokens": 66
+      },
+      "answers": {
+        "is_urgent": {
+          "type": "noul",
+          "noul": 0.96
+        },
+        "department": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.96,
+          "probabilities": {
+            "billing": 0.98,
+            "technical": 0.02
+          }
+        },
+        "frustration": {
+          "type": "score",
+          "score": 1.07,
+          "confidence": 0.9,
+          "legend": {
+            "0": "Calm",
+            "1": "Frustrated",
+            "2": "Very angry"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.93,
+            "2": 0.07
+          }
+        }
+      },
+      "networkCalls": 1,
+      "seconds": 0.549
+    },
+    {
+      "language": "python",
+      "provider": "cloudflare-jev",
+      "model": "jev-latest",
+      "variation": "json-structured",
+      "status": "fail",
+      "error": "TypeSafeHttpError",
+      "kind": null,
+      "httpStatus": 500,
+      "message": "TypeSafe API error 500: Model execution failed (Failed to parse model output)",
+      "seconds": 2.149
+    }
+  ]
+}

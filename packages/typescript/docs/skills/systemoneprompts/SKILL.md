@@ -114,17 +114,24 @@ const factors = evaluateFactors(response.answers);
 offline answer check, call the generated `evaluateFactors` with supplied
 answers. The TypeScript CLI has no `run --answers` option.
 
-Live `run` and `eval` build `{ state, questions, model }`. Native TypeSafe uses
-`TYPESAFE_API_KEY`. OpenRouter is the same client with
-`baseURL: "https://openrouter.ai/api"`; pass the OpenRouter key as `apiKey`, or
-put it in `TYPESAFE_API_KEY` for CLI. There is no `OPENROUTER_API_KEY`
-integration. Cloudflare Workers AI is the same client with
-`cloudflareAccountId` / `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`
-(not `TYPESAFE_API_KEY`); do not set `TYPESAFE_BASE_URL` at the same time. The
-client rewrites the body to `{ model: "typesafe/jev", input: { state, questions } }`
-at `https://api.cloudflare.com/client/v4/accounts/{id}/ai/run`. `--model` does
-not change that catalog id. `--cache` wraps Cloudflare inside the cache so keys
-stay System One JSON. See the package README Providers section for model ids.
+Live `run` and `eval` select `typesafe`, `openai`, `openrouter`, or `cloudflare`
+from CLI `--provider`, then TOML `provider`, then native TypeSafe. Each provider
+uses its own credentials. OpenRouter reads `OPENROUTER_API_KEY`, defaults to
+`~typesafe/jev-latest`, and supports `openai/gpt-6-luna-decisions` through native
+questions at `https://openrouter.ai/api/alpha/decisions`. Programmatic callers use
+`TypeSafeClient({provider: "openrouter"})`. Direct OpenAI uses
+`OpenAIDecisionsClient`, `OPENAI_API_KEY`, and `gpt-6-luna` with its separate codec.
+Cloudflare Clef/Flash uses `CloudflareDecisionsClient`, `CLOUDFLARE_ACCOUNT_ID`,
+and `CLOUDFLARE_API_TOKEN`. Legacy Cloudflare Jev remains a TypeSafe client mode
+and ignores model overrides for its catalog ID.
+
+`base_url` and `--base-url` override provider endpoints without selecting a
+provider. Model precedence is CLI > TOML > provider default; pinned models stay
+pinned when provider changes. CLI `.env` loading uses the current directory only.
+Programmatic code exports credentials and constructs the matching client from
+generated metadata. `--cache` uses the selected provider's cache scope; repeat
+custom endpoints on `cache stats/clear --base-url`. See the package README for
+base URL settings, scope paths, and programmatic cache factories.
 
 `check` and `generate` are offline. Live `run` and `eval` use provider
 credentials; a format or rendering edit alone does not require a live call.

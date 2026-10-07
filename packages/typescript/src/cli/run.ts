@@ -10,12 +10,13 @@ export async function runRun(
     json?: boolean;
     model?: string;
     provider?: string;
+    baseURL?: string;
     cacheRoot?: string;
   },
 ): Promise<void> {
   if (!file) {
     fail(
-      "systemoneprompts run <file> --state s.json | <stdin> [--cache] [--json] [--model name] [--provider typesafe|openai]",
+      "systemoneprompts run <file> --state s.json | <stdin> [--cache] [--json] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]",
     );
   }
   const def = await loadChecked(file);

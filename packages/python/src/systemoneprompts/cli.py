@@ -30,9 +30,9 @@ USAGE = """systemoneprompts <command> [options]
 Commands:
   check     <files...> [--strict]
   generate  <files...> [--out dir] [--check]
-  run       <file> --state s.json | <stdin> [--answers a.json] [--cache] [--json] [--cache-root dir] [--model name] [--provider typesafe|openai]
-  eval      <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--model name] [--provider typesafe|openai]
-  cache     stats | clear [--provider typesafe|openai] [--cache-root dir] [--base-url url]
+  run       <file> --state s.json | <stdin> [--answers a.json] [--cache] [--json] [--cache-root dir] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]
+  eval      <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]
+  cache     stats | clear [--provider typesafe|openai|cloudflare|openrouter] [--cache-root dir] [--base-url url]
 """
 
 
@@ -194,11 +194,12 @@ def _run(
     json_output: bool,
     model: str | None,
     provider: str | None = None,
+    base_url: str | None = None,
     cache_root: str | None = None,
 ) -> int:
     if not file:
         return fail(
-            "systemoneprompts run <file> --state s.json | <stdin> [--answers a.json] [--cache] [--json] [--cache-root dir] [--model name] [--provider typesafe|openai]"
+            "systemoneprompts run <file> --state s.json | <stdin> [--answers a.json] [--cache] [--json] [--cache-root dir] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]"
         )
     definition = _load_checked(file)
     try:
@@ -231,7 +232,7 @@ def _run(
 
     created = None
     try:
-        created = create_client(definition, cache=cache, model=model, provider=provider, cache_root=cache_root)
+        created = create_client(definition, cache=cache, model=model, provider=provider, cache_root=cache_root, base_url=base_url)
         response = asyncio.run(
             created["client"].system_one(
                 state=payload, questions=definition.questions, model=created["model"]
@@ -326,11 +327,12 @@ def _eval(
     report: str | None,
     model: str | None,
     provider: str | None = None,
+    base_url: str | None = None,
     cache_root: str | None = None,
 ) -> int:
     if not file or not cases:
         return fail(
-            "systemoneprompts eval <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--model name] [--provider typesafe|openai]"
+            "systemoneprompts eval <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]"
         )
     try:
         if report:
@@ -353,7 +355,7 @@ def _eval(
 
     created = None
     try:
-        created = create_client(definition, cache=cache, model=model, provider=provider, cache_root=cache_root)
+        created = create_client(definition, cache=cache, model=model, provider=provider, cache_root=cache_root, base_url=base_url)
         caching = created["cache"]
         result = asyncio.run(
             execute_eval(
@@ -397,13 +399,26 @@ def _eval(
 
 
 def _cache(action: str | None, *, provider: str | None = None, cache_root: str | None = None, base_url: str | None = None) -> int:
-    from .dev import openai_cache_dir
+    from .dev import cloudflare_cache_dir, openai_cache_dir
+    from .provider import load_dotenv
+    load_dotenv()
     selected = provider or "typesafe"
-    if selected not in ("typesafe", "openai"):
-        return fail('provider-value: provider must be "typesafe" or "openai"')
-    if base_url is not None and selected != "openai":
-        return fail("--base-url is only used for OpenAI cache scope")
-    directory = openai_cache_dir(dir=cache_root, base_url=base_url) if selected == "openai" else str(Path(cache_root) / "cache") if cache_root is not None else default_cache_dir()
+    if selected not in ("typesafe", "openai", "cloudflare", "openrouter"):
+        return fail('provider-value: provider must be "typesafe", "openai", "cloudflare", or "openrouter"')
+    if base_url is not None and selected == "typesafe":
+        return fail("--base-url is only used for Decisions cache scope")
+    try:
+        if selected == "openrouter":
+            from .openrouter import openrouter_cache_dir
+            directory = openrouter_cache_dir(dir=cache_root, base_url=base_url)
+        elif selected == "cloudflare":
+            directory = cloudflare_cache_dir(dir=cache_root, base_url=base_url)
+        elif selected == "openai":
+            directory = openai_cache_dir(dir=cache_root, base_url=base_url)
+        else:
+            directory = str(Path(cache_root) / "cache") if cache_root is not None else default_cache_dir()
+    except SystemOnePromptsError as error:
+        return fail(format_diagnostic(error.diagnostic))
     if action == "clear":
         clear_cache(directory, root=cache_root if selected == "typesafe" else None)
         print(f"cleared {directory}")
@@ -474,6 +489,7 @@ def main(argv: list[str] | None = None) -> int:
             json_output=args.json,
             model=args.model,
             provider=args.provider,
+            base_url=args.base_url,
             cache_root=args.cache_root,
         )
     if command == "eval":
@@ -485,6 +501,7 @@ def main(argv: list[str] | None = None) -> int:
             report=args.report,
             model=args.model,
             provider=args.provider,
+            base_url=args.base_url,
             cache_root=args.cache_root,
         )
     if command == "cache":

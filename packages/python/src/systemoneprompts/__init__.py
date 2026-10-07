@@ -9,6 +9,7 @@ from .answers import (
     score_value,
     wire_questions,
 )
+from .cloudflare_decisions import CloudflareDecisionsClient, CloudflareDecisionsError
 from .definition import Definition, check_definition, load_definition, parse_definition
 from .diagnostics import Diagnostic, SystemOnePromptsError, errors_of, format_diagnostic, has_errors
 from .factors import NOUL_CUTOFF, Factor, compare, create_factor_evaluator, is_known_native_answer
@@ -19,6 +20,8 @@ from .patterns import TaxonomyNode, run_many, walk_taxonomy
 from .requirements import REQUIREMENT_TYPES, create_state_assert, parse_path
 
 __all__ = [
+    "CloudflareDecisionsClient",
+    "CloudflareDecisionsError",
     "OpenAIDecisionsClient",
     "OpenAIDecisionsError",
     "DEFAULT_MODEL",

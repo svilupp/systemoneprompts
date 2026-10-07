@@ -255,7 +255,7 @@ class OpenAIDecisionsClient:
                 "missing-credentials",
                 "OPENAI_API_KEY is not set. Pass api_key or export OPENAI_API_KEY.",
             )
-        self.base_url = _normalize_base_url(base_url)
+        self.base_url = _normalize_base_url(base_url if base_url is not None else source.get("OPENAI_BASE_URL") or "https://api.openai.com/v1")
         self.timeout = 10.0 if timeout is None else timeout
         if isinstance(self.timeout, (int, float)) and (
             type(self.timeout) is bool or not math.isfinite(self.timeout) or self.timeout <= 0
@@ -383,7 +383,7 @@ __all__ = ["OpenAIDecisionsClient", "OpenAIDecisionsError"]
 
 def _normalize_base_url(value: str | None = None) -> str:
     normalized = (
-        ("https://api.openai.com/v1" if value is None else value)
+        (os.environ.get("OPENAI_BASE_URL") or "https://api.openai.com/v1" if value is None else value)
         .strip()
         .rstrip("/")
         .removesuffix("/decisions")

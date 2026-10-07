@@ -9,7 +9,7 @@ systemoneprompts eval examples/11-openai-decisions/ticket.toml --cases examples/
 ```
 
 The seven-case labeled sample covers three answer types, missing facts,
-contradictory evidence, path references, and instruction-like content. Null labels
+contradictory evidence, path references, and instruction-like content. Omitted labels
 mean the evidence does not establish an expected answer. Its probabilities are observations,
 not calibrated production thresholds. To compare TypeSafe, pass
 `--provider typesafe --model jev-latest` and set `TYPESAFE_API_KEY`.

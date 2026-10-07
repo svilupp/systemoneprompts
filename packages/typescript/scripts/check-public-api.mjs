@@ -25,6 +25,8 @@ for (const name of [
   "TypeSafeClient",
   "OpenAIDecisionsClient",
   "OpenAIDecisionsError",
+  "CloudflareDecisionsClient",
+  "CloudflareDecisionsError",
 ]) {
   if (!source.includes(name)) throw new Error(`public API is missing ${name}`);
 }

@@ -48,12 +48,13 @@ export async function runEval(
     report?: string;
     model?: string;
     provider?: string;
+    baseURL?: string;
     cacheRoot?: string;
   },
 ): Promise<void> {
   if (!file || !options.cases) {
     fail(
-      "systemoneprompts eval <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--model name] [--provider typesafe|openai]",
+      "systemoneprompts eval <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--base-url url] [--model name] [--provider typesafe|openai|cloudflare|openrouter]",
     );
   }
   if (
