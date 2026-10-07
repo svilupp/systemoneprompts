@@ -32,8 +32,8 @@ The seven short ticket cases each ran three times with three questions per call:
 Noul, Choice, and Score. Calls ran sequentially, alternating provider order for
 each pair, through independent persistent HTTP clients. Both clients used their
 native endpoints with local caching disabled, zero retries, and a 30-second
-per-attempt timeout. The raw report confirms 21 network calls per provider.
-Provider-side caching was not controlled; raw usage counters are retained.
+per-attempt timeout. Each provider received 21 network calls. Provider-side
+caching was not controlled.
 
 Latency measures `system_one` end to end with `perf_counter_ns`, including request
 encoding, network time, parsing, and validation. First calls are included. p95
@@ -51,8 +51,3 @@ sample does not establish production latency or throughput.
 Missing and contradictory binary labels are excluded. Score labels are ordinal
 reference points; fractional expected scores are valid. These small-sample
 checks do not establish calibration or general model quality.
-
-The [original raw measurements](https://github.com/svilupp/systemoneprompts/blob/4b06afe51b177a9542c49551b58742abb77ad0e5/docs/provider-benchmark.json)
-remain available in the 0.2.0 Git history. This document preserves the dated
-results and methodology; the one-off runner and raw capture are no longer kept
-in the working tree.
