@@ -75,6 +75,11 @@ export type {
   SystemOneResult,
   Usage,
 } from "./native.js";
+export {
+  OpenAIDecisionsClient,
+  type OpenAIDecisionsClientOptions,
+  OpenAIDecisionsError,
+} from "./openai-decisions.js";
 export { QUESTION_TYPES, type QuestionType } from "./questions/schema.js";
 export {
   createStateAssert,

@@ -1,6 +1,6 @@
 # systemoneprompts
 
-Define TypeSafe questions, required state, and Boolean factors in TOML.
+Define decision questions, required state, and Boolean factors in TOML.
 Validate definitions and generate typed modules for TypeScript or Python.
 
 ## Install
@@ -11,17 +11,20 @@ Validate definitions and generate typed modules for TypeScript or Python.
 | [Python](packages/python/README.md) | `pip install systemoneprompts` | Python 3.11+ |
 
 Each package README includes a working example. Both packages ship the same
-ten examples.
+eleven examples.
 
 ## Providers
 
 The same `TypeSafeClient` talks to native TypeSafe, OpenRouter, and Cloudflare
-Workers AI. Do not combine a custom base URL with Cloudflare mode.
+Workers AI. `OpenAIDecisionsClient` calls OpenAI Decisions with the same native
+questions and normalized answers. Do not combine a custom TypeSafe base URL
+with Cloudflare mode.
 
 | Host | Auth | How to select | Model to send |
 | --- | --- | --- | --- |
 | Native TypeSafe (`https://api.typesafe.ai`) | `TYPESAFE_API_KEY` | default | `jev-1.13.0` / `jev-latest` |
 | OpenRouter | OpenRouter key as `TYPESAFE_API_KEY` | `TYPESAFE_BASE_URL=https://openrouter.ai/api` | `jev-1.13` or `typesafe/jev-1.13` |
+| OpenAI Decisions (`https://api.openai.com/v1/decisions`) | `OPENAI_API_KEY` | TOML `provider = "openai"` or CLI `--provider openai` | `gpt-6-luna` |
 | Cloudflare Workers AI | `CLOUDFLARE_API_TOKEN` | `CLOUDFLARE_ACCOUNT_ID` | catalog `typesafe/jev` (set by the client) |
 
 There is no `OPENROUTER_API_KEY` integration: pass the OpenRouter key as
@@ -34,6 +37,24 @@ envelope. TOML `model` and CLI `--model` do not change that catalog id.
 `--cache` wraps Cloudflare inside the cache so keys stay System One JSON.
 Code samples live in the [TypeScript](packages/typescript/README.md#providers)
 and [Python](packages/python/README.md#providers) READMEs.
+
+`OpenAIDecisionsClient` adds OpenAI's Decisions backend with the same questions
+and normalized answers. Set `OPENAI_API_KEY`, then select `provider = "openai"`
+in TOML or `--provider openai` on `run` / `eval`. It defaults to `gpt-6-luna`;
+explicit model pins are preserved. `--cache` reuses the local per-question cache,
+with a provider/version/endpoint scope for OpenAI.
+
+## 0.2.0 release record
+
+Adds OpenAI Decisions in both languages, provider selection, and local caching.
+The top-level TOML `provider` scalar is now reserved for `typesafe` or `openai`.
+Existing definitions that omit it keep their behavior. OpenAI supports text/JSON
+state and Noul, Choice, and Score questions; multimodal input is outside this API.
+Other explicit model IDs pass through to the selected provider, which validates
+availability. The OpenAI integration is verified with `gpt-6-luna`.
+
+The [benchmark](docs/provider-benchmark.md) records 21 calls per provider, prices,
+latencies, and limitations. See the [changelog](CHANGELOG.md) for release notes.
 
 ## Development
 

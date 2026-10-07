@@ -41,11 +41,19 @@ interface Sweep {
 
 export async function runEval(
   file: string | undefined,
-  options: { cases?: string; cache?: boolean; sweep?: string; report?: string; model?: string },
+  options: {
+    cases?: string;
+    cache?: boolean;
+    sweep?: string;
+    report?: string;
+    model?: string;
+    provider?: string;
+    cacheRoot?: string;
+  },
 ): Promise<void> {
   if (!file || !options.cases) {
     fail(
-      "systemoneprompts eval <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--model name]",
+      "systemoneprompts eval <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--model name] [--provider typesafe|openai]",
     );
   }
   if (

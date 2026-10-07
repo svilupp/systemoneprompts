@@ -12,3 +12,4 @@ export {
   defaultCacheDir,
   questionHash,
 } from "./cache.js";
+export { createCachedOpenAIDecisionsClient, openAICacheDir } from "./openai-cache.js";

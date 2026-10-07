@@ -19,8 +19,11 @@ code (see 09), is the cheap edit loop.
 | 08 | `taxonomy-walk` | `walk_taxonomy` |
 | 09 | `map-reduce` | `run_many` + `eval --sweep` |
 | 10 | `field-extraction` | Structured `field` instructions |
+| 11 | `openai-decisions` | Same native questions and results with OpenAI |
 
 ```bash
 uv run python examples/07-ticket-triage/run.py
 uv run systemoneprompts run examples/07-ticket-triage/triage.toml --state examples/07-ticket-triage/states/ticket.json --cache
 ```
+
+Example 11 uses `OpenAIDecisionsClient` and `OPENAI_API_KEY`; CLI `--cache` uses the same local cache through the Decisions adapter.

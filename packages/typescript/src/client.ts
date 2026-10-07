@@ -10,7 +10,7 @@ import type { Fetch, Questions, SystemOneRequest, SystemOneResult } from "./nati
 export const DEFAULT_BASE_URL = "https://api.typesafe.ai";
 export const DEFAULT_TIMEOUT_MS = 10_000;
 const SYSTEM_ONE_PATH = "/v1/systemone";
-const CLIENT_VERSION = "0.1.0";
+const CLIENT_VERSION = "0.2.0";
 const DEFAULT_MAX_RETRIES = 2;
 function isRetryStatus(status: number): boolean {
   return status === 408 || status === 429 || (status >= 500 && status < 600);

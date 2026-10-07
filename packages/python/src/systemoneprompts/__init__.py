@@ -14,10 +14,13 @@ from .diagnostics import Diagnostic, SystemOnePromptsError, errors_of, format_di
 from .factors import NOUL_CUTOFF, Factor, compare, create_factor_evaluator, is_known_native_answer
 from .generator import generate, render_definition
 from .model import DEFAULT_MODEL, read_env_model, resolve_model
+from .openai_decisions import OpenAIDecisionsClient, OpenAIDecisionsError
 from .patterns import TaxonomyNode, run_many, walk_taxonomy
 from .requirements import REQUIREMENT_TYPES, create_state_assert, parse_path
 
 __all__ = [
+    "OpenAIDecisionsClient",
+    "OpenAIDecisionsError",
     "DEFAULT_MODEL",
     "Definition",
     "Diagnostic",

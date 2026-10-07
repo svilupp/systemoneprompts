@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 import httpx2
 
@@ -19,8 +19,18 @@ from .cache import (
 from .client import TypeSafeClient, TypeSafeClientError
 from .cloudflare import create_cloudflare_transport
 from .definition import Definition
+from .dev import create_cached_openai_decisions_client
 from .diagnostics import SystemOnePromptsError, diagnostic
 from .model import read_env_model, resolve_model
+from .openai_decisions import OpenAIDecisionsClient, OpenAIDecisionsError
+from .patterns import SystemOneClient
+
+
+class ClientConstruction(TypedDict):
+    client: SystemOneClient
+    model: str
+    cache: CachingFetch | None
+    raw: TypeSafeClient | OpenAIDecisionsClient
 
 
 class LiveClientError(SystemOnePromptsError):
@@ -123,21 +133,41 @@ def create_client(
     definition: Definition,
     *,
     cache: bool = False,
+    provider: str | None = None,
     model: str | None = None,
     env: Mapping[str, str | None] | None = None,
     transport: Any = None,
     http_client: Any = None,
     cache_dir: str | None = None,
+    cache_root: str | None = None,
     cache_fetch: Any = None,
-) -> dict[str, Any]:
+) -> ClientConstruction:
     """Build a live client. Invalid definitions/state must be checked by the caller first.
 
-    With `cache=True`, requests flow through a per-question cache. Misses are forwarded
-    through `cache_fetch` when given, otherwise through the caller's `transport`,
-    otherwise through a fresh `httpx2.HTTPTransport`. A caller `http_client` owns its
-    own transport, so it cannot be combined with `cache=True`.
+    With `cache=True`, requests flow through the canonical per-question cache.
+    TypeSafe misses use `cache_fetch`, the caller's `transport`, or a fresh
+    `httpx2.HTTPTransport`; a TypeSafe caller `http_client` cannot be combined
+    with caching. OpenAI wraps its raw client with the dev cache factory and
+    supports caller-owned HTTP clients. `cache_fetch` is TypeSafe-only.
     """
     load_dotenv()
+    selected = provider if provider is not None else definition.provider or "typesafe"
+    if selected not in ("typesafe", "openai"):
+        raise LiveClientError(diagnostic("error", "provider-value", 'provider must be "typesafe" or "openai"'))
+    if selected == "openai":
+        if model is not None and not model.strip():
+            raise LiveClientError(diagnostic("error", "openai-model-empty", "model must be nonblank"))
+        if cache and cache_fetch is not None:
+            raise LiveClientError(diagnostic("error", "openai-cache-transport", "Use the dev factory with a raw OpenAI client; cache_fetch is a TypeSafe transport option"))
+        resolved = resolve_model(None, definition.model, model, default="gpt-6-luna")
+        try:
+            client_openai = OpenAIDecisionsClient(model=resolved, transport=transport, http_client=http_client, environ=env)
+        except OpenAIDecisionsError as error:
+            raise LiveClientError(error.diagnostic) from error
+        if cache:
+            cached = create_cached_openai_decisions_client(client=client_openai, dir=cache_root if cache_root is not None else cache_dir)
+            return {"client": cached["client"], "model": resolved, "cache": cached["cache"], "raw": client_openai}
+        return {"client": client_openai, "model": resolved, "cache": None, "raw": client_openai}
     resolved = resolve_model(read_env_model(env), definition.model, model)
     source = env if env is not None else os.environ
     cloudflare_account_id = (source.get("CLOUDFLARE_ACCOUNT_ID") or "").strip() or None
@@ -164,7 +194,7 @@ def create_client(
                     "cache=True cannot wrap a caller-supplied http_client; pass transport= instead",
                 )
             )
-        directory = cache_dir or default_cache_dir()
+        directory = cache_dir or (str(Path(cache_root) / "cache") if cache_root is not None else default_cache_dir())
         if cache_fetch is not None and cloudflare_account_id:
             raise LiveClientError(
                 diagnostic(

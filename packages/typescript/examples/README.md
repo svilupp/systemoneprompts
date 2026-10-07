@@ -14,8 +14,11 @@ Each folder has a definition, its committed `*.generated.ts` (kept current by `b
 | 08 | `taxonomy-walk` | `walkTaxonomy` |
 | 09 | `map-reduce` | `runMany` + `eval --sweep` |
 | 10 | `field-extraction` | Structured `field` instructions |
+| 11 | `openai-decisions` | Same native questions and results with OpenAI |
 
 ```bash
 bun run examples/07-ticket-triage/run.ts
 bun src/cli/index.ts run examples/07-ticket-triage/triage.toml --state examples/07-ticket-triage/states/ticket.json --cache
 ```
+
+Example 11 uses `OpenAIDecisionsClient` and `OPENAI_API_KEY`; CLI `--cache` uses the same local cache through the Decisions adapter.

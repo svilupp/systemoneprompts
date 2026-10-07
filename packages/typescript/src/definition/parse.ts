@@ -60,6 +60,21 @@ export function parseDefinition(source: string, opts: ParseOptions = {}): Defini
     }
   }
 
+  let provider: Definition["provider"];
+  if (raw.provider !== undefined) {
+    if (raw.provider === "typesafe" || raw.provider === "openai") {
+      provider = raw.provider;
+      meta.provider = provider;
+    } else
+      diagnostics.push(
+        diagnostic(
+          "error",
+          "provider-value",
+          '`provider` must be "typesafe" or "openai"',
+          locate(index, { key: "provider" }),
+        ),
+      );
+  }
   let model: string | undefined;
   if (raw.model !== undefined) {
     if (typeof raw.model === "string" && raw.model.trim() !== "") model = raw.model.trim();
@@ -107,6 +122,7 @@ export function parseDefinition(source: string, opts: ParseOptions = {}): Defini
   return {
     meta,
     model,
+    provider,
     requires: requires.requires,
     questions: questions.questions,
     factors: factors.factors,

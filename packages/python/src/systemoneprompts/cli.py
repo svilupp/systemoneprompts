@@ -30,9 +30,9 @@ USAGE = """systemoneprompts <command> [options]
 Commands:
   check     <files...> [--strict]
   generate  <files...> [--out dir] [--check]
-  run       <file> --state s.json | <stdin> [--answers a.json] [--cache] [--json] [--model name]
-  eval      <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--model name]
-  cache     stats | clear
+  run       <file> --state s.json | <stdin> [--answers a.json] [--cache] [--json] [--cache-root dir] [--model name] [--provider typesafe|openai]
+  eval      <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--model name] [--provider typesafe|openai]
+  cache     stats | clear [--provider typesafe|openai] [--cache-root dir] [--base-url url]
 """
 
 
@@ -193,10 +193,12 @@ def _run(
     cache: bool,
     json_output: bool,
     model: str | None,
+    provider: str | None = None,
+    cache_root: str | None = None,
 ) -> int:
     if not file:
         return fail(
-            "systemoneprompts run <file> --state s.json | <stdin> [--answers a.json] [--cache] [--json] [--model name]"
+            "systemoneprompts run <file> --state s.json | <stdin> [--answers a.json] [--cache] [--json] [--cache-root dir] [--model name] [--provider typesafe|openai]"
         )
     definition = _load_checked(file)
     try:
@@ -227,8 +229,9 @@ def _run(
 
     from .provider import LiveClientError, create_client
 
+    created = None
     try:
-        created = create_client(definition, cache=cache, model=model)
+        created = create_client(definition, cache=cache, model=model, provider=provider, cache_root=cache_root)
         response = asyncio.run(
             created["client"].system_one(
                 state=payload, questions=definition.questions, model=created["model"]
@@ -243,7 +246,14 @@ def _run(
         return 1
     except Exception as error:
         return fail(str(error))
-    cache_info = created["cache"].stats() if created.get("cache") else None
+    finally:
+        if created is not None:
+            for resource in {id(created["client"]): created["client"], id(created.get("raw")): created.get("raw")}.values():
+                closer = getattr(resource, "close", None)
+                if callable(closer):
+                    closer()
+    caching = created["cache"]
+    cache_info = caching.stats() if caching is not None else None
     if json_output:
         output: dict[str, Any] = {
             "model": response.get("model"),
@@ -315,10 +325,12 @@ def _eval(
     sweep: str | None,
     report: str | None,
     model: str | None,
+    provider: str | None = None,
+    cache_root: str | None = None,
 ) -> int:
     if not file or not cases:
         return fail(
-            "systemoneprompts eval <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--model name]"
+            "systemoneprompts eval <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--model name] [--provider typesafe|openai]"
         )
     try:
         if report:
@@ -339,8 +351,10 @@ def _eval(
 
     from .provider import LiveClientError, create_client
 
+    created = None
     try:
-        created = create_client(definition, cache=cache, model=model)
+        created = create_client(definition, cache=cache, model=model, provider=provider, cache_root=cache_root)
+        caching = created["cache"]
         result = asyncio.run(
             execute_eval(
                 definition,
@@ -348,7 +362,7 @@ def _eval(
                 created["client"],
                 model=created["model"],
                 sweep=sweep_plan,
-                cache_stats=(created["cache"].stats if created.get("cache") else None),
+                cache_stats=(caching.stats if caching is not None else None),
                 file=file,
             )
         )
@@ -360,6 +374,12 @@ def _eval(
         return 1
     except Exception as error:
         return fail(str(error))
+    finally:
+        if created is not None:
+            for resource in {id(created["client"]): created["client"], id(created.get("raw")): created.get("raw")}.values():
+                closer = getattr(resource, "close", None)
+                if callable(closer):
+                    closer()
 
     for line in result.pop("_stderr", []):
         print(line, file=sys.stderr)
@@ -376,10 +396,16 @@ def _eval(
     return 1 if errors else 0
 
 
-def _cache(action: str | None) -> int:
-    directory = default_cache_dir()
+def _cache(action: str | None, *, provider: str | None = None, cache_root: str | None = None, base_url: str | None = None) -> int:
+    from .dev import openai_cache_dir
+    selected = provider or "typesafe"
+    if selected not in ("typesafe", "openai"):
+        return fail('provider-value: provider must be "typesafe" or "openai"')
+    if base_url is not None and selected != "openai":
+        return fail("--base-url is only used for OpenAI cache scope")
+    directory = openai_cache_dir(dir=cache_root, base_url=base_url) if selected == "openai" else str(Path(cache_root) / "cache") if cache_root is not None else default_cache_dir()
     if action == "clear":
-        clear_cache(directory)
+        clear_cache(directory, root=cache_root if selected == "typesafe" else None)
         print(f"cleared {directory}")
         return 0
     if action in {None, "stats"}:
@@ -416,6 +442,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sweep")
     parser.add_argument("--report")
     parser.add_argument("--model")
+    parser.add_argument("--provider")
+    parser.add_argument("--cache-root")
+    parser.add_argument("--base-url")
     parser.add_argument("command", nargs="?")
     parser.add_argument("rest", nargs="*")
     return parser
@@ -444,6 +473,8 @@ def main(argv: list[str] | None = None) -> int:
             cache=args.cache,
             json_output=args.json,
             model=args.model,
+            provider=args.provider,
+            cache_root=args.cache_root,
         )
     if command == "eval":
         return _eval(
@@ -453,9 +484,11 @@ def main(argv: list[str] | None = None) -> int:
             sweep=args.sweep,
             report=args.report,
             model=args.model,
+            provider=args.provider,
+            cache_root=args.cache_root,
         )
     if command == "cache":
-        return _cache(rest[0] if rest else None)
+        return _cache(rest[0] if rest else None, provider=args.provider, cache_root=args.cache_root, base_url=args.base_url)
     return fail(f"unknown command `{command}`\n\n{USAGE}")
 
 

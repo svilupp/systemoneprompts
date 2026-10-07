@@ -26,6 +26,7 @@ KNOWN_TOP_LEVEL = (
     "version",
     "description",
     "model",
+    "provider",
     "requires",
     "questions",
     "factors",
@@ -51,8 +52,9 @@ class Definition:
     source: str | None = None
     filename: str | None = None
     source_index: SourceIndex = field(default_factory=SourceIndex)
-    # Keep this field last so existing positional constructors remain valid.
+    # Append optional fields so existing positional constructors remain valid.
     data: dict[str, Any] = field(default_factory=dict)
+    provider: str | None = None
 
 
 def parse_definition(source: str, *, filename: str | None = None) -> Definition:
@@ -86,6 +88,13 @@ def parse_definition(source: str, *, filename: str | None = None) -> Definition:
                 )
             )
 
+    provider = None
+    if "provider" in raw:
+        if raw["provider"] in ("typesafe", "openai"):
+            provider = raw["provider"]
+            meta["provider"] = provider
+        else:
+            diagnostics.append(diagnostic("error", "provider-value", '`provider` must be "typesafe" or "openai"', locate(index, key="provider")))
     model: str | None = None
     if "model" in raw:
         if isinstance(raw["model"], str) and raw["model"].strip():
@@ -157,6 +166,7 @@ def parse_definition(source: str, *, filename: str | None = None) -> Definition:
     return Definition(
         meta=meta,
         model=model,
+        provider=provider,
         requires=requires,
         questions=questions,
         factors=factors,

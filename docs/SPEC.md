@@ -9,10 +9,13 @@ must preserve the same behavior.
 ## Definition shape
 
 A definition is a TOML document with optional scalar metadata (`title`,
-`version`, `description`, `model`, plus other scalar keys) and four recognized
+`version`, `description`, `model`, `provider`, plus other scalar keys) and four recognized
 tables: `[requires]`, `[questions]`, `[factors]`, and optional `[data]`. Unknown top-level tables
 produce warnings and are not silently interpreted. `model` is an optional
-non-empty string; a blank model is an error.
+non-empty string; a blank model is an error. `provider` is optional and must be
+exactly `"typesafe"` or `"openai"`; invalid values produce a positioned
+`provider-value` error. The parser exposes `Definition.provider` and preserves
+valid selection in `meta.provider`. Omitting it preserves existing behavior.
 
 The parser throws only for invalid TOML. Structural problems are returned as
 diagnostics and the invalid entry is omitted. `checkDefinition`/`check_definition`
@@ -144,3 +147,64 @@ version. Cases in `conformance/v1` are the executable compatibility boundary.
 Any change to native question shape, state assertion semantics, factor truth
 tables, diagnostic codes, cache records, or CLI exit behavior requires a new
 fixture and a compatibility review.
+
+## OpenAI Decisions
+
+`OpenAIDecisionsClient` implements the same client contract as `TypeSafeClient`.
+It sends text evidence to `POST /v1/decisions`, uses `OPENAI_API_KEY`, and defaults
+to `gpt-6-luna`. CLI selection is `--provider` > TOML `provider` > TypeSafe.
+OpenAI model precedence is provider default < TOML model < `--model`; an explicit
+model pin is preserved when the provider changes. TypeSafe environment variables
+and Cloudflare credentials have no effect on OpenAI clients.
+
+State strings pass through; other JSON-compatible state uses canonical JSON.
+Structured instructions and criteria also use canonical JSON text. That encoder
+follows JavaScript number precision, including for large Python integers.
+Backticks remain literal and `[data]` is never sent automatically. Noul outcome
+criteria append `\nOutcome criteria (JSON): <canonical criteria>` to instructions.
+Empty instructions use `Evaluate the supplied evidence against the criteria.`;
+a Noul without instructions or nonempty outcome criteria fails locally.
+Choice requires at least two alternatives for OpenAI only.
+
+Transport names are opaque and mapped back to literal application IDs. Normalized
+answers preserve reported probabilities, confidence, fractional Score values,
+and original Score legends. Missing, duplicate, unexpected, malformed, or refused
+answers fail the whole call with `OpenAIDecisionsError`; its `kind` identifies
+compatibility, HTTP, transport, timeout, response, or refusal errors. The error
+retains the raw body, request ID, and relevant HTTP or refused-ID details.
+Required usage counts are nonnegative integers; unavailable counts are errors.
+No probability sum tolerance or probability recalibration is applied.
+
+OpenAI requests default to a ten-second per-attempt timeout and two retries.
+Only transient transport failures and HTTP 408, 429, and 5xx are retried;
+response validation and refusal are terminal. Injected HTTP resources retain
+caller ownership. OpenAI `--cache` uses the same per-question interceptor and
+canonical `{state, questions, model}` envelope as TypeSafe. Its private adapter
+translates only misses to Decisions and normalizes the whole live response
+before any record is written. Refusal and malformed live responses write no
+entries. Invalid cached entries become misses; final merged results pass the
+same strict native validation, including original Score legends.
+
+The supported programmatic caching entry point is the development factory:
+`createCachedOpenAIDecisionsClient({client, dir?, mode?})` from `/dev`, or
+`create_cached_openai_decisions_client(client=..., dir=..., mode=...)` from
+`systemoneprompts.dev`. The supplied client retains its raw network injection
+and ownership. Python's cached client has `close()` to release its own workers;
+callers also close the separately supplied network client.
+
+Default OpenAI records live in
+`.systemoneprompts/providers/openai-decisions/v1/<sha256-base-url>/cache/`.
+A factory `dir` or CLI `--cache-root` replaces `.systemoneprompts` as the root;
+provider/version/base-URL scope is still appended. Normalization trims whitespace,
+trailing slashes, and one `/decisions` suffix. Credentials never enter the hash.
+TypeSafe defaults and record hashes remain unchanged; a CLI custom root selects
+`<root>/cache` for TypeSafe. Cache records have the same format in both runtimes.
+All-hit requests report zero token usage; partial requests report only live usage.
+
+`cache stats` and `cache clear` default to TypeSafe only. Pass `--provider openai`
+to select the OpenAI scope, plus `--cache-root` for a custom root and `--base-url`
+for a custom constructor endpoint. The same resolver is used by run/eval and
+management. Other providers, adapter versions, and endpoints are untouched.
+Read-only misses are terminal `CacheMissError`s. Passing a bare caching transport
+as the client's raw network injection fails locally with `openai-cache-transport`;
+use the dev factory to preserve adapter ordering.

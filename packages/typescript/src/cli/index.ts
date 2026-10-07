@@ -12,9 +12,9 @@ const USAGE = `systemoneprompts <command> [options]
 Commands:
   check     <files...> [--strict]
   generate  <files...> [--out dir] [--check]
-  run       <file> --state s.json | <stdin> [--cache] [--json] [--model name]
-  eval      <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--model name]
-  cache     stats | clear
+  run       <file> --state s.json | <stdin> [--cache] [--json] [--cache-root dir] [--model name] [--provider typesafe|openai]
+  eval      <file> --cases cases.jsonl [--cache] [--sweep factor] [--report out.json] [--cache-root dir] [--model name] [--provider typesafe|openai]
+  cache     stats | clear [--provider typesafe|openai] [--cache-root dir] [--base-url url]
 `;
 
 async function main(): Promise<void> {
@@ -32,6 +32,9 @@ async function main(): Promise<void> {
       sweep: { type: "string" },
       report: { type: "string" },
       model: { type: "string" },
+      provider: { type: "string" },
+      "cache-root": { type: "string" },
+      "base-url": { type: "string" },
       help: { type: "boolean", default: false },
     },
   });
@@ -55,6 +58,8 @@ async function main(): Promise<void> {
         cache: Boolean(values.cache),
         json: Boolean(values.json),
         model: values.model,
+        provider: values.provider,
+        cacheRoot: values["cache-root"],
       });
       break;
     case "eval":
@@ -64,10 +69,16 @@ async function main(): Promise<void> {
         sweep: values.sweep,
         report: values.report,
         model: values.model,
+        provider: values.provider,
+        cacheRoot: values["cache-root"],
       });
       break;
     case "cache":
-      await runCache(rest[0]);
+      await runCache(rest[0], {
+        provider: values.provider,
+        cacheRoot: values["cache-root"],
+        baseURL: values["base-url"],
+      });
       break;
     default:
       fail(`unknown command \`${command}\`\n\n${USAGE}`);

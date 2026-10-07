@@ -1,0 +1,42 @@
+[
+  {
+    "source": "provider = \"openai\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"Is it OK?\"\n",
+    "valid": true,
+    "provider": "openai"
+  },
+  {
+    "source": "provider = \"typesafe\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"Is it OK?\"\n",
+    "valid": true,
+    "provider": "typesafe"
+  },
+  {
+    "source": "provider = \"\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"Is it OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "provider = \"other\"\n[questions.ok]\ntype = \"noul\"\ninstructions = \"Is it OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "provider = 12\n[questions.ok]\ntype = \"noul\"\ninstructions = \"Is it OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "provider = true\n[questions.ok]\ntype = \"noul\"\ninstructions = \"Is it OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "provider = []\n[questions.ok]\ntype = \"noul\"\ninstructions = \"Is it OK?\"\n",
+    "valid": false,
+    "provider": null
+  },
+  {
+    "source": "provider = {}\n[questions.ok]\ntype = \"noul\"\ninstructions = \"Is it OK?\"\n",
+    "valid": false,
+    "provider": null
+  }
+]

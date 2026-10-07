@@ -1,12 +1,12 @@
 # systemoneprompts
 
-Define TypeSafe questions, required state, and Boolean factors in TOML.
-Generate typed TypeScript modules and call the System One API.
+Define decision questions, required state, and Boolean factors in TOML.
+Generate typed TypeScript modules and call TypeSafe or OpenAI Decisions.
 
 ## Quick start
 
 Requires Node 20+ or Bun. Set `TYPESAFE_API_KEY` for native TypeSafe API calls.
-OpenRouter and Cloudflare credentials are described under [Providers](#providers).
+OpenAI, OpenRouter, and Cloudflare credentials are described under [Providers](#providers).
 
 ```sh
 npm install systemoneprompts
@@ -57,6 +57,7 @@ state, answers, and factors.
 | --- | --- |
 | `title`, `version`, `description` | Optional metadata |
 | `model` | Optional model for API calls |
+| `provider` | Optional `typesafe` or `openai`; CLI override takes precedence |
 | `[requires]` | Required state paths and types |
 | `[questions]` | TypeSafe `noul`, `choice`, or `score` questions |
 | `[factors]` | Boolean results computed from answers |
@@ -163,7 +164,17 @@ inside it first; otherwise the client rejects the combination.
 | --- | --- |
 | `api.typesafe.ai` | `jev-1.13.0` / `jev-latest` |
 | OpenRouter | `jev-1.13` or `typesafe/jev-1.13` |
+| OpenAI Decisions | `gpt-6-luna` via `OpenAIDecisionsClient` |
 | Cloudflare | catalog `typesafe/jev` (set by the client) |
+
+OpenAI uses `OPENAI_API_KEY` and the native Decisions endpoint. Its model default
+is `gpt-6-luna`; TypeSafe model pins require an explicit OpenAI model override.
+The shared answer contract supports Noul, Choice, and Score. OpenAI state is text
+or JSON; images are outside this integration. Other model IDs pass through for
+server-side availability checks.
+
+Version 0.2.0 adds OpenAI clients, TOML/CLI provider selection, and local caching.
+The top-level `provider` scalar is now reserved. See [CHANGELOG.md](CHANGELOG.md).
 
 ## CLI
 
@@ -184,7 +195,7 @@ Each eval case has `state` and optional `id`, `labels`, and `factors`.
 Labels are Choice strings, Noul Booleans, or integer Score levels.
 `--sweep <factor>` compares thresholds.
 
-CLI model precedence: `--model`, TOML `model`, `TYPESAFE_MODEL`,
+For TypeSafe, CLI model precedence is `--model`, TOML `model`, `TYPESAFE_MODEL`,
 `TYPESAFE_DEFAULT_MODEL`, then `jev-latest`. In Cloudflare mode `--model` does
 not change the catalog id `typesafe/jev`; the reported `response.model` is
 whatever Cloudflare returned.
@@ -212,3 +223,71 @@ sh scripts/run-quiet.sh "Live tests" -- bun run test:live
 ```
 
 After release checks pass, `bun run release:publish` builds and publishes to npm.
+
+## OpenAI Decisions
+
+Select `provider = "openai"` in TOML or pass `--provider openai` to `run` / `eval`.
+CLI selection overrides TOML; omission keeps TypeSafe. Set `OPENAI_API_KEY`.
+The default OpenAI model is `gpt-6-luna`; TOML `model` and `--model` override it.
+Changing provider preserves a pinned model, so a `jev-latest` definition needs
+`--model gpt-6-luna` when run on OpenAI. `check` and `generate` require no key.
+
+```toml
+provider = "openai"
+[questions.duplicate]
+type = "noul"
+instructions = "Does the customer report two charges for one order?"
+```
+
+```ts
+import { OpenAIDecisionsClient } from "systemoneprompts";
+const client = new OpenAIDecisionsClient();
+const result = await client.systemOne({
+  state: "I was charged twice.",
+  questions: { duplicate: { type: "noul", instructions: "Was the customer charged twice?" } },
+});
+console.log(result.answers.duplicate.noul);
+```
+
+The client accepts the existing Noul, Choice, and Score questions and works with
+batch and taxonomy patterns. Choice needs at least two options. Structured
+instructions, criteria, and state become canonical JSON text; Python integers
+follow JavaScript precision. Score values stay fractional and retain the original
+legend. Refusal and malformed output raise `OpenAIDecisionsError`, whose `kind`,
+raw `body`, and request ID support inspection. New clients use ten-second attempt
+timeouts and two retries. Constructor transport injection is raw network I/O.
+OpenAI `--cache` uses the same canonical per-question cache as TypeSafe. The
+adapter translates only misses, and malformed or refused live responses write
+no new entries. Invalid hits become misses. All-hit usage is zero.
+
+```sh
+systemoneprompts run ticket.toml --state ticket.json --provider openai --cache
+systemoneprompts cache stats --provider openai
+systemoneprompts cache clear --provider openai
+```
+
+`--cache-root /path/to/root` selects a custom root for run/eval and cache
+management. OpenAI appends `providers/openai-decisions/v1/<base-url-hash>/cache`;
+TypeSafe appends `cache`. Defaults remain under `.systemoneprompts`. Cache stats
+and clearing address TypeSafe only unless `--provider openai` is supplied.
+For a custom OpenAI constructor endpoint, use `cache --provider openai --base-url URL`
+to manage that scope. Provider, adapter version, and endpoint scopes stay isolated.
+
+
+See [example 11](examples/11-openai-decisions/README.md) for all three answer types
+and labeled cases. Provider probabilities need separate threshold calibration.
+
+```ts
+import { OpenAIDecisionsClient } from "systemoneprompts";
+import { createCachedOpenAIDecisionsClient } from "systemoneprompts/dev";
+
+const network = new OpenAIDecisionsClient();
+const { client, cache } = createCachedOpenAIDecisionsClient({
+  client: network, mode: "read-write", // also read-only or refresh
+});
+// Use client.systemOne({state, questions}) as usual.
+console.log(cache.dir, cache.stats());
+```
+
+Use the dev factory for caching; passing a bare cache as raw network injection
+is rejected because it would bypass canonical request interception.

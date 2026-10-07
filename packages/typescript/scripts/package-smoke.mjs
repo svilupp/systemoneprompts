@@ -12,11 +12,12 @@ const packDir = join(temp, "pack");
 const env = { ...process.env, TYPESAFE_API_KEY: "" };
 
 const SMOKE = `
-import { realpathSync } from "node:fs";
-import { dirname, sep } from "node:path";
+import { realpathSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, sep, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseDefinition, createFactorEvaluator, TypeSafeClient } from "systemoneprompts";
-import { createCachingFetch } from "systemoneprompts/dev";
+import { parseDefinition, createFactorEvaluator, TypeSafeClient, OpenAIDecisionsClient } from "systemoneprompts";
+import { createCachingFetch, createCachedOpenAIDecisionsClient } from "systemoneprompts/dev";
 import { runMany } from "systemoneprompts/patterns";
 const def = parseDefinition('[questions.ok]\\ntype = "noul"\\ninstructions = "ok?"\\n[factors]\\nyes = { all = ["ok"] }');
 if (def.questions.ok.type !== "noul") throw new Error("root export failed");
@@ -30,6 +31,30 @@ const consumerRoot = realpathSync(dirname(fileURLToPath(import.meta.url)));
 if (resolved !== consumerRoot && !resolved.startsWith(consumerRoot + sep)) {
   throw new Error(\`import resolved outside consumer: \${resolved}\`);
 }
+for (const Client of [TypeSafeClient, OpenAIDecisionsClient]) {
+  const client = new Client({ apiKey: "consumer-test", fetch: async (url) => {
+    const openai = Client === OpenAIDecisionsClient;
+    if (!url.endsWith(openai ? "/v1/decisions" : "/v1/systemone")) throw new Error("wrong provider route");
+    return Response.json({ model: "mock", usage: { input_tokens: 1, output_tokens: 0 }, answers: openai
+      ? [{ name: "q0", type: "predicate", probability: 0.9 }]
+      : { ok: { type: "noul", noul: 0.9 } } });
+  } });
+  const result = await client.systemOne({ state: "ok", questions: def.questions });
+  if (!createFactorEvaluator(def.factorDefinitions)(result.answers).yes) throw new Error("provider normalization failed");
+}
+const cacheRoot = mkdtempSync(join(tmpdir(), "openai-consumer-cache-"));
+try {
+  let calls = 0;
+  const raw = new OpenAIDecisionsClient({ apiKey: "consumer-test", fetch: async () => {
+    calls++;
+    return Response.json({ model: "mock", usage: { input_tokens: 1, output_tokens: 0 }, answers: [{ name: "q0", type: "predicate", probability: 0.9 }] });
+  } });
+  const cached = createCachedOpenAIDecisionsClient({ client: raw, dir: cacheRoot });
+  const request = { state: "ok", questions: def.questions };
+  await cached.client.systemOne(request);
+  const hit = await cached.client.systemOne(request);
+  if (calls !== 1 || hit.usage.input_tokens !== 0) throw new Error("packed cache factory failed");
+} finally { rmSync(cacheRoot, { recursive: true, force: true }); }
 console.log("installed consumer: ok");
 `;
 
