@@ -109,6 +109,9 @@ make release-check-typescript
 make release-check-python
 ```
 
+Regenerate the Python lockfile with `uv --no-config lock` from `packages/python`
+to avoid recording user-level resolver settings that are absent in CI.
+
 Checks use `scripts/run-quiet.sh`: short output on success, full logs on failure.
 The [live validation record](docs/provider-live-validation.md) covers both languages.
 Live provider tests are separate. Run all documented provider/model variations
