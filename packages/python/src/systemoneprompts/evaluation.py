@@ -275,7 +275,7 @@ def protect_report_path(report: str, *inputs: str) -> None:
                 diagnostic(
                     "error",
                     "eval-report",
-                    "--report must not overwrite the definition or cases input",
+                    "--report must not overwrite the definition, cases, or assets input",
                 )
             )
 

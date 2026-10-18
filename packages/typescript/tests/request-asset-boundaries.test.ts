@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { TypeSafeClient } from "../src/client.js";
@@ -21,6 +21,41 @@ async function image(name = "rectangle.png"): Promise<Assets[string]> {
     format: name.endsWith("jpg") ? "jpg" : "png",
     data_base64: data.toString("base64"),
   };
+}
+
+for (const report of ["assets.json", "./assets.json"]) {
+  test(`eval protects the assets input from report path ${report}`, async () => {
+    const dir = await mkdtemp(join(tmpdir(), "sop-report-assets-"));
+    try {
+      const original = JSON.stringify({ photo: await image() });
+      await writeFile(join(dir, "assets.json"), original);
+      await writeFile(
+        join(dir, "definition.toml"),
+        '[assets.photo]\nruntime=true\n[questions.q]\ntype="noul"\ninstructions="Inspect <asset:photo>"',
+      );
+      await writeFile(join(dir, "cases.jsonl"), '{"state":{},"labels":{"q":true}}\n');
+      const result = await cli(
+        [
+          "eval",
+          "definition.toml",
+          "--cases",
+          "cases.jsonl",
+          "--assets",
+          "assets.json",
+          "--report",
+          report,
+          "--experimental-images",
+        ],
+        { cwd: dir, env: { TYPESAFE_API_KEY: "" } },
+      );
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("--report must not overwrite");
+      expect(result.stderr).not.toContain("TYPESAFE_API_KEY");
+      expect(await readFile(join(dir, "assets.json"), "utf8")).toBe(original);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 }
 
 test("empty client and bare cache asset maps share the ordinary text lane", async () => {

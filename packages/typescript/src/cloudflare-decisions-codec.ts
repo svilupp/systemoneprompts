@@ -1,3 +1,4 @@
+import { assetReferences } from "./assets.js";
 import { indexSource } from "./definition/locate.js";
 import { canonicalJson, isJsonValue, isPlainObject } from "./json.js";
 import type { Questions, SystemOneResult } from "./native.js";
@@ -77,6 +78,8 @@ export function encodeDecisionsRequest(state: unknown, questions: Questions, mod
   const checked = validateQuestions(questions, indexSource(""));
   const errors = checked.diagnostics.filter((d) => d.severity === "error");
   if (errors.length) incompatible(errors[0]!.code, errors.map((d) => d.message).join("; "));
+  if (assetReferences(state).size || assetReferences(questions).size)
+    incompatible("images-compatibility", "image references require native TypeSafe");
   const ids = Object.keys(questions);
   if (ids.length > 64)
     incompatible("cloudflare-question-limit", "at most 64 questions are supported");

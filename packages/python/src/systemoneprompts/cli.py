@@ -360,7 +360,7 @@ def _eval(
         )
     try:
         if report:
-            protect_report_path(report, file, cases)
+            protect_report_path(report, file, cases, *([assets] if assets else []))
         definition = _load_checked(file)
         loaded = load_eval_cases(_read_text(cases), cases, definition)
         supplied_assets = _parse_json(_read_text(assets), assets) if assets else {}

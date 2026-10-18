@@ -212,7 +212,7 @@ def test_eval_rejects_report_overwrite(tmp_path: Path) -> None:
         ]
     )
     assert result.returncode == 1
-    assert "must not overwrite the definition or cases input" in result.stderr
+    assert "must not overwrite the definition, cases, or assets input" in result.stderr
 
 
 def test_eval_partial_report_with_fake_client(tmp_path: Path, monkeypatch) -> None:

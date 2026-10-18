@@ -29,6 +29,25 @@ def image(name="rectangle.png"):
     return {"type": "image", "format": "jpg" if name.endswith("jpg") else "png", "data_base64": base64.b64encode(data).decode()}
 
 
+@pytest.mark.parametrize("report", ["assets.json", "./assets.json"])
+def test_eval_protects_assets_input_from_report(tmp_path, report):
+    original = json.dumps({"photo": image()})
+    (tmp_path / "assets.json").write_text(original)
+    (tmp_path / "definition.toml").write_text(
+        '[assets.photo]\nruntime=true\n[questions.q]\ntype="noul"\ninstructions="Inspect <asset:photo>"'
+    )
+    (tmp_path / "cases.jsonl").write_text('{"state":{},"labels":{"q":true}}\n')
+    result = run_cli(
+        ["eval", "definition.toml", "--cases", "cases.jsonl", "--assets", "assets.json", "--report", report, "--experimental-images"],
+        cwd=tmp_path,
+        env={"TYPESAFE_API_KEY": ""},
+    )
+    assert result.returncode == 1
+    assert "--report must not overwrite" in result.stderr
+    assert "TYPESAFE_API_KEY" not in result.stderr
+    assert (tmp_path / "assets.json").read_text() == original
+
+
 @pytest.mark.parametrize("cached", [False, True])
 @pytest.mark.parametrize("assets", [{}, None])
 def test_empty_assets_preserve_text_requests_and_cache(tmp_path, cached, assets):

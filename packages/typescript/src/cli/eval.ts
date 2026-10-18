@@ -66,9 +66,10 @@ export async function runEval(
   if (
     options.report &&
     (resolve(options.report) === resolve(file) ||
-      resolve(options.report) === resolve(options.cases))
+      resolve(options.report) === resolve(options.cases) ||
+      (options.assets !== undefined && resolve(options.report) === resolve(options.assets)))
   ) {
-    fail("--report must not overwrite the definition or cases input");
+    fail("--report must not overwrite the definition, cases, or assets input");
   }
   const def = await loadChecked(file);
   const cases = parseJsonl(await readText(options.cases), options.cases, def);
