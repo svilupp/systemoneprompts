@@ -1,0 +1,19 @@
+title = "Box factors"
+model = "jev-1.14.0"
+
+[assets.photo]
+runtime = true
+
+[questions.visible]
+type = "noul"
+instructions = "Is a red rectangle visible in <asset:photo>?"
+
+[questions.region]
+type = "box"
+instructions = "The red rectangle in <asset:photo>."
+
+[factors]
+present = { ref = "visible", noul = { gte = 0.5 } }
+located = { ref = "region", known = true }
+confident = { ref = "region", known = true, confidence = { gte = 0.8 } }
+usable = { all = ["present", "located", "confident"] }

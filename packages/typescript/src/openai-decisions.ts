@@ -1,3 +1,4 @@
+import { hasVisionFeatures } from "./assets.js";
 import type { SystemOneCallOptions } from "./client.js";
 import { isCachingFetch } from "./cloudflare.js";
 import type { Fetch, Questions, SystemOneRequest, SystemOneResult } from "./native.js";
@@ -65,6 +66,8 @@ export class OpenAIDecisionsClient implements SystemOneClient {
     request: SystemOneRequest<Q>,
     options: SystemOneCallOptions = {},
   ): Promise<SystemOneResult<Q>> {
+    if (hasVisionFeatures(request))
+      incompatible("openai-vision", "image assets and Box questions are unsupported by openai");
     // Snapshot before the first await: normalization uses the exact rubric sent.
     const { body, ids } = encodeDecisionsRequest(
       request.state,

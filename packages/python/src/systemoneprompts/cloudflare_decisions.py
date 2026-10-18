@@ -101,10 +101,13 @@ class CloudflareDecisionsClient:
         *,
         state: Any,
         questions: Mapping[str, Any],
+        assets: Mapping[str, Any] | None = None,
         model: str | None = None,
         timeout: Any = None,
         headers: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
+        if assets is not None:
+            _incompatible("images-compatibility", "images require native TypeSafe")
         snapshot = copy.deepcopy(questions)
         payload, ids = _encode(state, snapshot, self.default_model if model is None else model)
         content = canonical_json(payload).encode("utf-8")

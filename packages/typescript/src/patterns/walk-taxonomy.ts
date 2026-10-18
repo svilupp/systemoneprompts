@@ -1,5 +1,5 @@
 import { isPlainObject } from "../json.js";
-import type { ChoiceResponse, EntryType, Questions } from "../native.js";
+import type { Assets, ChoiceResponse, EntryType, Questions } from "../native.js";
 import { positiveInteger } from "./options.js";
 import type { SystemOneClient } from "./run-many.js";
 
@@ -20,6 +20,7 @@ export interface TaxonomyTree {
 
 export interface WalkTaxonomyOptions {
   state: unknown;
+  assets?: Assets;
   /** Instructions reused at every level; the criteria are the current node's children. */
   instructions?: EntryType;
   tree: TaxonomyTree;
@@ -73,7 +74,12 @@ export async function walkTaxonomy(
           criteria,
         },
       };
-      const response = await client.systemOne({ state: opts.state, questions, model: opts.model });
+      const response = await client.systemOne({
+        state: opts.state,
+        assets: opts.assets,
+        questions,
+        model: opts.model,
+      });
       const { probabilities } = response.answers[STEP] as ChoiceResponse;
 
       for (const label of labels) {

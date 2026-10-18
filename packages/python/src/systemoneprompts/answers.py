@@ -47,6 +47,16 @@ def is_answer_shape(answer: Any) -> bool:
     if not is_plain_object(answer) or not is_json_value(answer):
         return False
     answer_type = answer.get("type")
+    if answer_type == "box":
+        return (
+            "box" in answer
+            and is_box_coordinates(answer["box"])
+            and "confidence" in answer
+            and (
+                answer["confidence"] is None
+                or (_is_finite_number(answer["confidence"]) and 0 <= answer["confidence"] <= 1)
+            )
+        )
     if answer_type == "noul":
         return _is_finite_number(answer.get("noul"))
     if answer_type == "choice":
@@ -131,3 +141,45 @@ __all__ = [
     "score_value",
     "wire_questions",
 ]
+
+
+def is_box_coordinates(value: Any) -> bool:
+    return (
+        is_plain_object(value)
+        and set(value) == {"top", "bottom", "left", "right"}
+        and all(
+            _is_finite_number(value.get(key)) and 0 <= value[key] <= 1
+            for key in ("top", "bottom", "left", "right")
+        )
+        and value["top"] < value["bottom"]
+        and value["left"] < value["right"]
+    )
+
+
+def box_coordinates(answer: Any) -> dict[str, Any] | None:
+    return answer["box"] if is_answer_shape(answer) and answer.get("type") == "box" else None
+
+
+def is_vision_response(value: Any, questions: Mapping[str, Any] | None = None) -> bool:
+    """Validate a complete native image/Box response before caching or normalization."""
+    if (
+        not is_plain_object(value)
+        or not isinstance(value.get("model"), str)
+        or not value["model"].strip()
+        or not is_plain_object(value.get("answers"))
+        or not is_plain_object(value.get("usage"))
+    ):
+        return False
+    if not all(
+        _is_finite_number(value["usage"].get(key))
+        and value["usage"][key] >= 0
+        and value["usage"][key] % 1 == 0
+        for key in ("input_tokens", "output_tokens")
+    ):
+        return False
+    answers = value["answers"]
+    if questions is None:
+        return all(is_answer_shape(answer) for answer in answers.values())
+    return set(answers) == set(questions) and all(
+        is_answer_for_question(question, answers[ref]) for ref, question in questions.items()
+    )

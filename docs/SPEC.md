@@ -43,7 +43,7 @@ string-only Score levels and cannot be combined with a custom TypeSafe base URL.
 
 A definition is a TOML document with optional scalar metadata (`title`,
 `version`, `description`, `model`, `provider`, `base_url`, plus other scalar keys) and four recognized
-tables: `[requires]`, `[questions]`, `[factors]`, and optional `[data]`. Unknown top-level tables
+tables: `[requires]`, `[questions]`, `[factors]`, optional `[assets]`, and optional `[data]`. Unknown top-level tables
 produce warnings and are not silently interpreted. `model` is an optional
 non-empty string; a blank model is an error. `provider` is optional and must be
 exactly `"typesafe"`, `"openai"`, `"cloudflare"`, or `"openrouter"`; invalid values produce a positioned
@@ -82,6 +82,7 @@ quoted IDs containing dots. Every question is a table with only `type`,
 - `noul`: optional `criteria` table with only `true` and `false` entries.
 - `choice`: non-empty criteria table with at most 255 labels.
 - `score`: criteria array with at least two entries.
+- `box`: instructions identify one target in one image; criteria are forbidden.
 
 `instructions` and criteria entries are forwarded verbatim when they are a
 string, JSON-compatible table, or JSON-compatible array. TOML dates, times,
@@ -94,6 +95,9 @@ Native System One answers under a response `answers` map:
 - Noul: type `noul` and a finite `noul` number.
 - Choice: type `choice`, a `choice` label, finite `confidence`, and `probabilities` with a finite probability for every criteria label.
 - Score: type `score`, a finite `score` expected value (a float between levels, not a level label), finite `confidence`, plus `legend` and `probabilities` keyed by the decimal string of each criteria index (`"0"`, `"1"`, ...).
+- Box: type `box`, a `box` object with exactly `top`, `bottom`, `left`, and
+  `right`, and `confidence` as a finite number in `[0,1]` or `null`. All edges
+  are finite fractions in `[0,1]`; `top < bottom` and `left < right`.
 
 Packages may expose helpers that read those fields and that partition answers into valid, missing, and malformed ids. They must not invent a Score level as a native field. `wireQuestions` / `wire_questions` returns only `type`, `instructions`, and `criteria` for each question.
 
@@ -135,6 +139,69 @@ or unusable answer. `known` treats explicit `missing`, confidence `0`, and a
 bare Noul exactly equal to `0.5` as unknown; usable Choice and Score answers
 are known.
 
+Box predicates support `known` and `confidence`. Null Box confidence is unknown.
+A predicate combining `known = true` with a numeric confidence comparator returns
+false for null. A numeric comparison on null without that guard is a runtime
+error. Box answers cannot be bare Boolean operands or use Noul, Choice, or Score
+comparators. Box never indicates target absence; ask a separate Noul presence
+question and gate use of the coordinates.
+
+## Image assets and Box
+
+`[assets.<id>]` declares exactly one source: a nonblank `path` string for a
+static image, or `runtime = true` for a runtime slot. Managed IDs are nonempty
+and contain no `<` or `>` characters. Unknown fields and mixed
+sources are errors. Static paths resolve relative to the TOML file, independent
+of process working directory. Parsing is pure and records declarations; file
+loading/preflight reads and validates static images with positioned diagnostics.
+
+Reserved `<asset:id>` references work within string values in state, instructions,
+and criteria, recursively. Keys remain literal. All reserved references in
+definition questions must have declarations, so check/generation catch typos.
+Runtime state references and unused supplied assets are checked on the final request,
+when state is available; static declarations may be used only by state. Runtime bindings
+must supply declared slots by logical ID without replacing static files. Managed loaders
+convert declared IDs to complete `<asset:id>` native map keys, preserving source strings.
+Declarations and bundle manifests retain logical IDs. Undeclared binding keys remain raw
+native references; collisions with the emitted managed tokens are errors. `[data]` does not
+declare or implicitly send assets. State requirements retain the existing JSON
+types; there is no image requirement type.
+
+Native requests accept an `assets` map whose values contain exactly
+`type = "image"`, `format = "png"`, `"jpg"`, or `"jpeg"`, and standard padded
+`data_base64`. Referenced assets must exist and supplied assets must be used.
+Native map keys are nonblank reference strings, at most 1,024 UTF-8 bytes each
+and 65,536 bytes together; angle brackets are allowed. Only string values in
+state, instructions, and criteria count as uses. Whole values match first, then
+substrings match left to right without overlap. Local validation rejects two
+references starting at the same position in a longer string as ambiguous.
+Reserved `<asset:id>` syntax still requires a corresponding binding.
+PNG/JPEG bytes are validated against their declared format, dimensions, and file
+size. Both dimensions must be 280 through 1568 pixels and decoded file size at
+most 16 MiB. Animated or malformed images are rejected. The library neither
+resizes nor downloads URLs; EXIF orientation is not applied. JSON request size
+is at most 32 MiB. TypeSafe's separate 32 MiB limits for server-processed images
+and expanded requests still apply; local checks cannot predict re-encoded size.
+
+Images and Box require explicit `TypeSafe-Danger-Zone-Images: true`; the CLI flag
+is `--experimental-images`. CLI `--assets <json>` and eval case `assets` carry
+runtime binding maps (logical IDs for declared slots, raw native keys otherwise). Only native TypeSafe supports these features in this
+integration. OpenAI, OpenRouter, Cloudflare Decisions, and legacy Cloudflare/Jev
+reject them before transport or cache lookup. Images work on Jev 1.13 and 1.14;
+Box requires Jev 1.14. No image output is introduced.
+
+Generation copies each static image into an output-module companion `.assets`
+directory under a content-addressed filename and writes a versioned hash manifest.
+Generated `loadAssets` / `load_assets` explicitly reads and verifies the bundle
+and combines runtime bindings. Imports perform no image I/O. Default bundle paths
+are anchored to `import.meta.url` / `__file__`, with an explicit relocation base
+override. Deploy the module and bundle together; source TOML/images are unnecessary
+at runtime. `generate --check` covers both source image contents and bundle bytes.
+
+Scalar Box labels are rejected by ordinary eval. Presence and geometric accuracy
+are evaluated separately using held-out labels and IoU, with predeclared gates;
+see [image validation](vision.md).
+
 Boolean operators validate every operand even if an earlier operand already
 determines the result. Factor definitions are snapshotted when an evaluator is
 created, factor IDs are prototype-safe, and independent cycles are reported
@@ -165,6 +232,18 @@ records atomically, treats malformed records as misses, validates cached
 answers against the question criteria, and merges valid cached hits with valid
 live answers. Read-only misses fail. Cache statistics are cumulative and
 prototype-safe.
+
+Calls with assets or Box use a whole-request image cache. The canonical key is
+`{version:1, endpoint, provider:"typesafe", model, state, questions, assets}`,
+where endpoint is the resolved request URL. Image bytes, all questions, state,
+and model participate in identity. Records live under
+`images/v1/<first-two-hash-characters>/<sha256-key>.json` in the cache root and
+contain canonical `{version:1, key, model, answers, usage}` plus optional
+`requestedModel` for drift reporting. Older records remain readable. Both languages write
+identical records. Cached answers undergo native response validation; malformed
+records are misses. Whole-request cache hits report zero usage. Existing text-only
+per-question keys and records remain unchanged. Vision compatibility validation
+runs before cache lookup.
 
 `runMany` requires a positive concurrency limit, preserves input order, and
 invokes a result callback at most once per result. It may ask the same

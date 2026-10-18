@@ -23,3 +23,10 @@ PyPI:
 The TypeScript release check packs the npm tarball and smokes it from
 fresh npm and bun installs under both Node and Bun. The packages publish
 independently to npm and PyPI.
+
+Application deployment artifacts must include generated modules and their
+companion `.assets` directories. Source TOML/images and repository examples
+are not required in published library distributions. Both release checks verify
+generated image loaders in clean installed consumers after moving the module
+and bundle together and removing source TOML/images. TypeScript deployments
+must copy the bundle next to the compiled module. See [images and Box](vision.md).

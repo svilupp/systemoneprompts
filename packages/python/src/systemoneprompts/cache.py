@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-from .answers import is_answer_for_question, is_answer_shape
+from .answers import is_answer_for_question, is_answer_shape, is_vision_response
 from .json_values import (
     canonical_json,
     is_plain_object,
@@ -65,7 +65,9 @@ class CacheMissError(RuntimeError):
 
 
 class CachingFetch:
-    def __init__(self, handler: Callable[[str, Mapping[str, Any] | None], FetchResponse], directory: str) -> None:
+    def __init__(
+        self, handler: Callable[[str, Mapping[str, Any] | None], FetchResponse], directory: str
+    ) -> None:
         self._handler = handler
         self.dir = directory
         self._stats = CacheStats()
@@ -122,7 +124,7 @@ def create_caching_fetch(
         options = dict(init or {})
         method = str(options.get("method") or "GET").upper()
         body = options.get("body")
-        if not _is_system_one_request(url, method) or not isinstance(body, str):
+        if method != "POST" or not isinstance(body, str):
             return _forward(base_fetch, url, options)
         try:
             parsed = parse_json(body)
@@ -131,6 +133,14 @@ def create_caching_fetch(
         if not is_plain_object(parsed) or not is_plain_object(parsed.get("questions")):
             return _forward(base_fetch, url, options)
 
+        if type(parsed.get("assets")) is dict and not parsed["assets"]:
+            del parsed["assets"]
+        if "assets" in parsed or any(
+            isinstance(q, dict) and q.get("type") == "box" for q in parsed["questions"].values()
+        ):
+            return _image_request(base_fetch, directory, mode, stats, url, options, parsed)
+        if not _is_system_one_request(url, method):
+            return _forward(base_fetch, url, options)
         model = parsed["model"] if isinstance(parsed.get("model"), str) else None
         # An absent `state` key hashes differently from `state: null` (JS `undefined`
         # is omitted by `JSON.stringify`); preserve that distinction for shared caches.
@@ -200,7 +210,9 @@ def create_caching_fetch(
                 if question_id in answers and _is_answer_for_question(
                     misses[question_id], answers[question_id]
                 ):
-                    if validate_entry is None or validate_entry(misses[question_id], answers[question_id]):
+                    if validate_entry is None or validate_entry(
+                        misses[question_id], answers[question_id]
+                    ):
                         valid_live[question_id] = answers[question_id]
 
         all_misses_valid = all(question_id in valid_live for question_id in miss_ids)
@@ -214,7 +226,9 @@ def create_caching_fetch(
             or "jev-latest"
         )
         for question_id, answer in valid_live.items():
-            digest = question_hash({**hash_base, "id": question_id, "question": misses[question_id]})
+            digest = question_hash(
+                {**hash_base, "id": question_id, "question": misses[question_id]}
+            )
             entry = CachedEntry(
                 hash=digest,
                 requested_model=model,
@@ -248,18 +262,33 @@ def create_caching_fetch(
 
 
 def cache_stats(directory: str | None = None) -> dict[str, Any]:
+    """Count disk records: one per text question or whole image request."""
     path = directory or default_cache_dir()
     models: dict[str, int] = {}
     drift_map: dict[str, dict[str, Any]] = {}
     entries = 0
-    for file in _list_entries(path):
+    for file in [*_list_entries(path), *_list_entries(str(Path(path) / "images" / "v1"))]:
         digest = Path(file).stem
         raw = _read_entry_file(file, digest)
+        if raw is None and Path(file).parent.parent == Path(path) / "images" / "v1":
+            try:
+                value = parse_json(Path(file).read_text(encoding="utf-8"))
+                if _is_image_entry(value, digest):
+                    raw = CachedEntry(
+                        hash=digest,
+                        reported_model=value["model"],
+                        requested_model=value.get("requestedModel"),
+                        answer=value["answers"],
+                    )
+            except (OSError, ValueError, RecursionError):
+                pass
         if raw is None:
             continue
         entries += 1
         reported = raw.reported_model
         models[reported] = models.get(reported, 0) + 1
+        if Path(file).parent.parent == Path(path) / "images" / "v1" and raw.requested_model is None:
+            continue
         key = json.dumps([raw.requested_model, reported])
         existing = drift_map.get(key) or {
             "requested": raw.requested_model,
@@ -279,9 +308,22 @@ def cache_stats(directory: str | None = None) -> dict[str, Any]:
 
 def clear_cache(directory: str | None = None, *, root: str | None = None) -> None:
     path = Path(directory or default_cache_dir()).resolve()
-    provider_scope = (len(path.parts) >= 6 and path.parts[-5:-2] in (("providers", "openrouter-decisions", "v1"), ("providers", "openai-decisions", "v1"), ("providers", "cloudflare-decisions", "v1"))
-                      and len(path.parts[-2]) == 64 and all(c in "0123456789abcdef" for c in path.parts[-2]))
-    if path.name != "cache" or not (".systemoneprompts" in path.parts or provider_scope or (root is not None and path == (Path(root) / "cache").resolve())):
+    provider_scope = (
+        len(path.parts) >= 6
+        and path.parts[-5:-2]
+        in (
+            ("providers", "openrouter-decisions", "v1"),
+            ("providers", "openai-decisions", "v1"),
+            ("providers", "cloudflare-decisions", "v1"),
+        )
+        and len(path.parts[-2]) == 64
+        and all(c in "0123456789abcdef" for c in path.parts[-2])
+    )
+    if path.name != "cache" or not (
+        ".systemoneprompts" in path.parts
+        or provider_scope
+        or (root is not None and path == (Path(root) / "cache").resolve())
+    ):
         raise RuntimeError(f"refusing to clear unexpected cache directory {path}")
     import shutil
 
@@ -423,7 +465,11 @@ def _read_entry_file(file: str, digest: str, question: Any | None = None) -> Cac
 
 
 def _is_cached_entry(value: Any, digest: str, question: Any | None = None) -> bool:
-    if not isinstance(digest, str) or len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
+    if (
+        not isinstance(digest, str)
+        or len(digest) != 64
+        or any(ch not in "0123456789abcdef" for ch in digest)
+    ):
         return False
     if not is_plain_object(value) or value.get("hash") != digest:
         return False
@@ -475,3 +521,131 @@ __all__ = [
     "question_hash",
     "transport_headers",
 ]
+
+
+def image_request_hash(url: str, request: Mapping[str, Any]) -> str:
+    import hashlib
+
+    descriptor = {
+        "version": 1,
+        "endpoint": url,
+        "provider": "typesafe",
+        "model": request.get("model"),
+        "state": request.get("state"),
+        "questions": request["questions"],
+        "assets": request.get("assets") or {},
+    }
+    return hashlib.sha256(canonical_json(descriptor).encode("utf-8")).hexdigest()
+
+
+def _image_request(
+    base_fetch: FetchHandler,
+    directory: str,
+    mode: CacheMode,
+    stats: CacheStats,
+    url: str,
+    options: dict[str, Any],
+    request: dict[str, Any],
+) -> FetchResponse:
+    from urllib.parse import urlsplit
+
+    from .assets import validate_assets
+    from .diagnostics import SystemOnePromptsError, diagnostic
+
+    if not urlsplit(url).path.endswith(SYSTEMONE_PATH) or getattr(
+        base_fetch, "systemoneprompts_cloudflare", False
+    ):
+        raise SystemOnePromptsError(
+            diagnostic("error", "images-compatibility", "image cache supports native TypeSafe only")
+        )
+    headers = {str(name).lower(): value for name, value in (options.get("headers") or {}).items()}
+    options["headers"] = headers
+    if not any(
+        str(name).lower() == "typesafe-danger-zone-images" and str(value).lower() == "true"
+        for name, value in headers.items()
+    ):
+        raise SystemOnePromptsError(
+            diagnostic(
+                "error", "images-opt-in", "image cache requires TypeSafe-Danger-Zone-Images: true"
+            )
+        )
+    if "assets" in request and request["assets"] is None:
+        raise SystemOnePromptsError(
+            diagnostic("error", "image-assets", "assets must be an image reference map")
+        )
+    validate_assets(
+        request.get("assets"), questions=request["questions"], state=request.get("state")
+    )
+    if len(canonical_json(request).encode("utf-8")) > 32 * 1024 * 1024:
+        raise SystemOnePromptsError(
+            diagnostic("error", "images-size", "image request exceeds 32 MiB wire JSON")
+        )
+    digest = image_request_hash(url, request)
+    path = _entry_path(str(Path(directory) / "images" / "v1"), digest)
+    ids = list(request["questions"])
+
+    def valid(value: Any) -> bool:
+        return _is_image_entry(value, digest) and is_vision_response(value, request["questions"])
+
+    cached = None
+    if mode != "refresh":
+        try:
+            candidate = parse_json(path.read_text(encoding="utf-8"))
+            if valid(candidate):
+                cached = candidate
+        except (OSError, ValueError, RecursionError):
+            pass
+    stats.requests += 1
+    stats.keys = ids
+    stats.hits += len(ids) if cached else 0
+    stats.misses += 0 if cached else len(ids)
+    if cached:
+        return _json_response(
+            {
+                "model": cached["model"],
+                "answers": cached["answers"],
+                "usage": {"input_tokens": 0, "output_tokens": 0},
+            }
+        )
+    if mode == "read-only":
+        raise CacheMissError(ids)
+    response = _forward(base_fetch, url, options)
+    if not 200 <= response.status < 300:
+        return response
+    try:
+        result = parse_json(response.body.decode("utf-8"))
+        record = {
+            "version": 1,
+            "key": digest,
+            "model": result.get("model"),
+            "answers": result.get("answers"),
+            "usage": result.get("usage"),
+        }
+        if isinstance(request.get("model"), str):
+            record["requestedModel"] = request["model"]
+        if not valid(record):
+            return response
+    except (ValueError, UnicodeError, AttributeError):
+        return response
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=".image.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(canonical_json(record) + "\n")
+        os.replace(temporary, path)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+    return response
+
+
+def _is_image_entry(value: Any, digest: str) -> bool:
+    return (
+        len(digest) == 64
+        and all(c in "0123456789abcdef" for c in digest)
+        and is_plain_object(value)
+        and type(value.get("version")) is int
+        and value["version"] == 1
+        and value.get("key") == digest
+        and ("requestedModel" not in value or isinstance(value["requestedModel"], str))
+        and is_vision_response(value)
+    )

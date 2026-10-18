@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add experimental native PNG/JPEG image assets and typed Box questions and answers.
+- Add static/runtime asset declarations, relocatable generated image bundles, CLI bindings, and whole-request image caching.
+- Add image examples, offline localization scoring, and explicit live vision checks.
+
 ## 0.2.0 - 2026-10-07
 
 ### Added

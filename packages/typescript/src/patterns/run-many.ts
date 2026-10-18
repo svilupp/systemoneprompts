@@ -1,4 +1,4 @@
-import type { Questions, SystemOneResult } from "../native.js";
+import type { Assets, Questions, SystemOneResult } from "../native.js";
 import { positiveInteger } from "./options.js";
 
 /**
@@ -9,6 +9,7 @@ export interface SystemOneClient {
   systemOne(request: {
     state: unknown;
     questions: Questions;
+    assets?: Assets;
     model?: string;
   }): Promise<SystemOneResult<Questions>>;
 }
@@ -16,10 +17,12 @@ export interface SystemOneClient {
 export interface RunManyItem<Q extends Questions = Questions> {
   state: unknown;
   questions: Q;
+  assets?: Assets;
   model?: string;
 }
 
 type RunManyShared<Q extends Questions> = {
+  assets?: Assets;
   model?: string;
   /** Maximum in-flight requests. Default 4. */
   concurrency?: number;
@@ -60,6 +63,7 @@ export async function runMany<Q extends Questions>(
       try {
         const result = (await client.systemOne({
           state: job.state,
+          assets: job.assets,
           questions: job.questions,
           model: job.model,
         })) as SystemOneResult<Q>;
@@ -77,10 +81,11 @@ export async function runMany<Q extends Questions>(
 }
 
 function jobsOf<Q extends Questions>(opts: RunManyOptions<Q>): RunManyItem<Q>[] {
-  const { items, states, questions, model } = opts as {
+  const { items, states, questions, model, assets } = opts as {
     items?: readonly RunManyItem<Q>[];
     states?: readonly unknown[];
     questions?: Q;
+    assets?: Assets;
     model?: string;
   };
   if (items !== undefined && (states !== undefined || questions !== undefined)) {
@@ -89,6 +94,7 @@ function jobsOf<Q extends Questions>(opts: RunManyOptions<Q>): RunManyItem<Q>[] 
   if (items !== undefined) {
     return items.map((item) => ({
       state: item.state,
+      assets: item.assets ?? assets,
       questions: item.questions,
       model: item.model ?? model,
     }));
@@ -96,5 +102,5 @@ function jobsOf<Q extends Questions>(opts: RunManyOptions<Q>): RunManyItem<Q>[] 
   if (questions === undefined || states === undefined) {
     throw new Error("runMany requires questions and states");
   }
-  return states.map((state) => ({ state, questions, model }));
+  return states.map((state) => ({ state, questions, model, assets }));
 }

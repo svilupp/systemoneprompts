@@ -10,7 +10,7 @@ from .diagnostics import Diagnostic, SourceLocation, diagnostic
 from .json_values import is_entry_type, is_plain_object, js_string
 from .locate import SourceIndex, locate
 
-QUESTION_TYPES = ("noul", "choice", "score")
+QUESTION_TYPES = ("noul", "choice", "score", "box")
 QUESTION_FIELDS = {"type", "instructions", "criteria"}
 MAX_CHOICE_LABELS = 255
 _BACKTICK_RE = re.compile(r"`([^`]+)`")
@@ -96,7 +96,7 @@ def _validate_question(
                 f"question `{question_id}` has {'missing' if question_type is None else 'invalid'} type"
                 + ("" if question_type is None else f" `{js_string(question_type)}`"),
                 location,
-                'type must be "noul", "choice", or "score"',
+                'type must be "noul", "choice", "score", or "box"',
             )
         )
         return None, diagnostics
@@ -112,6 +112,10 @@ def _validate_question(
         )
         return None, diagnostics
 
+    if question_type == "box":
+        if "criteria" in value:
+            return None, [*diagnostics, diagnostic("error", "box-criteria", f"Box `{question_id}` does not accept criteria", location)]
+        return _question_object("box", value, None), diagnostics
     if question_type == "noul":
         question, extra = _validate_noul(question_id, value, location, diagnostics)
     elif question_type == "choice":

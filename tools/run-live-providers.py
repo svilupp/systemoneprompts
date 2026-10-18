@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import subprocess
@@ -46,6 +47,7 @@ def main() -> int:
             "stdin",
             "text-simple",
             "json-structured",
+            "vision",
         ),
         action="append",
         help="Run only selected variations; repeat to select more than one",
@@ -159,6 +161,8 @@ def main() -> int:
                 "cli",
                 "stdin",
             ):
+                if mode == "vision":
+                    continue
                 row = {
                     "language": language,
                     "provider": provider,
@@ -413,6 +417,56 @@ def main() -> int:
                     f"{language}: {provider} {model} {mode}: {row['status']}",
                     flush=True,
                 )
+        if args.variation and "vision" in args.variation and args.provider in (None, "typesafe"):
+            rows.extend(run_vision(language))
+        return rows
+
+    def run_vision(language):
+        """Two opt-in image requests per language, then cache-only replays."""
+        rows = []
+        for model in ("jev-1.13.0", "jev-1.14.0"):
+            row = {"language": language, "provider": "typesafe", "model": model, "variation": "vision"}
+            if not env.get("TYPESAFE_API_KEY"):
+                row.update(status="skip", reason="Required provider credentials unavailable")
+                rows.append(row)
+                continue
+            started = time.monotonic()
+            source = dict(env)
+            for name in ("CLOUDFLARE_ACCOUNT_ID", "TYPESAFE_BASE_URL", "TYPESAFE_MODEL", "TYPESAFE_DEFAULT_MODEL"):
+                source.pop(name, None)
+            try:
+                with tempfile.TemporaryDirectory(prefix="live-vision-") as temporary:
+                    cwd = Path(temporary)
+                    image = ROOT / "conformance/v1/images/rectangle.png"
+                    # Explicit base64 JSON lane; no multipart or external image fetch.
+                    (cwd / "assets.json").write_text(json.dumps({"photo": {"type": "image", "format": "png", "data_base64": base64.b64encode(image.read_bytes()).decode("ascii")}}))
+                    (cwd / "state.json").write_text(json.dumps({"photo": "<asset:photo>"}))
+                    definition = cwd / "vision.toml"
+                    text = f'provider = "typesafe"\nmodel = "{model}"\n\n[assets.photo]\nruntime = true\n\n[requires]\nphoto = "string"\n\n[questions.target_present]\ntype = "noul"\ninstructions = "Is there a red rectangle in `photo`?"\n'
+                    if model == "jev-1.14.0":
+                        text += '\n[questions.target_box]\ntype = "box"\ninstructions = "The red rectangle in `photo`."\n'
+                    definition.write_text(text)
+                    flags = ["--state", str(cwd / "state.json"), "--assets", str(cwd / "assets.json"), "--experimental-images", "--cache", "--cache-root", str(cwd / "records"), "--json"]
+                    outputs = []
+                    for _ in range(2):
+                        result = subprocess.run([*command(language), "run", str(definition), *flags], text=True, capture_output=True, cwd=cwd, env=source, timeout=50, check=False)
+                        if result.returncode:
+                            raise RuntimeError(redact(result.stdout + result.stderr)[-2000:])
+                        outputs.append(json.loads(result.stdout))
+                    assert outputs[0]["answers"] == outputs[1]["answers"], "Image cache changed answers"
+                    assert outputs[1]["usage"] == {"input_tokens": 0, "output_tokens": 0}, "Image cache miss"
+                    present = outputs[0]["answers"]["target_present"]
+                    assert present["type"] == "noul", "Expected native Noul response"
+                    if model == "jev-1.14.0":
+                        answer = outputs[0]["answers"]["target_box"]
+                        assert answer["type"] == "box", "Expected native Box response"
+                        assert set(answer["box"]) == {"top", "bottom", "left", "right"}, "Invalid Box response"
+                    row.update(status="pass", modelReported=outputs[0]["model"], usage=outputs[0]["usage"], answers=outputs[0]["answers"], checks=["JSON/base64 image request", "experimental header", "native response", "whole-request cache hit"], note="Synthetic transport smoke only; no localization quality claim")
+            except (AssertionError, RuntimeError, OSError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
+                row.update(status="fail", message=redact(str(error)))
+            row["seconds"] = round(time.monotonic() - started, 3)
+            rows.append(row)
+            print(f"{language}: typesafe {model} vision: {row['status']}", flush=True)
         return rows
 
     languages = [args.language] if args.language else ["typescript", "python"]

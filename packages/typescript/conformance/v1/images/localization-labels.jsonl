@@ -1,0 +1,2 @@
+{"id":"synthetic-present","image":"rectangle.png","present":true,"box":{"top":0.25,"bottom":0.75,"left":0.25,"right":0.75}}
+{"id":"synthetic-absent","image":"empty.png","present":false}

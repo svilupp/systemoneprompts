@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import inspect
+import json
 import time
 from collections.abc import Mapping
 from datetime import UTC, datetime
@@ -12,6 +14,7 @@ from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated, Any, Literal
 
 import httpx2
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from .cache import CacheMissError
 from .cloudflare import (
@@ -74,7 +77,7 @@ class TypeSafeRateLimitError(TypeSafeHttpError):
 
 
 def _models() -> Any:
-    from pydantic import BaseModel, ConfigDict, Field
+    from pydantic import Field
 
     class NoulAnswer(BaseModel):
         model_config = ConfigDict(extra="ignore")
@@ -101,7 +104,7 @@ def _models() -> Any:
         input_tokens: int | None = None
         output_tokens: int | None = None
 
-    Answer = Annotated[NoulAnswer | ChoiceAnswer | ScoreAnswer, Field(discriminator="type")]
+    Answer = Annotated[NoulAnswer | ChoiceAnswer | ScoreAnswer | BoxAnswer, Field(discriminator="type")]
 
     class SystemOneResponse(BaseModel):
         model_config = ConfigDict(extra="ignore")
@@ -110,6 +113,36 @@ def _models() -> Any:
         usage: Usage = Field(default_factory=Usage)
 
     return SystemOneResponse
+
+
+class BoxCoordinates(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
+    top: float
+    bottom: float
+    left: float
+    right: float
+
+    @model_validator(mode="before")
+    @classmethod
+    def geometry(cls, value: Any) -> Any:
+        from .answers import is_box_coordinates
+        if not is_box_coordinates(value):
+            raise ValueError("invalid normalized Box coordinates")
+        return value
+
+class BoxAnswer(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    type: Literal["box"]
+    box: BoxCoordinates
+    confidence: float | None
+
+    @model_validator(mode="before")
+    @classmethod
+    def shape(cls, value: Any) -> Any:
+        from .answers import is_answer_shape
+        if not is_answer_shape(value):
+            raise ValueError("invalid Box answer")
+        return value
 
 
 class TypeSafeClient:
@@ -196,6 +229,7 @@ class TypeSafeClient:
         }
         if key:
             self.default_headers["Authorization"] = f"Bearer {key}"
+        self.default_headers = self._headers(None)
         self._owns_client = http_client is None
         self._async = False
         if account and http_client is not None:
@@ -246,22 +280,25 @@ class TypeSafeClient:
         *,
         state: Any,
         questions: Mapping[str, Any],
+        assets: Mapping[str, Any] | None = None,
         model: str | None = None,
         timeout: float | Any | None = None,
         headers: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
-        payload = self._payload(state, questions, model)
+        headers = copy.deepcopy(self._headers(headers))
+        payload = self._payload(state, questions, model, assets, headers)
         if self._async:
             raw = await self._send_async(payload, timeout=timeout, headers=headers)
         else:
             raw = await asyncio.to_thread(self._send, payload, timeout, headers)
-        return self._finalize(raw)
+        return self._finalize(raw, payload)
 
     def system_one_sync(
         self,
         *,
         state: Any,
         questions: Mapping[str, Any],
+        assets: Mapping[str, Any] | None = None,
         model: str | None = None,
         timeout: float | Any | None = None,
         headers: Mapping[str, str] | None = None,
@@ -274,22 +311,36 @@ class TypeSafeClient:
                     "system_one_sync needs a sync httpx2.Client",
                 )
             )
-        return self._finalize(self._send(self._payload(state, questions, model), timeout, headers))
+        headers = copy.deepcopy(self._headers(headers))
+        payload = self._payload(state, questions, model, assets, headers)
+        return self._finalize(self._send(payload, timeout, headers), payload)
 
     def _payload(
-        self, state: Any, questions: Mapping[str, Any], model: str | None
+        self, state: Any, questions: Mapping[str, Any], model: str | None, assets: Any = None, headers: Any = None
     ) -> dict[str, Any]:
         if not questions:
             raise TypeSafeClientError(
                 diagnostic("error", "provider-client", "system_one requires at least one question")
             )
-        return {
-            "state": state,
-            "questions": dict(questions),
-            "model": self.default_model if model is None else model,
-        }
+        from .assets import validate_assets
+        bound = validate_assets(assets, questions=questions, state=state)
+        experimental = bool(bound) or any(q.get("type") == "box" for q in questions.values())
+        if experimental:
+            if self.provider != "typesafe" or self.cloudflare_account_id:
+                raise TypeSafeClientError(diagnostic("error", "images-compatibility", "Box and images require native TypeSafe"))
+            if not any(name.lower() == "typesafe-danger-zone-images" and str(value).lower() == "true" for name, value in (headers or {}).items()):
+                raise TypeSafeClientError(diagnostic("error", "images-opt-in", "Box and images require TypeSafe-Danger-Zone-Images: true"))
+        payload = {"state": state, "questions": dict(questions), "model": self.default_model if model is None else model}
+        if bound:
+            payload["assets"] = bound
+        if experimental and len(json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")) > 32 * 1024 * 1024:
+            raise TypeSafeClientError(diagnostic("error", "images-size", "image request exceeds 32 MiB wire JSON"))
+        return copy.deepcopy(payload)
 
-    def _finalize(self, raw: Any) -> dict[str, Any]:
+    def _finalize(self, raw: Any, payload: Mapping[str, Any] | None = None) -> dict[str, Any]:
+        from .answers import is_vision_response
+        if payload is not None and ("assets" in payload or any(q.get("type") == "box" for q in payload["questions"].values())) and not is_vision_response(raw, payload["questions"]):
+            raise TypeSafeClientError(diagnostic("error", "provider-response", "invalid System One response: image/Box contract"))
         try:
             parsed = self._response_type.model_validate(raw)
         except Exception as error:
@@ -400,13 +451,18 @@ class TypeSafeClient:
         return kwargs
 
     def _headers(self, extra: Mapping[str, str] | None) -> dict[str, str]:
-        merged = dict(self.default_headers)
-        if extra:
-            merged.update(extra)
-        if self.api_key:
-            # Header names are case-insensitive; a caller `authorization` must not merge with ours.
-            for name in [name for name in merged if name.lower() == "authorization"]:
+        merged: dict[str, str] = {}
+        for source in (self.default_headers, extra or {}):
+            for name, value in source.items():
+                for previous in list(merged):
+                    if previous.lower() == name.lower():
+                        del merged[previous]
+                merged[name] = value
+        for name in list(merged):
+            if name.lower() == "content-type" or (self.api_key and name.lower() == "authorization"):
                 del merged[name]
+        merged["Content-Type"] = "application/json"
+        if self.api_key:
             merged["Authorization"] = f"Bearer {self.api_key}"
         return merged
 
@@ -514,6 +570,8 @@ def _wrap_connection(error: BaseException) -> BaseException:
 __all__ = [
     "DEFAULT_BASE_URL",
     "DEFAULT_TIMEOUT",
+    "BoxAnswer",
+    "BoxCoordinates",
     "TypeSafeClient",
     "TypeSafeClientError",
     "TypeSafeHttpError",

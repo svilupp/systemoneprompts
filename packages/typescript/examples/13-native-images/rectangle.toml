@@ -1,0 +1,25 @@
+title = "Native images and Box"
+provider = "typesafe"
+model = "jev-1.14.0"
+
+[assets.reference_target]
+path = "./images/reference-target.jpg"
+
+[assets.photo]
+runtime = true
+
+[requires]
+photo = "string"
+
+[questions.target_present]
+type = "noul"
+instructions = "Does `photo` contain the same red rectangle as <asset:reference_target>?"
+
+[questions.target_box]
+type = "box"
+instructions = "The red rectangle in `photo` matching <asset:reference_target>."
+
+[factors]
+present = { ref = "target_present", noul = { gte = 0.5 } }
+confident_box = { ref = "target_box", known = true, confidence = { gte = 0.8 } }
+can_crop = { all = ["present", "confident_box"] }

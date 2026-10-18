@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any, NoReturn
 
+from .assets import load_definition_assets, prepare_assets, validate_assets
 from .cache import cache_stats, clear_cache, default_cache_dir
 from .definition import check_definition, load_definition, parse_definition, read_source
 from .diagnostics import SystemOnePromptsError, format_diagnostic, has_errors
@@ -17,6 +18,7 @@ from .evaluation import (
     execute_eval,
     load_eval_cases,
     preflight_eval,
+    prepare_eval_assets,
     prepare_sweep,
     protect_report_path,
 )
@@ -102,7 +104,10 @@ def _check(paths: list[str], strict: bool) -> int:
         try:
             source = _read_text(path)
             definition = parse_definition(source, filename=path)
-            errors += print_diagnostics(check_definition(definition), strict)
+            diagnostics = check_definition(definition)
+            if not has_errors(diagnostics):
+                prepare_assets(definition)
+            errors += print_diagnostics(diagnostics, strict)
         except SystemOnePromptsError as error:
             errors += print_diagnostics(list(error.diagnostics), strict)
         except OSError as error:
@@ -144,8 +149,7 @@ def _generate(paths: list[str], check_only: bool, out: str | None) -> int:
     failed = 0
     for file in paths:
         try:
-            source = _read_text(file)
-            definition = parse_definition(source, filename=file)
+            definition = load_definition(file)
         except SystemOnePromptsError as error:
             failed += 1
             print_diagnostics(list(error.diagnostics))
@@ -159,8 +163,14 @@ def _generate(paths: list[str], check_only: bool, out: str | None) -> int:
         if has_errors(diagnostics):
             failed += 1
             continue
-        rendered = render_definition(definition, source_name=file)
         target = _output_path(file, out, multiple=multiple)
+        try:
+            prepared = prepare_assets(definition)
+            rendered = render_definition(definition, source_name=file, prepared_assets=prepared, bundle_name=target.stem + ".assets")
+        except SystemOnePromptsError as error:
+            failed += 1
+            print_diagnostics(list(error.diagnostics))
+            continue
         if check_only:
             try:
                 existing = target.read_text(encoding="utf-8")
@@ -172,12 +182,17 @@ def _generate(paths: list[str], check_only: bool, out: str | None) -> int:
                 print(f"error: {target}: {error}", file=sys.stderr)
                 failed += 1
                 continue
-            if existing != rendered:
+            bundle_ok = all((target.parent / (target.stem + ".assets") / name).is_file() and (target.parent / (target.stem + ".assets") / name).read_bytes() == data for name, data in prepared["files"].items())
+            if definition.assets:
+                from .json_values import canonical_json
+                manifest_path = target.parent / (target.stem + ".assets") / "manifest.json"
+                bundle_ok = bundle_ok and manifest_path.is_file() and manifest_path.read_text() == canonical_json(prepared["manifest"]) + "\n"
+            if existing != rendered or not bundle_ok:
                 print(f"stale generated file: {target}", file=sys.stderr)
                 failed += 1
             continue
         try:
-            generate(definition, target, source_name=file)
+            generate(definition, target, source_name=file, prepared_assets=prepared)
             print(target)
         except OSError as error:
             failed += 1
@@ -196,6 +211,8 @@ def _run(
     provider: str | None = None,
     base_url: str | None = None,
     cache_root: str | None = None,
+    assets: str | None = None,
+    experimental_images: bool = False,
 ) -> int:
     if not file:
         return fail(
@@ -232,10 +249,15 @@ def _run(
 
     created = None
     try:
+        bound = load_definition_assets(definition, _parse_json(_read_text(assets), assets) if assets else None)
+        validate_assets(bound, questions=definition.questions, state=payload)
+        _image_preflight(definition, bound, provider, experimental_images)
         created = create_client(definition, cache=cache, model=model, provider=provider, cache_root=cache_root, base_url=base_url)
         response = asyncio.run(
             created["client"].system_one(
-                state=payload, questions=definition.questions, model=created["model"]
+                state=payload, questions=definition.questions, model=created["model"],
+                **({"assets": bound} if bound else {}),
+                **({"headers": {"TypeSafe-Danger-Zone-Images": "true"}} if experimental_images else {})
             )
         )
         factors = create_factor_evaluator(definition.factor_definitions)(response["answers"])
@@ -329,6 +351,8 @@ def _eval(
     provider: str | None = None,
     base_url: str | None = None,
     cache_root: str | None = None,
+    assets: str | None = None,
+    experimental_images: bool = False,
 ) -> int:
     if not file or not cases:
         return fail(
@@ -339,6 +363,10 @@ def _eval(
             protect_report_path(report, file, cases)
         definition = _load_checked(file)
         loaded = load_eval_cases(_read_text(cases), cases, definition)
+        supplied_assets = _parse_json(_read_text(assets), assets) if assets else {}
+        prepared = prepare_assets(definition)
+        for bound in prepare_eval_assets(definition, loaded, supplied_assets, prepared_assets=prepared):
+            _image_preflight(definition, bound, provider, experimental_images)
         sweep_plan = prepare_sweep(sweep, definition) if sweep else None
         preflight_eval(definition, loaded, sweep_plan)
     except EvalCaseError as error:
@@ -366,6 +394,9 @@ def _eval(
                 sweep=sweep_plan,
                 cache_stats=(caching.stats if caching is not None else None),
                 file=file,
+                assets=supplied_assets,
+                prepared_assets=prepared,
+                headers={"TypeSafe-Danger-Zone-Images": "true"} if experimental_images else None,
             )
         )
     except LiveClientError as error:
@@ -438,6 +469,17 @@ def _cache(action: str | None, *, provider: str | None = None, cache_root: str |
     return fail("systemoneprompts cache stats | clear")
 
 
+def _image_preflight(definition: Any, bound: Any, provider: str | None, enabled: bool) -> None:
+    import os
+    if bound or any(q.get("type") == "box" for q in definition.questions.values()):
+        if (provider or definition.provider or "typesafe") != "typesafe" or os.environ.get("CLOUDFLARE_ACCOUNT_ID"):
+            from .diagnostics import diagnostic
+            raise SystemOnePromptsError(diagnostic("error", "images-compatibility", "Box and images require native TypeSafe"))
+        if not enabled:
+            from .diagnostics import diagnostic
+            raise SystemOnePromptsError(diagnostic("error", "images-opt-in", "Box and images require --experimental-images"))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = _Parser(
         prog="systemoneprompts",
@@ -451,6 +493,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--state")
     parser.add_argument("--answers")
+    parser.add_argument("--assets")
+    parser.add_argument("--experimental-images", action="store_true")
     parser.add_argument("--cache", action="store_true")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--cases")
@@ -491,6 +535,8 @@ def main(argv: list[str] | None = None) -> int:
             provider=args.provider,
             base_url=args.base_url,
             cache_root=args.cache_root,
+            assets=args.assets,
+            experimental_images=args.experimental_images,
         )
     if command == "eval":
         return _eval(
@@ -503,6 +549,8 @@ def main(argv: list[str] | None = None) -> int:
             provider=args.provider,
             base_url=args.base_url,
             cache_root=args.cache_root,
+            assets=args.assets,
+            experimental_images=args.experimental_images,
         )
     if command == "cache":
         return _cache(rest[0] if rest else None, provider=args.provider, cache_root=args.cache_root, base_url=args.base_url)

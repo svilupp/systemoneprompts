@@ -1,0 +1,2 @@
+{"id":"synthetic-present","model":"fixture-only-no-inference","answers":{"target_present":{"type":"noul","noul":0.99},"target_box":{"type":"box","box":{"top":0.25,"bottom":0.75,"left":0.25,"right":0.75},"confidence":0.9}}}
+{"id":"synthetic-absent","model":"fixture-only-no-inference","answers":{"target_present":{"type":"noul","noul":0.01},"target_box":{"type":"box","box":{"top":0.1,"bottom":0.9,"left":0.1,"right":0.9},"confidence":null}}}

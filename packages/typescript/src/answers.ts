@@ -35,6 +35,12 @@ export function isAnswerForQuestion(question: unknown, answer: unknown): boolean
 export function isAnswerShape(answer: unknown): answer is Record<string, unknown> {
   if (!isPlainObject(answer) || !isJsonValue(answer)) return false;
   switch (answer.type) {
+    case "box":
+      return (
+        isBoxCoordinates(answer.box) &&
+        (answer.confidence === null ||
+          (isFiniteNumber(answer.confidence) && answer.confidence >= 0 && answer.confidence <= 1))
+      );
     case "noul":
       return isFiniteNumber(answer.noul);
     case "choice":
@@ -115,4 +121,50 @@ export function partitionAnswers(
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+export function isBoxCoordinates(value: unknown): value is import("./native.js").BoxCoordinates {
+  if (!isPlainObject(value) || Object.keys(value).sort().join(",") !== "bottom,left,right,top")
+    return false;
+  if (
+    ![value.top, value.bottom, value.left, value.right].every(
+      (v) => isFiniteNumber(v) && v >= 0 && v <= 1,
+    )
+  )
+    return false;
+  return (
+    (value.top as number) < (value.bottom as number) &&
+    (value.left as number) < (value.right as number)
+  );
+}
+
+export function boxValue(answer: unknown): import("./native.js").BoxCoordinates | undefined {
+  return isAnswerShape(answer) && answer.type === "box" && isBoxCoordinates(answer.box)
+    ? answer.box
+    : undefined;
+}
+
+/** Whole-response contract for native image/Box calls, before caching or normalization. */
+export function isVisionResponse(value: unknown, questions?: Record<string, unknown>): boolean {
+  if (
+    !isPlainObject(value) ||
+    typeof value.model !== "string" ||
+    !value.model.trim() ||
+    !isPlainObject(value.answers) ||
+    !isPlainObject(value.usage)
+  )
+    return false;
+  const answers = value.answers;
+  if (
+    ![value.usage.input_tokens, value.usage.output_tokens].every(
+      (n) => typeof n === "number" && Number.isInteger(n) && n >= 0,
+    )
+  )
+    return false;
+  if (questions === undefined) return Object.values(answers).every(isAnswerShape);
+  const ids = Object.keys(questions);
+  return (
+    Object.keys(answers).length === ids.length &&
+    ids.every((id) => Object.hasOwn(answers, id) && isAnswerForQuestion(questions[id], answers[id]))
+  );
 }

@@ -26,6 +26,7 @@ classifiers = [
 dependencies = [
   "pydantic>=2.13,<3",
   "httpx2>=2.13,<3",
+  "pillow>=11,<13",
 ]
 
 [project.scripts]

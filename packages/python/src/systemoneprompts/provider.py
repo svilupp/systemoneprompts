@@ -319,10 +319,13 @@ def caching_httpx_transport(
             return FetchResponse(
                 status=int(response.status_code),
                 status_text=getattr(response, "reason_phrase", "OK") or "OK",
-                headers={key.lower(): value for key, value in response.headers.items()},
+                # response.read() decodes compressed bodies. Do not ask the outer
+                # httpx client to decompress the same bytes a second time.
+                headers={key.lower(): value for key, value in response.headers.items() if key.lower() not in {"content-encoding", "content-length", "transfer-encoding"}},
                 body=response.content,
             )
 
+        http_fetch.systemoneprompts_cloudflare = bool(getattr(forward, "systemoneprompts_cloudflare", False))  # type: ignore[attr-defined]
         caching = create_caching_fetch(dir=directory or default_cache_dir(), fetch=http_fetch)
     transport = wrap_caching_fetch(caching, inner=owned_inner)
     return transport, caching

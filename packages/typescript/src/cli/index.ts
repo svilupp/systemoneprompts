@@ -26,6 +26,8 @@ async function main(): Promise<void> {
       out: { type: "string" },
       check: { type: "boolean", default: false },
       state: { type: "string" },
+      assets: { type: "string" },
+      "experimental-images": { type: "boolean", default: false },
       cache: { type: "boolean", default: false },
       json: { type: "boolean", default: false },
       cases: { type: "string" },
@@ -55,6 +57,8 @@ async function main(): Promise<void> {
     case "run":
       await runRun(rest[0], {
         state: values.state,
+        assets: values.assets,
+        experimentalImages: Boolean(values["experimental-images"]),
         cache: Boolean(values.cache),
         json: Boolean(values.json),
         baseURL: values["base-url"],
@@ -66,6 +70,8 @@ async function main(): Promise<void> {
     case "eval":
       await runEval(rest[0], {
         cases: values.cases,
+        assets: values.assets,
+        experimentalImages: Boolean(values["experimental-images"]),
         cache: Boolean(values.cache),
         sweep: values.sweep,
         report: values.report,

@@ -76,12 +76,15 @@
     "prepublishOnly": "node scripts/build.mjs"
   },
   "dependencies": {
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0",
     "smol-toml": "^1.4.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@types/bun": "^1.2.21",
     "@types/node": "^24.5.2",
+    "@types/pngjs": "^6.0.5",
     "typescript": "^5.9.2"
   },
   "keywords": [

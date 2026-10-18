@@ -1,0 +1,14 @@
+title = "Unknown Box confidence"
+model = "jev-1.14.0"
+
+[assets.photo]
+runtime = true
+
+[questions.region]
+type = "box"
+instructions = "The red rectangle in <asset:photo>."
+
+[factors]
+located = { ref = "region", known = true }
+unknown = { ref = "region", known = false }
+confident = { ref = "region", known = true, confidence = { gte = 0.8 } }

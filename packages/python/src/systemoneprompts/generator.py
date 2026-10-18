@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from .assets import prepare_assets
 from .definition import Definition, check_definition
 from .diagnostics import SystemOnePromptsError, errors_of
 from .requirements import ALL_INDEX, PathSegment, RequirementType, parse_path
@@ -27,13 +28,31 @@ def generate(
     output: str | Path,
     *,
     source_name: str | None = None,
+    base_dir: str | Path | None = None,
+    prepared_assets: dict[str, Any] | None = None,
 ) -> Path:
     errors = errors_of(check_definition(definition))
     if errors:
         raise SystemOnePromptsError(errors)
     target = Path(output)
     target.parent.mkdir(parents=True, exist_ok=True)
-    rendered = render_definition(definition, source_name=source_name)
+    prepared = prepare_assets(definition, base_dir=base_dir) if prepared_assets is None else prepared_assets
+    bundle_name = target.stem + ".assets"
+    rendered = render_definition(definition, source_name=source_name, prepared_assets=prepared, bundle_name=bundle_name)
+    if definition.assets:
+        bundle = target.parent / bundle_name
+        bundle.mkdir(parents=True, exist_ok=True)
+        for name, data in prepared["files"].items():
+            destination = bundle / name
+            fd, temporary = tempfile.mkstemp(prefix=".asset.", dir=bundle)
+            try:
+                with os.fdopen(fd, "wb") as handle:
+                    handle.write(data)
+                os.replace(temporary, destination)
+            finally:
+                Path(temporary).unlink(missing_ok=True)
+        from .json_values import canonical_json
+        (bundle / "manifest.json").write_text(canonical_json(prepared["manifest"]) + "\n", encoding="utf-8")
     descriptor, temporary_name = tempfile.mkstemp(
         prefix=f".{target.name}.", suffix=".tmp", dir=target.parent
     )
@@ -49,8 +68,11 @@ def generate(
     return target
 
 
-def render_definition(definition: Definition, *, source_name: str | None = None) -> str:
+def render_definition(definition: Definition, *, source_name: str | None = None, prepared_assets: dict[str, Any] | None = None, bundle_name: str | None = None) -> str:
     """Render a checked definition without touching the filesystem."""
+    if definition.assets and (prepared_assets is None or bundle_name is None):
+        from .diagnostics import diagnostic
+        raise SystemOnePromptsError(diagnostic("error", "asset-generation", "render_definition with assets requires prepared_assets and bundle_name"))
     name = _basename(source_name or definition.filename or "definition.toml")
     source_hash = hashlib.sha256((definition.source or "").encode("utf-8")).hexdigest()
     lines: list[str] = [
@@ -79,6 +101,15 @@ def render_definition(definition: Definition, *, source_name: str | None = None)
         "evaluate_factors = cast(Callable[[Answers], Factors], create_factor_evaluator(factor_definitions))",
         "",
     ]
+    if definition.assets:
+        assert prepared_assets is not None
+        lines.extend([
+            "from systemoneprompts.assets import load_asset_bundle as _load_asset_bundle",
+            f"asset_manifest: dict[str, Any] = {emit_value(prepared_assets['manifest'])}",
+            "def load_assets(bindings: dict[str, Any] | None = None, *, bundle_base: str | None = None) -> dict[str, Any]:",
+            f"    return _load_asset_bundle(asset_manifest, __file__, {bundle_name!r}, {prepared_assets['runtime']!r}, bindings, bundle_base=bundle_base)",
+            "",
+        ])
     return "\n".join(lines)
 
 
@@ -298,6 +329,8 @@ def _emit_answer_alias(name: str, question: dict[str, Any]) -> list[str]:
             "    confidence: float",
             "    probabilities: dict[str, float]",
         ]
+    if question_type == "box":
+        return [f"class {name}Coordinates(TypedDict):", "    top: float", "    bottom: float", "    left: float", "    right: float", f"class {name}(TypedDict):", '    type: Literal["box"]', f"    box: {name}Coordinates", "    confidence: float | None"]
     if question_type == "score":
         return [
             f"class {name}(TypedDict):",

@@ -1,9 +1,12 @@
+import { isVisionResponse } from "./answers.js";
+import { hasVisionFeatures, validateVisionRequest } from "./assets.js";
 import {
   cloudflareErrorMessage,
   createCloudflareFetch,
   isCachingFetch,
   isCloudflareFetch,
 } from "./cloudflare.js";
+import { isPlainObject } from "./json.js";
 import { DEFAULT_MODEL } from "./model.js";
 import type { Fetch, Questions, SystemOneRequest, SystemOneResult } from "./native.js";
 import { openRouterBaseURL } from "./openrouter.js";
@@ -185,14 +188,33 @@ export class TypeSafeClient {
     }
     const body = {
       state: request.state,
+      ...(request.assets !== undefined &&
+      !(isPlainObject(request.assets) && Object.keys(request.assets).length === 0)
+        ? { assets: request.assets }
+        : {}),
       questions,
       model: request.model ?? this.defaultModel,
     };
+    try {
+      validateVisionRequest(
+        body,
+        mergeHeaders(this.defaultHeaders, options.headers),
+        this.cloudflareAccountId || isCloudflareFetch(this.fetch) ? "cloudflare" : this.provider,
+      );
+    } catch (error) {
+      throw new TypeSafeClientError(error instanceof Error ? error.message : String(error));
+    }
+    const visionQuestions = hasVisionFeatures(body)
+      ? (JSON.parse(JSON.stringify(questions)) as Record<string, unknown>)
+      : undefined;
     const parsed = await this.#postJson(
       this.provider === "openrouter" ? "/decisions" : SYSTEM_ONE_PATH,
       body,
       options,
     );
+    if (visionQuestions !== undefined && !isVisionResponse(parsed, visionQuestions)) {
+      throw new TypeSafeClientError("invalid System One response: image/Box contract");
+    }
     return parsed as SystemOneResult<Q>;
   }
 
@@ -209,7 +231,9 @@ export class TypeSafeClient {
     // Header names are case-insensitive; a caller `authorization` must not merge with ours.
     const ownedNames = new Set(Object.keys(owned).map((name) => name.toLowerCase()));
     const headers: Record<string, string> = {};
-    for (const [name, value] of Object.entries({ ...this.defaultHeaders, ...options.headers })) {
+    for (const [name, value] of Object.entries(
+      mergeHeaders(this.defaultHeaders, options.headers),
+    )) {
       if (!ownedNames.has(name.toLowerCase())) headers[name] = value;
     }
     Object.assign(headers, owned);
@@ -403,4 +427,12 @@ function describeHttpError(status: number, body: unknown, requestId: string | un
     if (message) return `TypeSafe API error ${status}${id}: ${message}`;
   }
   return `TypeSafe API error ${status}${id}`;
+}
+
+function mergeHeaders(...sources: (Record<string, string> | undefined)[]): Record<string, string> {
+  const merged: Record<string, string> = {};
+  for (const source of sources) {
+    for (const [name, value] of Object.entries(source ?? {})) merged[name.toLowerCase()] = value;
+  }
+  return merged;
 }

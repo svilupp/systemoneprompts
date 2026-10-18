@@ -74,6 +74,11 @@ def _encode(state: Any, questions: Any, model: str) -> tuple[dict[str, Any], lis
     errors = [d for d in diagnostics if d.severity == "error"]
     if errors:
         _incompatible(errors[0].code, "; ".join(d.message for d in errors))
+    from .assets import asset_references
+    if asset_references(state) or asset_references(questions):
+        _incompatible("images-compatibility", "image references require native TypeSafe")
+    if any(q.get("type") == "box" for q in questions.values()):
+        _incompatible("images-compatibility", "Box and images require native TypeSafe")
     ids = list(questions)
     wire = []
     for i, identifier in enumerate(ids):
@@ -303,10 +308,13 @@ class OpenAIDecisionsClient:
         *,
         state: Any,
         questions: Mapping[str, Any],
+        assets: Mapping[str, Any] | None = None,
         model: str | None = None,
         timeout: Any = None,
         headers: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
+        if assets is not None:
+            _incompatible("images-compatibility", "images require native TypeSafe")
         snapshot = copy.deepcopy(questions)
         payload, ids = _encode(state, snapshot, self.default_model if model is None else model)
         merged = {

@@ -5,7 +5,9 @@
     "wildcard-requires",
     "wildcard-requires-empty",
     "wildcard-requires-invalid",
-    "provider-openai"
+    "provider-openai",
+    "box",
+    "box-null-confidence"
   ],
   "artifacts": [
     "definition.toml",
@@ -33,6 +35,14 @@
     ],
     "provider-openai": [
       "parse"
+    ],
+    "box": [
+      "parse",
+      "evaluate_factors"
+    ],
+    "box-null-confidence": [
+      "parse",
+      "evaluate_factors"
     ]
   }
 }

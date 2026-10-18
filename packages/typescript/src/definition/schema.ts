@@ -1,4 +1,5 @@
 import type { FactorDef, FactorTable } from "../factors/schema.js";
+import type { AssetDeclarations } from "../file-assets.js";
 import type { JsonValue, Questions } from "../native.js";
 import type { Requirements } from "../state/requirements.js";
 import type { Diagnostic } from "./diagnostics.js";
@@ -15,6 +16,7 @@ export const KNOWN_TOP_LEVEL = [
   "questions",
   "factors",
   "data",
+  "assets",
 ] as const;
 
 /** Verbatim `[factors]` tables, keyed by factor id — the input to `createFactorEvaluator`. */
@@ -32,6 +34,7 @@ export interface DefinitionMeta {
 
 export interface DefinitionSource {
   filename?: string;
+  baseDir?: string;
   text: string;
   index: SourceIndex;
 }
@@ -51,6 +54,7 @@ export interface Definition {
   factorDefinitions: FactorDefinitions;
   /** Application-owned JSON-compatible data; systemoneprompts does not interpret it. */
   data: DefinitionData;
+  assets: AssetDeclarations;
   /** Structural problems found while parsing (bad types, unknown fields, malformed questions). */
   diagnostics: Diagnostic[];
   source: DefinitionSource;

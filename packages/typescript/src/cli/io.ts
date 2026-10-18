@@ -65,6 +65,7 @@ export function createClient(
     provider?: string;
     cacheRoot?: string;
     baseURL?: string;
+    experimentalImages?: boolean;
   },
 ): { client: SystemOneClient; model: string; cache?: CachingFetch } {
   loadDotEnv();
@@ -130,6 +131,7 @@ export function createClient(
       : undefined;
     const client = new TypeSafeClient({
       baseURL,
+      ...(options.experimentalImages ? { headers: { "TypeSafe-Danger-Zone-Images": "true" } } : {}),
       ...(cache ? { fetch: cache } : {}),
       ...(cloudflareAccountId ? { cloudflareAccountId } : {}),
       defaultModel: model,

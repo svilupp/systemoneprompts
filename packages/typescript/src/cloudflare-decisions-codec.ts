@@ -86,6 +86,7 @@ export function encodeDecisionsRequest(state: unknown, questions: Questions, mod
     (typeof value === "object" && Object.keys(value).length === 0);
   const wire = ids.map((id, i) => {
     const question = checked.questions[id]!;
+    if (question.type === "box") incompatible("cloudflare-box", "Box is unsupported by Cloudflare");
     if (question.type === "choice" && Object.keys(question.criteria).length < 2)
       incompatible("cloudflare-choice-min-options", `question ${id} needs at least two options`);
     if (question.type === "score" && question.criteria.length > 10)
@@ -150,6 +151,7 @@ export function validateNormalizedDecisionsResult<Q extends Questions>(
     if (!Object.hasOwn(answers, id)) invalid();
     const answer = answers[id];
     if (!isPlainObject(answer) || answer.type !== question.type) invalid();
+    if (question.type === "box") incompatible("cloudflare-box", "Box is unsupported by Cloudflare");
     if (question.type === "noul") {
       if (!probability(answer.noul)) invalid();
       continue;

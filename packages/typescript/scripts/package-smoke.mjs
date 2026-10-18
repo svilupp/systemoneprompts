@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -118,14 +118,56 @@ async function writeConsumer(directory) {
   };
 }
 
-function smokeInstalled(label, consumer) {
+async function smokeInstalled(label, consumer) {
   const { script, cli, bin } = consumer;
   run("node", [script], consumer.cwd);
   run("bun", [script], consumer.cwd);
   run(bin, ["--help"], consumer.cwd);
   run("node", [cli, "check", "ok.toml"], consumer.cwd);
   run("bun", [cli, "check", "ok.toml"], consumer.cwd);
-  console.error(`${label}: Node and Bun consumers OK`);
+  const source = join(consumer.cwd, "source-images");
+  await mkdir(source);
+  const fixture = JSON.parse(
+    await readFile(join(packageRoot, "examples", "13-native-images", "assets.json"), "utf8"),
+  );
+  const first = Object.values(fixture)[0];
+  await writeFile(join(source, "photo.png"), Buffer.from(first.data_base64, "base64"));
+  await writeFile(
+    join(source, "vision.toml"),
+    '[assets.photo]\npath="./photo.png"\n[questions.box]\ntype="box"\ninstructions="Find <asset:photo>"\n',
+  );
+  const generated = join(consumer.cwd, "generated");
+  run("node", [cli, "generate", join(source, "vision.toml"), "--out", generated], consumer.cwd);
+  run(
+    join(packageRoot, "node_modules", ".bin", "tsc"),
+    [
+      join(generated, "vision.generated.ts"),
+      "--outDir",
+      join(consumer.cwd, "dist"),
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--target",
+      "ES2022",
+      "--skipLibCheck",
+    ],
+    consumer.cwd,
+  );
+  await cp(
+    join(generated, "vision.generated.assets"),
+    join(consumer.cwd, "dist", "vision.generated.assets"),
+    { recursive: true },
+  );
+  await rm(source, { recursive: true });
+  await rm(generated, { recursive: true });
+  await writeFile(
+    join(consumer.cwd, "vision-smoke.mjs"),
+    'import {loadAssets} from "./dist/vision.generated.js"; const assets=await loadAssets(); if(assets["<asset:photo>"].type!=="image") throw new Error("relocated image failed"); console.log("relocated vision: ok");',
+  );
+  run("node", [join(consumer.cwd, "vision-smoke.mjs")], consumer.cwd);
+  run("bun", [join(consumer.cwd, "vision-smoke.mjs")], consumer.cwd);
+  console.error(`${label}: Node and Bun consumers OK (including relocated generated image bundle)`);
 }
 
 try {
@@ -172,10 +214,10 @@ try {
   const bunConsumer = await writeConsumer(join(temp, "bun-consumer"));
 
   run("npm", ["install", "--ignore-scripts", "--silent", tarball], npmConsumer.cwd);
-  smokeInstalled("npm pack + npm install", npmConsumer);
+  await smokeInstalled("npm pack + npm install", npmConsumer);
 
   run("bun", ["add", "--ignore-scripts", tarball], bunConsumer.cwd);
-  smokeInstalled("npm pack + bun add", bunConsumer);
+  await smokeInstalled("npm pack + bun add", bunConsumer);
 
   console.log(`Package smoke: ${record.filename} (Node and Bun)`);
 } finally {

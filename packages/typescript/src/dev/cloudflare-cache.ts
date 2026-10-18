@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { join } from "node:path";
+import { hasVisionFeatures } from "../assets.js";
 import type { SystemOneCallOptions } from "../client.js";
 import type { CloudflareDecisionsClient } from "../cloudflare-decisions.js";
 import {
@@ -71,6 +72,11 @@ export function createCachedCloudflareDecisionsClient(options: {
     ): Promise<SystemOneResult<Q>> {
       if (call.timeout !== undefined && (!Number.isFinite(call.timeout) || call.timeout <= 0))
         incompatible("cloudflare-options", "timeout must be positive");
+      if (hasVisionFeatures(request))
+        incompatible(
+          "cloudflare-vision",
+          "image assets and Box questions are unsupported by cloudflare",
+        );
       const model = modelName(request.model === undefined ? network.defaultModel : request.model);
       encodeDecisionsRequest(request.state, request.questions, model);
       const snapshot = structuredClone({

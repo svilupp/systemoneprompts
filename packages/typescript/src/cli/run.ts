@@ -1,4 +1,7 @@
+import { validateAssetReferences, validateAssets } from "../assets.js";
 import { createFactorEvaluator } from "../factors/evaluate.js";
+import { loadAssets } from "../file-assets.js";
+import type { Assets } from "../native.js";
 import { createStateAssert, type StateAssert } from "../state/requirements.js";
 import { createClient, fail, loadChecked, parseJson, readStdin, readText } from "./io.js";
 
@@ -6,6 +9,8 @@ export async function runRun(
   file: string | undefined,
   options: {
     state?: string;
+    assets?: string;
+    experimentalImages?: boolean;
     cache?: boolean;
     json?: boolean;
     model?: string;
@@ -26,9 +31,17 @@ export async function runRun(
   const assertState: StateAssert = createStateAssert(def.requires);
   assertState(state);
 
+  const runtimeAssets = options.assets
+    ? parseJson(await readText(options.assets), options.assets)
+    : undefined;
+  if (runtimeAssets !== undefined) validateAssets(runtimeAssets);
+  const assets = await loadAssets(def, { runtimeAssets: runtimeAssets as Assets | undefined });
+  validateAssetReferences(state, def.questions, assets);
+
   const { client, model, cache } = createClient(def, options);
   const response = await client.systemOne({
     state,
+    ...(Object.keys(assets).length ? { assets } : {}),
     questions: def.questions,
     model,
   });

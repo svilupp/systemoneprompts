@@ -37,7 +37,9 @@ log_path=$(mktemp "$log_root/systemoneprompts-python-${safe_label}.XXXXXX") || {
 
 printf '%s\n' '---' "$label started (full log: $log_path)"
 
-"$@" >"$log_path" 2>&1
+# The committed lock is resolved with uv --no-config; ignore machine-specific
+# resolver settings such as relative exclude-newer policies during checks.
+UV_NO_CONFIG=1 "$@" >"$log_path" 2>&1
 status=$?
 
 if [ "$status" -eq 0 ]; then

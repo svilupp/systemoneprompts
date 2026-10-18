@@ -62,6 +62,7 @@ export function encodeDecisionsRequest(state: unknown, questions: Questions, mod
   const ids = Object.keys(questions);
   const wire = ids.map((id, i) => {
     const question = questions[id]!;
+    if (question.type === "box") incompatible("openai-box", "Box is unsupported by OpenAI");
     let instructions = empty(question.instructions) ? fallback : render(question.instructions);
     const name = `q${i}`;
     if (question.type === "noul") {
@@ -143,6 +144,7 @@ export function decodeDecisionsResponse<Q extends Questions>(
     seen.add(answer.name);
     const id = names.get(answer.name)!;
     const question = questions[id]!;
+    if (question.type === "box") incompatible("openai-box", "Box is unsupported by OpenAI");
     if (answer.type === "refusal") {
       refusedIds.push(id);
       continue;
@@ -231,6 +233,7 @@ export function validateNormalizedDecisionsResult<Q extends Questions>(
   const wire = ids.map((id, i) => {
     const answer = answers[id];
     const question = questions[id]!;
+    if (question.type === "box") incompatible("openai-box", "Box is unsupported by OpenAI");
     if (!isPlainObject(answer) || answer.type !== question.type) invalid();
     const name = `q${i}`;
     if (question.type === "noul") return { type: "predicate", name, probability: answer.noul };

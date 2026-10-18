@@ -11,7 +11,7 @@ Validate definitions and generate typed modules for TypeScript or Python.
 | [Python](packages/python/README.md) | `pip install systemoneprompts` | Python 3.11+ |
 
 Each package README includes a working example. Both packages ship the same
-twelve examples.
+thirteen examples.
 
 ## Providers
 
@@ -50,6 +50,13 @@ and normalized answers. Set `OPENAI_API_KEY`, then select `provider = "openai"`
 in TOML or `--provider openai` on `run` / `eval`. It defaults to `gpt-6-luna`;
 explicit model pins are preserved. `--cache` reuses the local per-question cache,
 with a provider/version/endpoint scope for OpenAI.
+
+Native TypeSafe also supports experimental PNG/JPEG assets and Jev 1.14 `box`
+questions. Pin `jev-1.14.0` for Box and pass `--experimental-images`; `jev-latest`
+still selects 1.13 as of 2026-10-16. Declare static files and runtime slots in
+`[assets]`, and reference them as `<asset:id>` in question strings or state.
+Generated modules ship static images in a companion `.assets` directory.
+See the [image and Box guide](docs/vision.md) and example 13 in either package.
 
 `CloudflareDecisionsClient` selects Clef or Clef Flash explicitly. It supports the
 same JEV questions and JSON/text state, including structured instructions and criteria.
