@@ -93,6 +93,12 @@ OpenRouter models use the native question format, including Luna. The direct
 `OpenAIDecisionsClient` retains its OpenAI format and accepts `OPENAI_BASE_URL`.
 See the [OpenRouter Decisions reference](https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-request).
 
+## 0.3.0 release record
+
+Adds experimental native PNG/JPEG assets and Jev 1.14 Box questions in both
+languages, with generated image bundles and shared whole-request image caching.
+See the [image and Box guide](docs/vision.md) for opt-in and provider limits.
+
 ## 0.2.0 release record
 
 Adds OpenAI Decisions in both languages, provider selection, and local caching.

@@ -42,7 +42,7 @@ def _package_version() -> str:
     try:
         return version("systemoneprompts")
     except PackageNotFoundError:
-        return "0.2.0"
+        return "0.3.0"
 
 
 class TypeSafeClientError(SystemOnePromptsError):

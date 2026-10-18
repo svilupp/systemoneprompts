@@ -1,6 +1,6 @@
 # systemoneprompts definition contract
 
-Package version: `0.2.0` for TypeScript and Python. Contract version: `v1`.
+Package version: `0.3.0` for TypeScript and Python. Contract version: `v1`.
 Package versions and author-owned TOML `version` metadata are independent of
 the contract version.
 

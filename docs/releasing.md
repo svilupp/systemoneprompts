@@ -1,11 +1,11 @@
 # Releasing
 
 Prepare both package versions and changelogs before publishing. The current
-release candidate is 0.2.0; the packages publish independently.
+release candidate is 0.3.0; the packages publish independently.
 
 ```sh
-node packages/typescript/scripts/release-prepare.mjs --version 0.2.0
-python packages/python/scripts/release-prepare.py --version 0.2.0
+node packages/typescript/scripts/release-prepare.mjs --version 0.3.0
+python packages/python/scripts/release-prepare.py --version 0.3.0
 ```
 
 Keep TypeScript's `CLIENT_VERSION` and Python's source-checkout version fallback

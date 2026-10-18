@@ -66,7 +66,7 @@ export function emitGenerated(
       .filter(([, asset]) => asset.runtime)
       .map(([id]) => id);
     lines.push(`import { loadPackagedAssets, type AssetLoadOptions } from "systemoneprompts";`);
-    lines.push("// asset bundle generator: systemoneprompts/0.2.0/v1");
+    lines.push("// asset bundle generator: systemoneprompts/0.3.0/v1");
     lines.push(`export const assetManifest = ${emitValue(manifest)} as const;`);
     lines.push(
       `export function loadAssets(options: AssetLoadOptions = {}) { return loadPackagedAssets(import.meta.url, ${JSON.stringify(options.assetDirectory ?? basename(sourceName).replace(/\.toml$/i, ".generated.assets"))}, assetManifest, options, ${JSON.stringify(runtimeIds)}); }`,

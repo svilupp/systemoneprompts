@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 - 2026-10-18
 
 - Add experimental native PNG/JPEG image assets and typed Box questions and answers.
 - Add static/runtime asset declarations, relocatable generated image bundles, CLI bindings, and whole-request image caching.

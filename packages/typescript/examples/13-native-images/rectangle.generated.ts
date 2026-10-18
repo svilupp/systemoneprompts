@@ -7,7 +7,7 @@ export const meta = {
   provider: "typesafe",
 } as const;
 import { loadPackagedAssets, type AssetLoadOptions } from "systemoneprompts";
-// asset bundle generator: systemoneprompts/0.2.0/v1
+// asset bundle generator: systemoneprompts/0.3.0/v1
 export const assetManifest = {
   version: 1,
   assets: {
