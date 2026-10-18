@@ -81,6 +81,11 @@ def _encode(state: Any, questions: Any, model: str) -> tuple[dict[str, Any], lis
     errors = [d for d in diagnostics if d.severity == "error"]
     if errors:
         _incompatible(errors[0].code, "; ".join(d.message for d in errors))
+    from .assets import asset_references
+    if asset_references(state) or asset_references(questions):
+        _incompatible("images-compatibility", "image references require native TypeSafe")
+    if any(q.get("type") == "box" for q in questions.values()):
+        _incompatible("images-compatibility", "Box and images require native TypeSafe")
     ids = list(questions)
     if len(ids) > 64:
         _incompatible("cloudflare-question-limit", "at most 64 questions are supported")

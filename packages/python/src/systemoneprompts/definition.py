@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import tomllib
 from dataclasses import dataclass, field
@@ -17,7 +18,7 @@ from .diagnostics import (
 )
 from .factors import Factor, parse_factors, topo_sort_factors, validate_primitive_refs
 from .json_values import is_json_value, is_plain_object, js_key_order
-from .locate import SourceIndex, index_source, locate, split_lines
+from .locate import SourceIndex, index_source, locate, path_key, split_lines
 from .questions import lint_backticks, validate_questions
 from .requirements import RequirementType, check_requirement_conflicts, parse_requirements
 
@@ -32,9 +33,10 @@ KNOWN_TOP_LEVEL = (
     "questions",
     "factors",
     "data",
+    "assets",
 )
 META_KEYS = ("title", "version", "description")
-KNOWN_TABLES = ("requires", "questions", "factors", "data")
+KNOWN_TABLES = ("requires", "questions", "factors", "data", "assets")
 _TOML_POSITION = re.compile(r"\(at line (\d+), column (\d+)\)")
 # JavaScript `Number.MAX_SAFE_INTEGER`; smol-toml rejects TOML integers beyond it.
 _SAFE_INTEGER = 2**53 - 1
@@ -57,6 +59,8 @@ class Definition:
     data: dict[str, Any] = field(default_factory=dict)
     provider: str | None = None
     base_url: str | None = None
+    assets: dict[str, dict[str, Any]] = field(default_factory=dict)
+    source_path: str | None = None
 
 
 def parse_definition(source: str, *, filename: str | None = None) -> Definition:
@@ -176,6 +180,16 @@ def parse_definition(source: str, *, filename: str | None = None) -> Definition:
     diagnostics.extend(requirement_diagnostics)
     diagnostics.extend(question_diagnostics)
     diagnostics.extend(factor_diagnostics)
+    assets: dict[str, dict[str, Any]] = {}
+    if "assets" in raw:
+        if not is_plain_object(raw["assets"]):
+            diagnostics.append(diagnostic("error", "assets-table", "[assets] must be a table", locate(index, table="assets")))
+        else:
+            for ref, value in raw["assets"].items():
+                if not ref or "<" in ref or ">" in ref or not isinstance(value, dict) or not ((set(value) == {"path"} and isinstance(value["path"], str) and value["path"].strip()) or (set(value) == {"runtime"} and value["runtime"] is True)):
+                    diagnostics.append(diagnostic("error", "asset-declaration", f"asset `{ref}` requires exactly one nonempty path or runtime = true", locate(index, table=["assets", ref], section="assets", key=ref)))
+                else:
+                    assets[ref] = dict(value)
     return Definition(
         meta=meta,
         model=model,
@@ -190,6 +204,8 @@ def parse_definition(source: str, *, filename: str | None = None) -> Definition:
         filename=filename,
         source_index=index,
         data=data,
+        assets=assets,
+        source_path=os.path.abspath(filename) if filename else None,
     )
 
 
@@ -267,6 +283,15 @@ def check_definition(definition: Definition, *, strict: bool = False) -> list[Di
     )
     diagnostics.extend(cycle_diagnostics)
     diagnostics.extend(lint_backticks(definition.questions, definition.requires, index))
+    from .assets import asset_references
+    for question_id, question in definition.questions.items():
+        for question_field in ("instructions", "criteria"):
+            for ref in sorted(asset_references(question.get(question_field)) - set(definition.assets)):
+                path = ["questions", question_id, question_field]
+                location = index.key_paths.get(path_key(path)) or locate(index, table=path)
+                if location.line is None:
+                    location = locate(index, table=["questions", question_id])
+                diagnostics.append(diagnostic("error", "asset-unknown-ref", f"undeclared asset reference `{ref}`", location))
     if strict:
         diagnostics = [
             diagnostic("error", item.code, item.message, item.location, item.hint)

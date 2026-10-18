@@ -466,7 +466,7 @@ export function validatePrimitiveRefs(
           diagnostic(
             "error",
             "non-boolean-ref",
-            `${capitalize(q.type)} \`${ref}\` used directly in \`${factor.kind}\`; wrap it in a predicate: { ref = "${ref}", ${q.type === "choice" ? 'choice = "…"' : "score = { gte = … }"} }`,
+            `${capitalize(q.type)} \`${ref}\` used directly in \`${factor.kind}\`; wrap it in a predicate: { ref = "${ref}", ${q.type === "choice" ? 'choice = "…"' : q.type === "box" ? "confidence = { gte = … }" : "score = { gte = … }"} }`,
             loc,
           ),
         );

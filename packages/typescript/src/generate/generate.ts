@@ -1,8 +1,16 @@
 import { createHash } from "node:crypto";
+import { basename as pathBasename } from "node:path";
 import { checkDefinition } from "../definition/check.js";
 import { errorsOf, SystemOnePromptsError } from "../definition/diagnostics.js";
 import { parseDefinition } from "../definition/parse.js";
 import type { Definition } from "../definition/schema.js";
+import {
+  type AssetManifest,
+  assetManifest,
+  bundleDirectory,
+  loadAssets,
+  writeAssetBundle,
+} from "../file-assets.js";
 import { emitRequiredState } from "./types.js";
 
 export interface GenerateOptions {
@@ -10,6 +18,10 @@ export interface GenerateOptions {
   filename?: string;
   /** Name recorded in the generated header; defaults to the basename of `filename`. */
   sourceName?: string;
+  baseDir?: string;
+  /** Pure renderer input produced by filesystem-aware generateFile. */
+  assetManifest?: AssetManifest;
+  assetDirectory?: string;
 }
 
 /**
@@ -19,14 +31,22 @@ export interface GenerateOptions {
  */
 export function generate(source: string, opts: GenerateOptions = {}): string {
   const filename = opts.filename;
-  const def = parseDefinition(source, { filename });
+  const def = parseDefinition(source, { filename, baseDir: opts.baseDir });
   const errors = errorsOf(checkDefinition(def));
   if (errors.length > 0) throw new SystemOnePromptsError(errors);
-  return emitGenerated(def, opts.sourceName ?? filename ?? "definition.toml");
+  return emitGenerated(def, opts.sourceName ?? filename ?? "definition.toml", opts);
 }
 
 /** Emit TypeScript for an already-checked definition. */
-export function emitGenerated(def: Definition, sourceName: string): string {
+export function emitGenerated(
+  def: Definition,
+  sourceName: string,
+  options: GenerateOptions = {},
+): string {
+  if (Object.values(def.assets).some((asset) => asset.path !== undefined) && !options.assetManifest)
+    throw new Error(
+      "file assets require filesystem-aware generateFile or an explicit assetManifest; pure generation does not read files",
+    );
   const hash = createHash("sha256").update(def.source.text).digest("hex");
   const lines: string[] = [];
   lines.push(
@@ -40,6 +60,18 @@ export function emitGenerated(def: Definition, sourceName: string): string {
   );
   lines.push("");
   lines.push(`export const meta = ${emitValue(metaObject(def))} as const;`);
+  if (Object.keys(def.assets).length) {
+    const manifest = options.assetManifest ?? { version: 1, assets: {} };
+    const runtimeIds = Object.entries(def.assets)
+      .filter(([, asset]) => asset.runtime)
+      .map(([id]) => id);
+    lines.push(`import { loadPackagedAssets, type AssetLoadOptions } from "systemoneprompts";`);
+    lines.push("// asset bundle generator: systemoneprompts/0.3.0/v1");
+    lines.push(`export const assetManifest = ${emitValue(manifest)} as const;`);
+    lines.push(
+      `export function loadAssets(options: AssetLoadOptions = {}) { return loadPackagedAssets(import.meta.url, ${JSON.stringify(options.assetDirectory ?? basename(sourceName).replace(/\.toml$/i, ".generated.assets"))}, assetManifest, options, ${JSON.stringify(runtimeIds)}); }`,
+    );
+  }
   lines.push(`export const data = ${emitValue(def.data)} as const;`);
   lines.push(
     def.model === undefined
@@ -119,4 +151,24 @@ function quoteKey(name: string): string {
 function basename(path: string): string {
   const parts = path.split(/[/\\]/);
   return parts[parts.length - 1] ?? path;
+}
+
+/** Load source asset bytes, render, and safely install the companion bundle before the module. */
+export async function generateFile(
+  def: Definition,
+  outputPath: string,
+  options: { check?: boolean } = {},
+): Promise<string> {
+  const errors = errorsOf(checkDefinition(def));
+  if (errors.length > 0) throw new SystemOnePromptsError(errors);
+  const assets = await loadAssets(def, { allowUnboundRuntime: true });
+  const manifest = assetManifest(assets);
+  const directory = bundleDirectory(outputPath);
+  const generated = emitGenerated(def, def.source.filename ?? "definition.toml", {
+    assetManifest: manifest,
+    assetDirectory: pathBasename(directory),
+  });
+  if (Object.keys(def.assets).length)
+    await writeAssetBundle(directory, assets, manifest, options.check);
+  return generated;
 }

@@ -1,14 +1,17 @@
 // Parse → check → derive → generate. Everything else in the package is tooling around these.
 
 export {
+  boxValue,
   choiceLabel,
   isAnswerForQuestion,
   isAnswerShape,
+  isBoxCoordinates,
   noulValue,
   partitionAnswers,
   scoreValue,
   wireQuestions,
 } from "./answers.js";
+export { assetReferences, IMAGE_OPT_IN_HEADER, validateAssets } from "./assets.js";
 export {
   DEFAULT_BASE_URL,
   DEFAULT_TIMEOUT_MS,
@@ -56,15 +59,34 @@ export {
   NOUL_CUTOFF,
 } from "./factors/evaluate.js";
 export type { Comparator, FactorDef, FactorTable } from "./factors/schema.js";
-export { emitGenerated, type GenerateOptions, generate } from "./generate/generate.js";
+export {
+  type AssetDeclaration,
+  type AssetDeclarations,
+  type AssetLoadOptions,
+  type AssetManifest,
+  imageAsset,
+  loadAssets,
+  loadPackagedAssets,
+} from "./file-assets.js";
+export {
+  emitGenerated,
+  type GenerateOptions,
+  generate,
+  generateFile,
+} from "./generate/generate.js";
 export { DEFAULT_MODEL, readEnvModel, resolveModel } from "./model.js";
 export type {
+  Assets,
+  BoxCoordinates,
+  BoxQuestion,
+  BoxResponse,
   ChoiceCriteria,
   ChoiceQuestion,
   ChoiceResponse,
   Description,
   EntryType,
   Fetch,
+  ImageAsset,
   JsonValue,
   NoulQuestion,
   NoulResponse,

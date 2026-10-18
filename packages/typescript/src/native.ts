@@ -44,7 +44,34 @@ export interface ScoreQuestion<T extends ScoreCriteria = ScoreCriteria> {
 }
 
 /** A question identified by its `type` field. */
-export type Question = NoulQuestion | ScoreQuestion | ChoiceQuestion;
+export interface BoxQuestion {
+  type: "box";
+  instructions?: Description;
+  criteria?: never;
+}
+
+export interface BoxCoordinates {
+  readonly top: number;
+  readonly bottom: number;
+  readonly left: number;
+  readonly right: number;
+}
+
+export interface BoxResponse {
+  readonly type: "box";
+  readonly box: BoxCoordinates;
+  readonly confidence: number | null;
+}
+
+export interface ImageAsset {
+  type: "image";
+  format: "png" | "jpg" | "jpeg";
+  data_base64: string;
+}
+
+export type Assets = Record<string, ImageAsset>;
+
+export type Question = NoulQuestion | ScoreQuestion | ChoiceQuestion | BoxQuestion;
 
 /** Questions keyed by the names used to identify their answers. */
 export interface Questions {
@@ -89,7 +116,9 @@ export type ResultFor<T extends Question> = T extends NoulQuestion
     ? ScoreResponse<S>
     : T extends ChoiceQuestion<infer E>
       ? ChoiceResponse<E>
-      : never;
+      : T extends BoxQuestion
+        ? BoxResponse
+        : never;
 
 /** Token usage for a request. */
 export interface Usage {
@@ -107,6 +136,7 @@ export interface SystemOneResult<Q extends Questions> {
 /** State and named questions for `systemOne`. */
 export interface SystemOneRequest<Q extends Questions = Questions> {
   state: unknown;
+  assets?: Assets;
   questions: Q;
   model?: string;
 }

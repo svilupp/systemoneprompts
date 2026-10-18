@@ -1,6 +1,7 @@
 import { checkDefinition } from "../definition/check.js";
 import { SystemOnePromptsError } from "../definition/diagnostics.js";
 import { parseDefinition } from "../definition/parse.js";
+import { loadAssets } from "../file-assets.js";
 import { fail, printDiagnostics, readText } from "./io.js";
 
 export async function runCheck(files: string[], strict: boolean): Promise<void> {
@@ -10,7 +11,10 @@ export async function runCheck(files: string[], strict: boolean): Promise<void> 
     try {
       const source = await readText(file);
       const def = parseDefinition(source, { filename: file });
-      errors += printDiagnostics(checkDefinition(def), strict);
+      const diagnostics = checkDefinition(def);
+      errors += printDiagnostics(diagnostics, strict);
+      if (!diagnostics.some((d) => d.severity === "error"))
+        await loadAssets(def, { allowUnboundRuntime: true });
     } catch (error) {
       if (error instanceof SystemOnePromptsError) {
         errors += printDiagnostics(error.diagnostics, strict);

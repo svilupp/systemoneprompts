@@ -11,7 +11,7 @@ Validate definitions and generate typed modules for TypeScript or Python.
 | [Python](packages/python/README.md) | `pip install systemoneprompts` | Python 3.11+ |
 
 Each package README includes a working example. Both packages ship the same
-twelve examples.
+thirteen examples.
 
 ## Providers
 
@@ -51,6 +51,13 @@ in TOML or `--provider openai` on `run` / `eval`. It defaults to `gpt-6-luna`;
 explicit model pins are preserved. `--cache` reuses the local per-question cache,
 with a provider/version/endpoint scope for OpenAI.
 
+Native TypeSafe also supports experimental PNG/JPEG assets and Jev 1.14 `box`
+questions. Pin `jev-1.14.0` for Box and pass `--experimental-images`; `jev-latest`
+still selects 1.13 as of 2026-10-16. Declare static files and runtime slots in
+`[assets]`, and reference them as `<asset:id>` in question strings or state.
+Generated modules ship static images in a companion `.assets` directory.
+See the [image and Box guide](docs/vision.md) and example 13 in either package.
+
 `CloudflareDecisionsClient` selects Clef or Clef Flash explicitly. It supports the
 same JEV questions and JSON/text state, including structured instructions and criteria.
 Full catalog model IDs are aliases. Calls are limited to 64 questions; arbitrary
@@ -85,6 +92,12 @@ Pass `apiKey` / `api_key` and `baseURL` / `base_url` to override environment set
 OpenRouter models use the native question format, including Luna. The direct
 `OpenAIDecisionsClient` retains its OpenAI format and accepts `OPENAI_BASE_URL`.
 See the [OpenRouter Decisions reference](https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-request).
+
+## 0.3.0 release record
+
+Adds experimental native PNG/JPEG assets and Jev 1.14 Box questions in both
+languages, with generated image bundles and shared whole-request image caching.
+See the [image and Box guide](docs/vision.md) for opt-in and provider limits.
 
 ## 0.2.0 release record
 

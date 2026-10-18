@@ -1,3 +1,4 @@
+import { hasVisionFeatures } from "./assets.js";
 import type { SystemOneCallOptions } from "./client.js";
 import { isCachingFetch } from "./cloudflare.js";
 import {
@@ -74,6 +75,11 @@ export class CloudflareDecisionsClient implements SystemOneClient {
     options: SystemOneCallOptions = {},
   ): Promise<SystemOneResult<Q>> {
     // Snapshot before the first await: normalization uses the exact rubric sent.
+    if (hasVisionFeatures(request))
+      incompatible(
+        "cloudflare-vision",
+        "image assets and Box questions are unsupported by cloudflare",
+      );
     const { body, ids } = encodeDecisionsRequest(
       request.state,
       request.questions,

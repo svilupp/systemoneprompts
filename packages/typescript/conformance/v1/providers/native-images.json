@@ -1,0 +1,13 @@
+{
+  "model": "jev-1.14.0",
+  "provider": "typesafe",
+  "header": {"TypeSafe-Danger-Zone-Images": "true"},
+  "state": {"photo": "<asset:photo>"},
+  "questions": {
+    "target_present": {"type": "noul", "instructions": "Is there a red rectangle in `photo`?"},
+    "target_box": {"type": "box", "instructions": "The red rectangle in `photo`."}
+  },
+  "image": "../images/rectangle.png",
+  "expected_box": {"top": 0.25, "bottom": 0.75, "left": 0.25, "right": 0.75},
+  "purpose": "Transport smoke fixture only; model quality requires held-out real images."
+}

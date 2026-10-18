@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { parse as parseToml, TomlError } from "smol-toml";
 import { parseFactors } from "../factors/schema.js";
+import type { AssetDeclarations } from "../file-assets.js";
 import { isJsonValue, isPlainObject } from "../json.js";
 import { openRouterBaseURL } from "../openrouter.js";
 import { validateQuestions } from "../questions/schema.js";
@@ -16,10 +18,11 @@ import {
 
 export interface ParseOptions {
   filename?: string;
+  baseDir?: string;
 }
 
 const META_KEYS = ["title", "version", "description"] as const;
-const KNOWN_TABLES = ["requires", "questions", "factors", "data"] as const;
+const KNOWN_TABLES = ["requires", "questions", "factors", "data", "assets"] as const;
 
 /**
  * Parse a TOML definition into native TypeSafe objects.
@@ -132,6 +135,43 @@ export function parseDefinition(source: string, opts: ParseOptions = {}): Defini
     }
   }
 
+  const assets: AssetDeclarations = Object.create(null);
+  if (raw.assets !== undefined) {
+    if (!isPlainObject(raw.assets))
+      diagnostics.push(
+        diagnostic(
+          "error",
+          "assets-type",
+          "assets must be a table",
+          locate(index, { table: "assets" }),
+        ),
+      );
+    else
+      for (const [id, entry] of Object.entries(raw.assets)) {
+        const loc = locate(index, { table: `assets.${id}`, section: "assets", key: id });
+        if (
+          !id ||
+          /[<>]/.test(id) ||
+          !isPlainObject(entry) ||
+          Object.keys(entry).length !== 1 ||
+          !(
+            (typeof entry.path === "string" && entry.path.trim().length > 0) ||
+            entry.runtime === true
+          )
+        ) {
+          diagnostics.push(
+            diagnostic(
+              "error",
+              "asset-declaration",
+              `asset \`${id}\` requires exactly a nonempty path or runtime = true`,
+              loc,
+            ),
+          );
+        } else
+          assets[id] = entry.runtime === true ? { runtime: true } : { path: entry.path as string };
+      }
+  }
+
   const requires = parseRequirements(raw.requires, index);
   diagnostics.push(...requires.diagnostics);
 
@@ -151,14 +191,26 @@ export function parseDefinition(source: string, opts: ParseOptions = {}): Defini
     factors: factors.factors,
     factorDefinitions: factors.factorDefinitions,
     data: parsedData.data,
+    assets,
     diagnostics,
-    source: { filename, text: source, index },
+    source: {
+      filename,
+      text: source,
+      index,
+      baseDir:
+        opts.baseDir !== undefined
+          ? resolve(opts.baseDir)
+          : filename !== undefined
+            ? dirname(resolve(filename))
+            : undefined,
+    },
   };
 }
 
 export async function loadDefinition(path: string): Promise<Definition> {
-  const text = await readFile(path, "utf8");
-  return parseDefinition(text, { filename: path });
+  const filename = resolve(path);
+  const text = await readFile(filename, "utf8");
+  return parseDefinition(text, { filename });
 }
 
 function wrapTomlError(error: unknown, filename?: string): SystemOnePromptsError {

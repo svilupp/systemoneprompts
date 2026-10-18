@@ -19,6 +19,7 @@ class SystemOneClient(Protocol):
         *,
         state: Any,
         questions: Mapping[str, Any],
+        assets: Mapping[str, Any] | None = None,
         model: str | None = None,
     ) -> Mapping[str, Any]: ...
 
@@ -46,6 +47,7 @@ async def run_many(
     questions: Mapping[str, Any] | None = None,
     states: Sequence[Any] | None = None,
     items: Sequence[Any] | None = None,
+    assets: Mapping[str, Any] | None = None,
     model: str | None = None,
     concurrency: int | None = 4,
     on_result: Callable[[int, Any], None] | None = None,
@@ -61,6 +63,9 @@ async def run_many(
     """
     workers_limit = positive_integer("concurrency", concurrency, 4)
     jobs = _run_many_jobs(questions=questions, states=states, items=items, model=model)
+    for job in jobs:
+        if assets is not None or job.get("assets") is not None:
+            job["assets"] = job.get("assets", assets)
     if not jobs:
         return []
     workers = min(workers_limit, len(jobs))
@@ -79,7 +84,7 @@ async def run_many(
             job = jobs[index]
             try:
                 result = await _call(
-                    client, state=job["state"], questions=job["questions"], model=job["model"]
+                    client, **job
                 )
             except Exception as error:
                 result = error
@@ -112,6 +117,7 @@ def _run_many_jobs(
                     "state": item["state"],
                     "questions": item["questions"],
                     "model": model if item.get("model") is None else item["model"],
+                    **({"assets": item["assets"]} if "assets" in item else {}),
                 }
             )
         return jobs
@@ -133,6 +139,7 @@ async def walk_taxonomy(
     state: Any,
     tree: Mapping[str, Any],
     instructions: Any = None,
+    assets: Mapping[str, Any] | None = None,
     beam_width: int | None = 1,
     model: str | None = None,
 ) -> list[dict[str, Any]]:
@@ -162,7 +169,7 @@ async def walk_taxonomy(
                     "criteria": criteria,
                 }
             }
-            response = await _call(client, state=state, questions=questions, model=model)
+            response = await _call(client, state=state, questions=questions, model=model, **({"assets": assets} if assets is not None else {}))
             probabilities = _step_probabilities(response)
             for label in labels:
                 probability = item["probability"] * _probability(probabilities.get(label))

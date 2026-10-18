@@ -1,11 +1,11 @@
 # Releasing
 
 Prepare both package versions and changelogs before publishing. The current
-release candidate is 0.2.0; the packages publish independently.
+release candidate is 0.3.0; the packages publish independently.
 
 ```sh
-node packages/typescript/scripts/release-prepare.mjs --version 0.2.0
-python packages/python/scripts/release-prepare.py --version 0.2.0
+node packages/typescript/scripts/release-prepare.mjs --version 0.3.0
+python packages/python/scripts/release-prepare.py --version 0.3.0
 ```
 
 Keep TypeScript's `CLIENT_VERSION` and Python's source-checkout version fallback
@@ -23,3 +23,10 @@ PyPI:
 The TypeScript release check packs the npm tarball and smokes it from
 fresh npm and bun installs under both Node and Bun. The packages publish
 independently to npm and PyPI.
+
+Application deployment artifacts must include generated modules and their
+companion `.assets` directories. Source TOML/images and repository examples
+are not required in published library distributions. Both release checks verify
+generated image loaders in clean installed consumers after moving the module
+and bundle together and removing source TOML/images. TypeScript deployments
+must copy the bundle next to the compiled module. See [images and Box](vision.md).

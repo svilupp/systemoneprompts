@@ -1,3 +1,4 @@
+import { isBoxCoordinates } from "../answers.js";
 import { diagnostic, errorsOf, SystemOnePromptsError } from "../definition/diagnostics.js";
 import { isPlainObject } from "../json.js";
 import type { Questions, SystemOneResult } from "../native.js";
@@ -110,7 +111,7 @@ function resolveBoolean(
       diagnostic(
         "error",
         "non-noul-runtime",
-        `reference \`${ref}\` is not a Noul answer; wrap Choice/Score in a predicate`,
+        `reference \`${ref}\` is not a Noul answer; wrap Choice/Score/Box in a predicate`,
       ),
     );
   }
@@ -135,6 +136,7 @@ function hasValueChecks(factor: Extract<FactorDef, { kind: "predicate" }>): bool
 export function isKnownNativeAnswer(answer: unknown): boolean {
   if (!isPlainObject(answer)) return false;
   if (answer.missing === true) return false;
+  if (answer.type === "box" && !isBoxCoordinates(answer.box)) return false;
   if (Object.hasOwn(answer, "confidence")) {
     if (typeof answer.confidence !== "number" || !Number.isFinite(answer.confidence)) return false;
     return answer.confidence !== 0;

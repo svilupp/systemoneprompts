@@ -4,7 +4,7 @@ import { locate, type SourceIndex } from "../definition/locate.js";
 import { isJsonValue, isPlainObject } from "../json.js";
 import type { Question, Questions } from "../native.js";
 
-export const QUESTION_TYPES = ["noul", "choice", "score"] as const;
+export const QUESTION_TYPES = ["noul", "choice", "score", "box"] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
 const MAX_CHOICE_LABELS = 255;
@@ -100,14 +100,14 @@ function validateQuestion(
   }
 
   const type = value.type;
-  if (type !== "noul" && type !== "choice" && type !== "score") {
+  if (type !== "noul" && type !== "choice" && type !== "score" && type !== "box") {
     diagnostics.push(
       diagnostic(
         "error",
         "invalid-question-type",
         `question \`${id}\` has ${type == null ? "missing" : `invalid`} type ${type == null ? "" : `\`${String(type)}\``}`.trim(),
         loc,
-        'type must be "noul", "choice", or "score"',
+        'type must be "noul", "choice", "score", or "box"',
       ),
     );
     return { diagnostics };
@@ -125,6 +125,24 @@ function validateQuestion(
     return { diagnostics };
   }
 
+  if (type === "box") {
+    if (Object.hasOwn(value, "criteria")) {
+      diagnostics.push(
+        diagnostic("error", "box-criteria", `Box \`${id}\` does not accept criteria`, loc),
+      );
+      return { diagnostics };
+    }
+    return {
+      question: {
+        type: "box",
+        ...(value.instructions !== undefined
+          ? { instructions: value.instructions as Question["instructions"] }
+          : {}),
+      },
+      info: { id, type: "box" },
+      diagnostics,
+    };
+  }
   if (type === "noul") {
     return validateNoul(id, value, loc, diagnostics);
   }

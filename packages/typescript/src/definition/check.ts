@@ -1,9 +1,11 @@
+import { assetReferences } from "../assets.js";
 import { topoSortFactors } from "../factors/graph.js";
 import { validatePrimitiveRefs } from "../factors/schema.js";
 import { lintBackticks } from "../questions/references.js";
 import { questionInfos } from "../questions/schema.js";
 import { checkRequirementConflicts } from "../state/requirements.js";
 import type { Diagnostic } from "./diagnostics.js";
+import { diagnostic } from "./diagnostics.js";
 import { locate } from "./locate.js";
 import type { Definition } from "./schema.js";
 
@@ -17,6 +19,27 @@ export function checkDefinition(def: Definition): Diagnostic[] {
   const diagnostics: Diagnostic[] = [...def.diagnostics];
 
   diagnostics.push(...checkRequirementConflicts(def.requires, index));
+
+  for (const [questionId, question] of Object.entries(def.questions)) {
+    for (const field of ["instructions", "criteria"] as const) {
+      for (const id of assetReferences(question[field])) {
+        if (Object.hasOwn(def.assets, id)) continue;
+        const path = ["questions", questionId, field];
+        const location =
+          index.keyPaths?.get(JSON.stringify(path)) ?? locate(index, { table: path });
+        diagnostics.push(
+          diagnostic(
+            "error",
+            "asset-unknown-ref",
+            `unknown asset \`${id}\` in question reference`,
+            location.line === undefined
+              ? locate(index, { table: ["questions", questionId] })
+              : location,
+          ),
+        );
+      }
+    }
+  }
 
   const infos = questionInfos(def.questions);
   const factorIds = new Set(Object.keys(def.factors));

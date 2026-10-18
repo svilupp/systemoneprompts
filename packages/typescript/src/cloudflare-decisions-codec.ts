@@ -1,3 +1,4 @@
+import { assetReferences } from "./assets.js";
 import { indexSource } from "./definition/locate.js";
 import { canonicalJson, isJsonValue, isPlainObject } from "./json.js";
 import type { Questions, SystemOneResult } from "./native.js";
@@ -77,6 +78,8 @@ export function encodeDecisionsRequest(state: unknown, questions: Questions, mod
   const checked = validateQuestions(questions, indexSource(""));
   const errors = checked.diagnostics.filter((d) => d.severity === "error");
   if (errors.length) incompatible(errors[0]!.code, errors.map((d) => d.message).join("; "));
+  if (assetReferences(state).size || assetReferences(questions).size)
+    incompatible("images-compatibility", "image references require native TypeSafe");
   const ids = Object.keys(questions);
   if (ids.length > 64)
     incompatible("cloudflare-question-limit", "at most 64 questions are supported");
@@ -86,6 +89,7 @@ export function encodeDecisionsRequest(state: unknown, questions: Questions, mod
     (typeof value === "object" && Object.keys(value).length === 0);
   const wire = ids.map((id, i) => {
     const question = checked.questions[id]!;
+    if (question.type === "box") incompatible("cloudflare-box", "Box is unsupported by Cloudflare");
     if (question.type === "choice" && Object.keys(question.criteria).length < 2)
       incompatible("cloudflare-choice-min-options", `question ${id} needs at least two options`);
     if (question.type === "score" && question.criteria.length > 10)
@@ -150,6 +154,7 @@ export function validateNormalizedDecisionsResult<Q extends Questions>(
     if (!Object.hasOwn(answers, id)) invalid();
     const answer = answers[id];
     if (!isPlainObject(answer) || answer.type !== question.type) invalid();
+    if (question.type === "box") incompatible("cloudflare-box", "Box is unsupported by Cloudflare");
     if (question.type === "noul") {
       if (!probability(answer.noul)) invalid();
       continue;

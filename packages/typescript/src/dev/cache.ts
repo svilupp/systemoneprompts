@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
-import { isAnswerForQuestion, isAnswerShape } from "../answers.js";
+import { isAnswerForQuestion, isAnswerShape, isVisionResponse } from "../answers.js";
+import { hasVisionFeatures, validateVisionRequest } from "../assets.js";
 import { TypeSafeClientError } from "../client.js";
 import { canonicalJson, isPlainObject } from "../json.js";
 import type { Fetch } from "../native.js";
@@ -68,7 +69,7 @@ export function createCachingFetch(opts: CachingFetchOptions = {}): CachingFetch
   const stats: CacheStats = { requests: 0, hits: 0, misses: 0, keys: [] };
 
   const cachingFetch: CachingFetch = (async (input: string, init?: RequestInit) => {
-    if (!isSystemOneRequest(input, init) || typeof init?.body !== "string") {
+    if ((init?.method ?? "GET").toUpperCase() !== "POST" || typeof init?.body !== "string") {
       return baseFetch(input, init);
     }
     let payload: Record<string, unknown>;
@@ -82,6 +83,96 @@ export function createCachingFetch(opts: CachingFetchOptions = {}): CachingFetch
     if (!isPlainObject(payload.questions)) {
       return baseFetch(input, init);
     }
+
+    if (isPlainObject(payload.assets) && Object.keys(payload.assets).length === 0)
+      delete payload.assets;
+    if (hasVisionFeatures({ questions: payload.questions, assets: payload.assets })) {
+      try {
+        if (
+          !new URL(input).pathname.endsWith(SYSTEMONE_PATH) ||
+          (baseFetch as { systemonepromptsCloudflare?: unknown }).systemonepromptsCloudflare ===
+            true
+        )
+          throw new Error("image cache supports native TypeSafe only");
+        validateVisionRequest(
+          {
+            ...payload,
+            state: payload.state,
+            questions: payload.questions,
+            assets: payload.assets,
+          },
+          init.headers,
+        );
+      } catch (error) {
+        throw new TypeSafeClientError(error instanceof Error ? error.message : String(error));
+      }
+      const ids = Object.keys(payload.questions);
+      const descriptor = {
+        version: 1,
+        endpoint: input,
+        provider: "typesafe",
+        model: payload.model,
+        state: payload.state,
+        questions: payload.questions,
+        assets: payload.assets ?? {},
+      };
+      const key = createHash("sha256").update(canonicalJson(descriptor)).digest("hex");
+      const imageDir = join(dir, "images", "v1");
+      const path = entryPath(imageDir, key);
+      const valid = (value: unknown): value is Record<string, unknown> =>
+        isImageEntry(value, key) &&
+        isVisionResponse(value, payload.questions as Record<string, unknown>);
+      let cached: unknown;
+      if (mode !== "refresh")
+        try {
+          cached = JSON.parse(await readFile(path, "utf8"));
+        } catch {
+          /* miss */
+        }
+      stats.requests += 1;
+      stats.keys = ids;
+      if (valid(cached)) {
+        stats.hits += ids.length;
+        return jsonResponse({
+          model: cached.model,
+          answers: cached.answers,
+          usage: { input_tokens: 0, output_tokens: 0 },
+        });
+      }
+      stats.misses += ids.length;
+      if (mode === "read-only") throw new CacheMissError(ids);
+      const response = await baseFetch(input, init);
+      if (!response.ok) return response;
+      let result: unknown;
+      try {
+        result = await response.clone().json();
+      } catch {
+        return response;
+      }
+      if (isPlainObject(result)) {
+        const record = {
+          version: 1,
+          key,
+          model: result.model,
+          ...(typeof payload.model === "string" ? { requestedModel: payload.model } : {}),
+          answers: result.answers,
+          usage: result.usage,
+        };
+        if (valid(record)) {
+          await mkdir(dirname(path), { recursive: true });
+          const temporary = `${path}.${randomUUID()}.tmp`;
+          try {
+            await writeFile(temporary, `${canonicalJson(record)}\n`);
+            await rename(temporary, path);
+          } finally {
+            await rm(temporary, { force: true });
+          }
+        }
+      }
+      return response;
+    }
+
+    if (!isSystemOneRequest(input, init)) return baseFetch(input, init);
 
     const model = typeof payload.model === "string" ? payload.model : undefined;
     const state = payload.state;
@@ -222,22 +313,39 @@ export function questionHash(parts: {
   return createHash("sha256").update(canonicalJson(payload)).digest("hex");
 }
 
+/** Disk counts are records: one per text question or whole image request. */
 export async function cacheStats(dir = defaultCacheDir()): Promise<{
   entries: number;
   models: Record<string, number>;
   drift: Array<{ requested?: string; reported: string; count: number }>;
 }> {
-  const files = await listEntries(dir);
+  const files = [...(await listEntries(dir)), ...(await listEntries(join(dir, "images", "v1")))];
   const models = dictionary<number>();
   const driftMap = new Map<string, { requested?: string; reported: string; count: number }>();
   let entries = 0;
   for (const file of files) {
     const hash = basename(file, ".json");
-    const raw = await readEntryFile(file, hash);
+    let raw = await readEntryFile(file, hash);
+    if (!raw && dirname(dirname(file)) === join(dir, "images", "v1")) {
+      try {
+        const value: unknown = JSON.parse(await readFile(file, "utf8"));
+        if (isImageEntry(value, hash))
+          raw = {
+            hash,
+            reportedModel: value.model as string,
+            requestedModel: value.requestedModel as string | undefined,
+            answer: value.answers,
+          };
+      } catch {
+        /* skip malformed records */
+      }
+    }
     if (!raw) continue;
     entries += 1;
     const reported = raw.reportedModel;
     models[reported] = (models[reported] ?? 0) + 1;
+    if (dirname(dirname(file)) === join(dir, "images", "v1") && raw.requestedModel === undefined)
+      continue;
     const key = JSON.stringify([raw.requestedModel ?? null, reported]);
     const existing = driftMap.get(key) ?? { requested: raw.requestedModel, reported, count: 0 };
     existing.count += 1;
@@ -359,5 +467,16 @@ function isCachedEntry(value: unknown, hash: string, question?: unknown): value 
     Object.hasOwn(value, "answer") &&
     isAnswerShape(value.answer) &&
     (question === undefined || isAnswerForQuestion(question, value.answer))
+  );
+}
+
+function isImageEntry(value: unknown, key: string): value is Record<string, unknown> {
+  return (
+    /^[0-9a-f]{64}$/.test(key) &&
+    isPlainObject(value) &&
+    value.version === 1 &&
+    value.key === key &&
+    (!Object.hasOwn(value, "requestedModel") || typeof value.requestedModel === "string") &&
+    isVisionResponse(value)
   );
 }

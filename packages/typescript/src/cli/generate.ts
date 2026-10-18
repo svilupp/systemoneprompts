@@ -1,10 +1,11 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { checkDefinition } from "../definition/check.js";
 import { hasErrors, SystemOnePromptsError } from "../definition/diagnostics.js";
 import { parseDefinition } from "../definition/parse.js";
 import type { Definition } from "../definition/schema.js";
-import { emitGenerated } from "../generate/generate.js";
+import { generateFile } from "../generate/generate.js";
 import { fail, printDiagnostics, readText } from "./io.js";
 
 export async function runGenerate(
@@ -55,8 +56,15 @@ export async function runGenerate(
       failed += 1;
       continue;
     }
-    const generated = emitGenerated(def, file);
     const outPath = outputPath(file, options.out);
+    let generated: string;
+    try {
+      generated = await generateFile(def, outPath, { check: options.check });
+    } catch (error) {
+      failed += 1;
+      console.error(`error: ${file}: ${error instanceof Error ? error.message : String(error)}`);
+      continue;
+    }
     if (options.check) {
       let existing: string | undefined;
       try {
@@ -80,7 +88,13 @@ export async function runGenerate(
     }
     try {
       await mkdir(dirname(outPath), { recursive: true });
-      await writeFile(outPath, generated);
+      const temporary = `${outPath}.${randomUUID()}.tmp`;
+      try {
+        await writeFile(temporary, generated);
+        await rename(temporary, outPath);
+      } finally {
+        await rm(temporary, { force: true });
+      }
       console.log(outPath);
     } catch (error) {
       failed += 1;

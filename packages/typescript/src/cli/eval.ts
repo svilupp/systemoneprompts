@@ -1,11 +1,14 @@
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { validateAssetReferences, validateAssets } from "../assets.js";
 import type { Definition } from "../definition/schema.js";
 import { type AnswersFor, createFactorEvaluator, NOUL_CUTOFF } from "../factors/evaluate.js";
 import { COMPARATOR_KEYS, type ComparatorKey, type FactorTable } from "../factors/schema.js";
+import { loadAssets } from "../file-assets.js";
 import { isJsonValue, isPlainObject } from "../json.js";
+import type { Assets } from "../native.js";
 import { createStateAssert, type StateAssert } from "../state/requirements.js";
-import { createClient, fail, loadChecked, readText } from "./io.js";
+import { createClient, fail, loadChecked, parseJson, readText } from "./io.js";
 
 /**
  * One line of `cases.jsonl`. `labels` are expected answers keyed by question id
@@ -14,6 +17,7 @@ import { createClient, fail, loadChecked, readText } from "./io.js";
 export interface EvalCase {
   id?: string;
   state: unknown;
+  assets?: Assets;
   labels?: Record<string, unknown>;
   factors?: Record<string, boolean>;
 }
@@ -43,6 +47,8 @@ export async function runEval(
   file: string | undefined,
   options: {
     cases?: string;
+    assets?: string;
+    experimentalImages?: boolean;
     cache?: boolean;
     sweep?: string;
     report?: string;
@@ -60,12 +66,17 @@ export async function runEval(
   if (
     options.report &&
     (resolve(options.report) === resolve(file) ||
-      resolve(options.report) === resolve(options.cases))
+      resolve(options.report) === resolve(options.cases) ||
+      (options.assets !== undefined && resolve(options.report) === resolve(options.assets)))
   ) {
-    fail("--report must not overwrite the definition or cases input");
+    fail("--report must not overwrite the definition, cases, or assets input");
   }
   const def = await loadChecked(file);
   const cases = parseJsonl(await readText(options.cases), options.cases, def);
+  const sharedAssets = options.assets
+    ? parseJson(await readText(options.assets), options.assets)
+    : {};
+  validateAssets(sharedAssets);
   const evaluate = createFactorEvaluator(def.factorDefinitions);
   const assertState: StateAssert = createStateAssert(def.requires);
 
@@ -73,6 +84,10 @@ export async function runEval(
   for (const [index, testCase] of cases.entries()) {
     try {
       assertState(testCase.state);
+      testCase.assets = await loadAssets(def, {
+        runtimeAssets: { ...sharedAssets, ...testCase.assets },
+      });
+      validateAssetReferences(testCase.state, def.questions, testCase.assets);
     } catch (error) {
       const id = testCase.id ?? String(index);
       stateErrors.push(`case ${id}: ${error instanceof Error ? error.message : String(error)}`);
@@ -108,6 +123,7 @@ export async function runEval(
     try {
       const response = await client.systemOne({
         state: testCase.state,
+        ...(Object.keys(testCase.assets ?? {}).length ? { assets: testCase.assets } : {}),
         questions: def.questions,
         model,
       });
@@ -225,6 +241,14 @@ function validateCase(value: unknown, def: Definition): string[] {
     errors.push("`state` must be null, a string, object, or array");
   }
 
+  if (Object.hasOwn(value, "assets")) {
+    try {
+      validateAssets(value.assets);
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+
   if (Object.hasOwn(value, "labels")) {
     if (!isPlainObject(value.labels)) {
       errors.push("`labels` must be an object");
@@ -241,6 +265,8 @@ function validateCase(value: unknown, def: Definition): string[] {
           } else if (!Object.hasOwn(question.criteria, expected)) {
             errors.push(`labels.${id}: unknown Choice label \`${expected}\``);
           }
+        } else if (question.type === "box") {
+          errors.push(`labels.${id}: Box scalar labels are unsupported`);
         } else if (question.type === "noul") {
           if (typeof expected !== "boolean") {
             errors.push(`labels.${id}: expected a Noul boolean`);

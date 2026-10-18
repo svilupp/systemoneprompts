@@ -14,6 +14,8 @@ from .factors import COMPARATOR_KEYS, NOUL_CUTOFF, create_factor_evaluator
 from .json_values import is_json_value, is_plain_object, js_string, parse_json
 from .requirements import create_state_assert
 
+_ASSETS_UNSET = object()
+
 
 class EvalCaseError(SystemOnePromptsError):
     """Invalid JSONL cases. `summary` mirrors the TypeScript CLI wording for each stage:
@@ -64,6 +66,14 @@ def validate_case(value: Any, definition: Definition) -> list[str]:
         errors.append("each case needs a `state` field")
     elif not _is_eval_state(value["state"]):
         errors.append("`state` must be null, a string, object, or array")
+    if "assets" in value:
+        from .assets import validate_assets
+        try:
+            if type(value["assets"]) is not dict:
+                raise SystemOnePromptsError(diagnostic("error", "image-assets", "assets must be an image reference map"))
+            validate_assets(value["assets"])
+        except SystemOnePromptsError as error:
+            errors.append(str(error))
     if "labels" in value:
         labels = value["labels"]
         if not is_plain_object(labels):
@@ -84,7 +94,9 @@ def validate_case(value: Any, definition: Definition) -> list[str]:
                 elif question_type == "noul":
                     if type(expected) is not bool:
                         errors.append(f"labels.{question_id}: expected a Noul boolean")
-                elif not _is_score_label(expected, question):
+                elif question_type == "box":
+                    errors.append(f"labels.{question_id}: Box scalar labels are unsupported")
+                elif question_type == "score" and not _is_score_label(expected, question):
                     length = len(question.get("criteria") or [])
                     errors.append(
                         f"labels.{question_id}: expected a Score integer from 0 through {max(length - 1, 0)}"
@@ -263,7 +275,7 @@ def protect_report_path(report: str, *inputs: str) -> None:
                 diagnostic(
                     "error",
                     "eval-report",
-                    "--report must not overwrite the definition or cases input",
+                    "--report must not overwrite the definition, cases, or assets input",
                 )
             )
 
@@ -274,6 +286,13 @@ def preflight_eval(
     sweep: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate eval cases and sweep truth samples before any provider call."""
+    shape_errors = [
+        f"case {index}: {message}"
+        for index, case in enumerate(cases)
+        for message in validate_case(case, definition)
+    ]
+    if shape_errors:
+        raise EvalCaseError(shape_errors)
     assert_state = create_state_assert(definition.requires)
     state_errors: list[str] = []
     for index, test_case in enumerate(cases):
@@ -295,6 +314,30 @@ def preflight_eval(
                 f"--sweep: no usable truth samples for factor `{sweep['id']}`",
             )
         )
+
+
+def prepare_eval_assets(
+    definition: Definition,
+    cases: Sequence[Mapping[str, Any]],
+    assets: Any = _ASSETS_UNSET,
+    *,
+    prepared_assets: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Validate shared bindings before merging per-case runtime overrides."""
+    from .assets import load_definition_assets, prepare_assets, validate_assets
+
+    shared = {} if assets is _ASSETS_UNSET else assets
+    if type(shared) is not dict:
+        raise SystemOnePromptsError(diagnostic("error", "image-assets", "assets must be an image reference map"))
+    shared = validate_assets(shared)
+    prepared = prepare_assets(definition) if prepared_assets is None else prepared_assets
+    bound_cases = []
+    for case in cases:
+        local = validate_assets(case["assets"]) if "assets" in case else {}
+        bound = load_definition_assets(definition, {**shared, **local}, prepared=prepared)
+        validate_assets(bound, questions=definition.questions, state=case["state"])
+        bound_cases.append(bound)
+    return bound_cases
 
 
 def _cache_payload(stats: Any) -> Any:
@@ -319,8 +362,12 @@ async def execute_eval(
     sweep: Mapping[str, Any] | None = None,
     cache_stats: Callable[[], Any] | None = None,
     file: str = "definition.toml",
+    assets: Any = _ASSETS_UNSET,
+    prepared_assets: dict[str, Any] | None = None,
+    headers: Any = None,
 ) -> dict[str, Any]:
     preflight_eval(definition, cases, sweep)
+    case_assets = prepare_eval_assets(definition, cases, assets, prepared_assets=prepared_assets)
     evaluate = create_factor_evaluator(definition.factor_definitions)
 
     question_stats: dict[str, dict[str, Any]] = {}
@@ -333,7 +380,9 @@ async def execute_eval(
         case_id = str(test_case.get("id", index))
         try:
             response = await client.system_one(
-                state=test_case["state"], questions=definition.questions, model=model
+                state=test_case["state"], questions=definition.questions, model=model,
+                **({"assets": case_assets[index]} if case_assets[index] else {}),
+                **({"headers": headers} if headers else {})
             )
             answers = dict(response.get("answers") or {})
             for question_id, expected in (test_case.get("labels") or {}).items():

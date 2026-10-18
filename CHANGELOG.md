@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 - 2026-10-18
+
+### Added
+
+- Native TypeSafe JSON/base64 image assets and Jev 1.14 Box questions, with
+  explicit experimental opt-in and local provider compatibility checks.
+- Static TOML assets, declared runtime slots, content-addressed generated bundles,
+  and whole-request image caching shared by TypeScript and Python.
+- Presence plus Box examples, an opt-in live vision lane, and separate offline
+  presence/IoU scoring for held-out localization data.
+
 ## 0.2.0 - 2026-10-07
 
 ### Added

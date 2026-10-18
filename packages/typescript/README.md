@@ -432,3 +432,30 @@ python3 tools/run-live-providers.py --live --language typescript --report /tmp/t
 The matrix checks all three answer types, environment and explicit constructor
 configuration, live CLI run/eval, cached repeats, and cache stats/clear. It writes
 passes, failures, and credential skips to JSON. See [live checks](live/README.md) for the model list and setup.
+
+
+## Native images and Box
+
+Native TypeSafe accepts PNG/JPEG image assets with explicit experimental opt-in.
+Pin `model = "jev-1.14.0"` for `type = "box"`; `jev-latest` still selects 1.13
+as of 2026-10-16. Images work with 1.13 and 1.14. Other provider routes reject
+images and Box locally.
+
+```sh
+systemoneprompts run examples/13-native-images/rectangle.toml --state examples/13-native-images/state.json --assets examples/13-native-images/assets.json --experimental-images --cache --json
+```
+
+Declare static files with `[assets.reference] path = "./image.jpg"` or runtime
+slots with `[assets.photo] runtime = true`. Reference them as `<asset:id>` in
+question strings or state. Static paths resolve from the definition directory.
+Generation copies static bytes into a companion `.assets` directory; deploy it
+next to the generated module and load assets explicitly before requests.
+
+Box returns normalized `top`, `bottom`, `left`, `right` edges and numeric or null
+confidence. Pair it with Noul presence: an absent target still receives a box.
+A `known = true` confidence factor handles null as unknown. Scalar Box eval
+labels are rejected; localization needs held-out presence and IoU scoring.
+
+See [example 13](examples/13-native-images/README.md) and the repository
+[image and Box guide](../../docs/vision.md) for runtime binding, bundle deployment,
+limits, cache behavior, and the explicit live vision lane.

@@ -57,6 +57,7 @@ class CachedCloudflareDecisionsClient:
         *,
         state: Any,
         questions: Any,
+        assets: Any = None,
         model: str | None = None,
         timeout: Any = None,
         headers: Any = None,
@@ -65,6 +66,8 @@ class CachedCloudflareDecisionsClient:
             type(timeout) is bool or not math.isfinite(timeout) or timeout <= 0
         ):
             _incompatible("cloudflare-options", "timeout must be positive")
+        if assets is not None:
+            _incompatible("images-compatibility", "images require native TypeSafe")
         actual_model = _model(self._network.default_model if model is None else model)
         _encode(state, questions, actual_model)
         snapshot = copy.deepcopy({"state": state, "questions": questions, "model": actual_model})

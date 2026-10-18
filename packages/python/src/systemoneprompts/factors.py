@@ -431,7 +431,7 @@ def validate_primitive_refs(
             question = questions.get(ref)
             if question is not None and question.get("type") != "noul":
                 question_type = str(question.get("type"))
-                wrapper = 'choice = "…"' if question_type == "choice" else "score = { gte = … }"
+                wrapper = 'choice = "…"' if question_type == "choice" else "known = true" if question_type == "box" else "score = { gte = … }"
                 diagnostics.append(
                     diagnostic(
                         "error",
@@ -522,6 +522,9 @@ def finite_float(value: Any) -> float | None:
 def is_known_native_answer(answer: Any) -> bool:
     if not is_plain_object(answer) or answer.get("missing") is True:
         return False
+    if answer.get("type") == "box":
+        from .answers import is_answer_shape
+        return is_answer_shape(answer) and answer.get("box") is not None and finite_float(answer.get("confidence")) not in (None, 0)
     if "confidence" in answer:
         confidence = finite_float(answer["confidence"])
         return confidence is not None and confidence != 0

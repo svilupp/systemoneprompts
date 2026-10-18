@@ -73,6 +73,53 @@ with tempfile.TemporaryDirectory() as directory:
 """
 
 
+IMAGE_SMOKE = '''
+import base64
+import importlib.util
+import io
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from PIL import Image
+
+with tempfile.TemporaryDirectory() as directory:
+    root = Path(directory)
+    source = root / "source"
+    source.mkdir()
+    static = source / "reference.jpg"
+    Image.new("RGB", (320, 320), "red").save(static)
+    static_bytes = static.read_bytes()
+    runtime_image = io.BytesIO()
+    Image.new("RGB", (320, 320), "blue").save(runtime_image, format="PNG")
+    runtime = {"type": "image", "format": "png", "data_base64": base64.b64encode(runtime_image.getvalue()).decode("ascii")}
+    definition = source / "images.toml"
+    definition.write_text(
+        '[assets.reference]\\npath = "reference.jpg"\\n'
+        '[assets.photo]\\nruntime = true\\n'
+        '[questions.compare]\\ntype = "noul"\\ninstructions = "Compare <asset:reference> and <asset:photo>."\\n',
+        encoding="utf-8",
+    )
+    for command in (("check",), ("generate",), ("generate", "--check")):
+        subprocess.run([sys.executable, "-m", "systemoneprompts", command[0], str(definition), *command[1:]], cwd=root, check=True)
+    deployment = root / "deployment"
+    deployment.mkdir()
+    generated = deployment / "images_generated.py"
+    shutil.move(source / generated.name, generated)
+    shutil.move(source / "images_generated.assets", deployment / "images_generated.assets")
+    shutil.rmtree(source)
+    spec = importlib.util.spec_from_file_location("image_consumer", generated)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assets = module.load_assets({"photo": runtime})
+    assert set(assets) == {"<asset:reference>", "<asset:photo>"}
+    assert assets["<asset:reference>"]["type"] == "image"
+    assert assets["<asset:reference>"]["format"] in ("jpg", "jpeg")
+    assert base64.b64decode(assets["<asset:reference>"]["data_base64"]) == static_bytes
+    assert assets["<asset:photo>"] == runtime
+'''
+
 
 def _assert_archive_contents(wheel: Path, source_dist: Path) -> None:
     with zipfile.ZipFile(wheel) as archive:
@@ -134,6 +181,7 @@ def main() -> int:
                 raise SystemExit("installed package is missing py.typed")
             checks = [
                 [str(python), "-c", PROVIDER_SMOKE],
+                [str(python), "-c", IMAGE_SMOKE],
                 [str(python), "-c", "import systemoneprompts; print(systemoneprompts.__file__)"],
                 [str(python), "-c", "from systemoneprompts.client import TypeSafeClient; print(TypeSafeClient.__name__)"],
                 [str(python), "-m", "systemoneprompts", "check", str(definition)],

@@ -205,7 +205,7 @@ describe("systemoneprompts eval", () => {
     );
     expect(result.exitCode).toBe(1);
     expect(calls).toBe(0);
-    expect(result.stderr).toContain("must not overwrite the definition or cases input");
+    expect(result.stderr).toContain("must not overwrite the definition, cases, or assets input");
     expect(await readFile(cases, "utf8")).toBe(original);
 
     const definition = fixturePath("golden/triage.toml");

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { join } from "node:path";
+import { hasVisionFeatures } from "../assets.js";
 import type { SystemOneCallOptions } from "../client.js";
 import type { Fetch, Questions, SystemOneRequest, SystemOneResult } from "../native.js";
 import type { OpenAIDecisionsClient } from "../openai-decisions.js";
@@ -63,6 +64,8 @@ export function createCachedOpenAIDecisionsClient(options: {
     ): Promise<SystemOneResult<Q>> {
       if (call.timeout !== undefined && (!Number.isFinite(call.timeout) || call.timeout <= 0))
         incompatible("openai-options", "timeout must be positive");
+      if (hasVisionFeatures(request))
+        incompatible("openai-vision", "image assets and Box questions are unsupported by openai");
       const model = request.model === undefined ? network.defaultModel : request.model;
       encodeDecisionsRequest(request.state, request.questions, model);
       const snapshot = structuredClone({
